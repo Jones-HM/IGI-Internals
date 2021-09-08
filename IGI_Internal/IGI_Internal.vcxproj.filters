@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="AutoMsgBox.cpp" />
+    <ClCompile Include="Console.cpp" />
+    <ClCompile Include="Fibers.cpp" />
+    <ClCompile Include="Log.cpp" />
+    <ClCompile Include="Main.cpp" />
+    <ClCompile Include="GTConsole.c" />
+    <ClCompile Include="GTLibc.c" />
+    <ClCompile Include="ThreadsEx.cpp" />
+    <ClCompile Include="Utility.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AutoMsgBox.hpp" />
+    <ClInclude Include="Console.h" />
+    <ClInclude Include="dllmain.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="General.h" />
+    <ClInclude Include="GTConsole.h" />
+    <ClInclude Include="GTLibc.h" />
+    <ClInclude Include="Log.h" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="IGINativeCaller.h">
+      <Filter>Natives</Filter>
+    </ClInclude>
+    <ClInclude Include="IGINatives.h">
+      <Filter>Natives</Filter>
+    </ClInclude>
+    <ClInclude Include="IGINativeHelper.h">
+      <Filter>Natives</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Natives">
+      <UniqueIdentifier>{c3a87330-69df-49d8-aa61-c9cd84643307}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

@@ -177,8 +177,9 @@
     <ClInclude Include="General.h" />
     <ClInclude Include="GTConsole.h" />
     <ClInclude Include="GTLibc.h" />
+    <ClInclude Include="IGINativeHelper.h" />
     <ClInclude Include="IGINatives.h" />
-    <ClInclude Include="IGI_NativeCaller.h" />
+    <ClInclude Include="IGINativeCaller.h" />
     <ClInclude Include="Log.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>

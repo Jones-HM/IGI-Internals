@@ -5,23 +5,26 @@
 #pragma comment(lib, "winmm.lib")
 #define DLL_EXPORT __declspec( dllexport )
 
-#include "GTLibc.c"
-#include "dllmain.h"
-#include "AutoMsgBox.cpp"
-#include "ThreadsEx.cpp"
-#include "General.h"
 #include "Log.h"
-#include "hook.c"
-
-#define IGI_NATIVES_HELPER
-#include "IGI_NativeCaller.h"
-static IGINativeCaller* g_IGINativeCaller;
-
 #ifdef _DEBUG
 #define LOG_CONSOLE LOG_INFO
 #elif !defined(_DEBUG)
 #define LOG_CONSOLE LOG_DEBUG
 #endif // DEBUG
+
+#include "GTLibc.c"
+#include "dllmain.h"
+#include "AutoMsgBox.cpp"
+#include "ThreadsEx.cpp"
+#include "General.h"
+#include "hook.c"
+
+#include "IGINativeCaller.h"
+#include "IGINativeHelper.h"
+using namespace NATIVE_HASH;
+using namespace NATIVE_HELPER;
+
+//auto g_IGINativeCaller =  IGINativeCaller::getInstance();
 
 typedef int(__cdecl* IGI_StatusTimer)();
 typedef int(__cdecl* IGI_ParseWeaponConfig)(int index, char* cfgFile);
@@ -99,8 +102,8 @@ IGI_DisableInput DisableInput;
 IGI_EnableInput EnableInput;
 IGI_TaskTypeSet TaskTypeSet;
 IGI_Script_SetSymbolContext Script_SetSymbolContext;
-IGI_CreateConfig CreateConfig;
-IGI_ParseConfig ParseConfig;
+IGI_CreateConfig CreateConfig, CreateConfigOut = nullptr;
+IGI_ParseConfig ParseConfig, ParseConfigOut = nullptr;
 IGI_LoadResource LoadResourceFile;
 IGI_UnLoadResource UnLoadResource;
 IGI_RestartLevel RestartLevel;
@@ -133,6 +136,21 @@ void DllCleanup() {
 	}
 #endif
 }
+
+int __cdecl ParseConfigDetour(char* qFile) {
+	LOG_INFO("%s : qFile : %s\n", FUNC_NAME, qFile);
+	GT_ShowInfo("ParseConfigDetour : ");
+	GT_ShowInfo(qFile);
+	return ParseConfigOut(qFile);
+}
+
+int __cdecl CreateConfigDetour(char* qFile) {
+	LOG_INFO("%s : qFile : %s\n", FUNC_NAME, qFile);
+	GT_ShowInfo("CreateConfigDetour : ");
+	GT_ShowInfo(qFile);
+	return CreateConfigOut(qFile);
+}
+
 
 BOOL WINAPI  DllMain(HINSTANCE hModule, DWORD fdwReason, LPVOID lpvReserved)
 {
@@ -234,10 +252,17 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 		LOG_CONSOLE("MH_Init success : %p", mh_status);
 	}
 
-
-	if (MH_CreateHook(reinterpret_cast<void**>(LoadLevelMenu), &LevelLoadRestart, reinterpret_cast<void**>(&LoadLevelMenuOut)) == MH_OK) {
-		LOG_CONSOLE("LoadLevelMenu Createhook success %p", mh_status);
+	if (MH_CreateHook(reinterpret_cast<void**>(ParseConfig), &ParseConfigDetour, reinterpret_cast<void**>(&ParseConfigOut)) == MH_OK) {
+		LOG_CONSOLE("ParseConfig Createhook success %p", mh_status);
 	}
+
+	if (MH_CreateHook(reinterpret_cast<void**>(CreateConfig), &CreateConfigDetour, reinterpret_cast<void**>(&CreateConfigOut)) == MH_OK) {
+		LOG_CONSOLE("CreateConfig Createhook success %p", mh_status);
+	}
+
+	//if (MH_CreateHook(reinterpret_cast<void**>(LoadLevelMenu), &LevelLoadRestart, reinterpret_cast<void**>(&LoadLevelMenuOut)) == MH_OK) {
+	//	LOG_CONSOLE("LoadLevelMenu Createhook success %p", mh_status);
+	//}
 
 	//if (MH_CreateHook(reinterpret_cast<void**>(LevelLoad), &LevelLoadDetour, reinterpret_cast<void**>(&LevelLoadOut)) == MH_OK) {
 	//	std::cout << "["  << GT_GetCurrentTime() << "] %p","LevelLoad Createhook success");
@@ -254,6 +279,8 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 	//if (MH_CreateHook(reinterpret_cast<void**>(UpdateQTask), &UpdateQTaskDetour, reinterpret_cast<void**>(&UpdateQTaskOut)) == MH_OK) {
 	//	GT_ShowInfo("UpdateQTask Createhook success");
 	//}
+	
+	//IGINativeCaller::g_IGINativeCaller = new IGINativeCaller();
 
 	DllMainLoop();
 	FreeLibraryAndExitThread((HMODULE)lpThreadParameter, 0);
@@ -265,60 +292,68 @@ void DllMainLoop() {
 
 	while (!GT_IsKeyPressed(VK_END)) {
 
-		if (GT_IsKeyPressed(VK_MENU) && GT_IsKeyToggled('K')) {
-			LOG_CONSOLE("Native caller");
+		if (GT_IsKeyToggled(VK_F1)) {
+			LOG_CONSOLE("Native caller config");
 			char configFile[] = "LOCAL:config.qsc";
-			IGI_NATIVE_CONFIG_PARSE(configFile)
-		}
-
-		if (GT_IsKeyPressed(VK_MENU) && GT_IsKeyToggled('Q')) {
-			LOG_CONSOLE("Quit game main loop");
-			*(PINT)0x005c8de8 = 0;
-		}
-
-		else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('Q')) {
-			//*(PINT)0x00936274 = 0;//Disable Warnings.
-
-			HashInit('0');
-			//UpdateQTask();
-			//char menuSymbol1[] = "MenuManager_RequestScreen";
-			//RemoveSymbol((int*)0x00A43E88,(int)menuSymbol1);
-
-			char mainMenuSystem[] = "LOCAL:menusystem\\mainmenu.qsc";
-			DWORD mainMenuPtr = *(PDWORD)(*(PDWORD)0x00567c8c + 0x20);
-			MenuManager(mainMenuPtr, mainMenuSystem, '1', '1', 1);
-			HashReset();
-
-			//char buf[0x32] = { NULL };
-			//wsprintf(buf, "iVar2 is 0x%X\n", iVar2);
-			//GT_ShowInfo(buf);
-
-			//AutoMsgBox::Show("");
-			//StartLevelMain(12, true, false, '0');
-
-			//LevelStartInit(*(PINT)0x00567C8C, *(PINT)0x0057b1a2, 0, *(PINT)0x004026A9);
-			//SetFramesVar(0x1e);
-
-		}
-
-
-		else if (GT_IsKeyToggled(VK_F1)) {
-			StartLevelMain((*(int*)0x00539560) + 1, true, false, '\x1');
-			//StartLevelLbl((*(int*)0x005C8A48));
+			g_IGINativeCaller->NativeCaller<char*>((int)HASH::CONFIG_PARSE_HASH, configFile);
+			//IGI_NATIVE_CONFIG_PARSE(configFile)
 		}
 
 		else if (GT_IsKeyToggled(VK_F2)) {
-			*(PINT)0x00539560 += 1; //Game level.
-			*(PINT)0x00936274 = 0;//Disable Warnings.
-			//*(PINT)0x00936268 = 0; //Disable Errors.
-
-			HashInit('\x1');
-			UpdateQTask();
-			LevelStartInit(*(PINT)0x00567C8C, *(PINT)0x0057b1a2, 0, *(PINT)0x004026A9);
-			StartLevelLbl(*(int*)0x005C8A48);
-			SetFramesVar(0x1e);
-			HashReset();
+			LOG_CONSOLE("Native caller config");
+			char configFile[] = "LOCAL:config.qsc";
+			 //NativeCaller<char*>((int)HASH::CONFIG_CREATE_HASH, configFile);
+			IGI_NATIVE_CONFIG_CREATE(configFile)
 		}
+
+		//if (GT_IsKeyPressed(VK_MENU) && GT_IsKeyToggled('Q')) {
+		//	LOG_CONSOLE("Quit game main loop");
+		//	*(PINT)0x005c8de8 = 0;
+		//}
+
+		//else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('Q')) {
+		//	//*(PINT)0x00936274 = 0;//Disable Warnings.
+
+		//	HashInit('0');
+		//	//UpdateQTask();
+		//	//char menuSymbol1[] = "MenuManager_RequestScreen";
+		//	//RemoveSymbol((int*)0x00A43E88,(int)menuSymbol1);
+
+		//	char mainMenuSystem[] = "LOCAL:menusystem\\mainmenu.qsc";
+		//	DWORD mainMenuPtr = *(PDWORD)(*(PDWORD)0x00567c8c + 0x20);
+		//	MenuManager(mainMenuPtr, mainMenuSystem, '1', '1', 1);
+		//	HashReset();
+
+		//	//char buf[0x32] = { NULL };
+		//	//wsprintf(buf, "iVar2 is 0x%X\n", iVar2);
+		//	//GT_ShowInfo(buf);
+
+		//	//AutoMsgBox::Show("");
+		//	//StartLevelMain(12, true, false, '0');
+
+		//	//LevelStartInit(*(PINT)0x00567C8C, *(PINT)0x0057b1a2, 0, *(PINT)0x004026A9);
+		//	//SetFramesVar(0x1e);
+
+		//}
+
+
+		//else if (GT_IsKeyToggled(VK_F1)) {
+		//	StartLevelMain((*(int*)0x00539560) + 1, true, false, '\x1');
+		//	//StartLevelLbl((*(int*)0x005C8A48));
+		//}
+
+		//else if (GT_IsKeyToggled(VK_F2)) {
+		//	*(PINT)0x00539560 += 1; //Game level.
+		//	*(PINT)0x00936274 = 0;//Disable Warnings.
+		//	//*(PINT)0x00936268 = 0; //Disable Errors.
+
+		//	HashInit('\x1');
+		//	UpdateQTask();
+		//	LevelStartInit(*(PINT)0x00567C8C, *(PINT)0x0057b1a2, 0, *(PINT)0x004026A9);
+		//	StartLevelLbl(*(int*)0x005C8A48);
+		//	SetFramesVar(0x1e);
+		//	HashReset();
+		//}
 
 
 		else if (GT_IsKeyToggled(VK_HOME)) {
@@ -337,14 +372,14 @@ void DllMainLoop() {
 		}
 
 		else if (GT_IsKeyToggled(VK_PRIOR)) {
-			if (MH_EnableHook(reinterpret_cast<void**>(LoadLevelMenu)) != MH_OK)
+			if (MH_EnableHook(MH_ALL_HOOKS) != MH_OK)
 				LOG_ERROR("Error enabling hook");
 			else
 				LOG_WARNING("[+]Hooks enabled");
 		}
 
 		else if (GT_IsKeyToggled(VK_NEXT)) {
-			if (MH_DisableHook(reinterpret_cast<void**>(LoadLevelMenu)) != MH_OK)
+			if (MH_DisableHook(MH_ALL_HOOKS) != MH_OK)
 				LOG_ERROR("Error disabling hook");
 			else
 				LOG_WARNING("[-]Hooks disabled");
@@ -378,87 +413,81 @@ void DllMainLoop() {
 
 		}
 
-		else if (GT_IsKeyToggled(VK_F10)) {
+		//else if (GT_IsKeyToggled(VK_F10)) {
 
-			//LevelLoadRestart();
-			LevelStartPatch();
-			//PVOID mainFiber = ConvertThreadToFiber(NULL);
-			//LOG_CONSOLE("mainFiber : %p", mainFiber);
-			//PVOID createdFiber = CreateFiber(NULL, (LPFIBER_START_ROUTINE)LevelLoadRestart, NULL);
-			//SwitchToFiber(createdFiber);
-			//LOG_CONSOLE("createdFiber : %p", createdFiber);
+		//	//LevelLoadRestart();
+		//	LevelStartPatch();
+		//	//PVOID mainFiber = ConvertThreadToFiber(NULL);
+		//	//LOG_CONSOLE("mainFiber : %p", mainFiber);
+		//	//PVOID createdFiber = CreateFiber(NULL, (LPFIBER_START_ROUTINE)LevelLoadRestart, NULL);
+		//	//SwitchToFiber(createdFiber);
+		//	//LOG_CONSOLE("createdFiber : %p", createdFiber);
 
-			/*auto h_thread = OpenThread(THREAD_ACCESS, FALSE, exec_tid);
-			ResumeThread(h_thread);
-			ExecuteThread(lpThreadParameter);
-			CloseHandle(h_thread);*/
-
-
-
-			//auto mh_status = DLL_FreezeThread(reinterpret_cast<void**>(LevelLoad), TRUE);
-			//if (mh_status != MH_OK) {
-			//	LOG_CONSOLE("Error Freezing Threads : %p",MH_StatusToString(mh_status));
-			//}
-		}
-
-		else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('H')) {
-			HumanPlayer_LoadParameters();
-			ShowStatusMsgBox("HumanPlayer Loaded");
-		}
-
-		else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('W')) {
-			char configFile[] = "LOCAL:weapons/weaponconfig.qsc";
-			ParseWeaponConfig(0, configFile);
-			ShowStatusMsgBox("Weapon Config Parsed");
-		}
-
-		else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('P')) {
-			char configFile[] = "LOCAL:config.qsc";
-			CreateConfig(configFile);
-			ShowStatusMsgBox("Cofing created");
-		}
+		//	/*auto h_thread = OpenThread(THREAD_ACCESS, FALSE, exec_tid);
+		//	ResumeThread(h_thread);
+		//	ExecuteThread(lpThreadParameter);
+		//	CloseHandle(h_thread);*/
 
 
-		else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('E')) {
-			enableInput = !enableInput;
-			if (enableInput) {
-				char enableStr[0x32] = { NULL };
-				memcpy(enableStr, (LPVOID)0x00539608, 23);
-				EnableInput((int*)enableStr);
-				ShowStatusMsgBox("EnableInput Loaded");
-			}
-			else {
-				char disableStr[0x32] = { NULL };
-				memcpy(disableStr, (LPVOID)0x00539620, 24);
-				DisableInput((int*)disableStr);
-				ShowStatusMsgBox("DisableInput Loaded");
-			}
-		}
 
-		else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('F')) {
-			BypassSymbolCheck(TRUE);
-			char gameFrequencyStr[0x32] = { NULL };
-			memcpy(gameFrequencyStr, (LPVOID)0x00539670, 15);
+		//	//auto mh_status = DLL_FreezeThread(reinterpret_cast<void**>(LevelLoad), TRUE);
+		//	//if (mh_status != MH_OK) {
+		//	//	LOG_CONSOLE("Error Freezing Threads : %p",MH_StatusToString(mh_status));
+		//	//}
+		//}
 
-			TaskTypeSet((int*)gameFrequencyStr, 60);
-			ShowStatusMsgBox("Game Frequency Loaded");
-			BypassSymbolCheck(FALSE);
-		}
+		//else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('H')) {
+		//	HumanPlayer_LoadParameters();
+		//	ShowStatusMsgBox("HumanPlayer Loaded");
+		//}
 
-		else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('C')) {
-			char aLocalConfigQs[] = "LOCAL:config.qsc";
-			ParseConfig(aLocalConfigQs);
-			ShowStatusMsgBox("Config Parsed");
-		}
+		//else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('W')) {
+		//	char configFile[] = "LOCAL:weapons/weaponconfig.qsc";
+		//	ParseWeaponConfig(0, configFile);
+		//	ShowStatusMsgBox("Weapon Config Parsed");
+		//}
 
 
-		else if (GT_IsKeyToggled(VK_F6)) {
-			LOG_CONSOLE("Level restarting");
-			RestartLevel();
-			HWND hwnd = GT_FindGameWindow("IGI");
-			SetForegroundWindow(hwnd);
-			LOG_CONSOLE("Level restarted");
-		}
+		//else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('E')) {
+		//	enableInput = !enableInput;
+		//	if (enableInput) {
+		//		char enableStr[0x32] = { NULL };
+		//		memcpy(enableStr, (LPVOID)0x00539608, 23);
+		//		EnableInput((int*)enableStr);
+		//		ShowStatusMsgBox("EnableInput Loaded");
+		//	}
+		//	else {
+		//		char disableStr[0x32] = { NULL };
+		//		memcpy(disableStr, (LPVOID)0x00539620, 24);
+		//		DisableInput((int*)disableStr);
+		//		ShowStatusMsgBox("DisableInput Loaded");
+		//	}
+		//}
+
+		//else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('F')) {
+		//	BypassSymbolCheck(TRUE);
+		//	char gameFrequencyStr[0x32] = { NULL };
+		//	memcpy(gameFrequencyStr, (LPVOID)0x00539670, 15);
+
+		//	TaskTypeSet((int*)gameFrequencyStr, 60);
+		//	ShowStatusMsgBox("Game Frequency Loaded");
+		//	BypassSymbolCheck(FALSE);
+		//}
+
+		//else if (GT_IsKeyPressed(VK_CONTROL) && GT_IsKeyToggled('C')) {
+		//	char aLocalConfigQs[] = "LOCAL:config.qsc";
+		//	ParseConfig(aLocalConfigQs);
+		//	ShowStatusMsgBox("Config Parsed");
+		//}
+
+
+		//else if (GT_IsKeyToggled(VK_F6)) {
+		//	LOG_CONSOLE("Level restarting");
+		//	RestartLevel();
+		//	HWND hwnd = GT_FindGameWindow("IGI");
+		//	SetForegroundWindow(hwnd);
+		//	LOG_CONSOLE("Level restarted");
+		//}
 
 		Sleep(10);
 	}
