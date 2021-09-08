@@ -12,7 +12,10 @@
 #include "General.h"
 #include "Log.h"
 #include "hook.c"
-#include "IGI_Natives.h"
+
+#define IGI_NATIVES_HELPER
+#include "IGI_NativeCaller.h"
+static IGINativeCaller* g_IGINativeCaller;
 
 #ifdef _DEBUG
 #define LOG_CONSOLE LOG_INFO
@@ -59,7 +62,7 @@ typedef int(__cdecl* IGI_StatusMsg)(int sendStatus, const char* buffer, const ch
 #define ShowStatusDlg(msg)  StatusMsgBox(msg, NULL, 0)
 void StartLevelMain(int, bool, bool, char);
 void LevelStartPatch();
-static IGINative* g_IGINative;
+//static IGINative* g_IGINative;
 
 int __cdecl LevelLoadDetour(int levelAddr, int levelLen);
 int __cdecl HashInitDetour(char a1);
@@ -210,7 +213,7 @@ void InitPointers() {
 }
 
 DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
-	
+
 	GetConsole()->Allocate();
 	GetConsole()->Clear();
 
@@ -265,7 +268,7 @@ void DllMainLoop() {
 		if (GT_IsKeyPressed(VK_MENU) && GT_IsKeyToggled('K')) {
 			LOG_CONSOLE("Native caller");
 			char configFile[] = "LOCAL:config.qsc";
-			g_IGINative->NativeCaller<char*>(NATIVE_HASHES::CONFIG_PARSE_HASH, configFile);
+			IGI_NATIVE_CONFIG_PARSE(configFile)
 		}
 
 		if (GT_IsKeyPressed(VK_MENU) && GT_IsKeyToggled('Q')) {
