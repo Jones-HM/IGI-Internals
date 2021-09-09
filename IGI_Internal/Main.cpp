@@ -7,9 +7,9 @@
 
 #include "Log.h"
 #ifdef _DEBUG
-#define LOG_CONSOLE LOG_INFO
-#elif !defined(_DEBUG)
 #define LOG_CONSOLE LOG_DEBUG
+#elif !defined(_DEBUG)
+#define LOG_CONSOLE LOG_INFO 
 #endif // DEBUG
 
 #include "GTLibc.c"
@@ -97,7 +97,7 @@ IGI_LevelLoad LevelLoad, LevelLoadOut = nullptr;
 IGI_LevelLoadParam LevelLoadParam;
 IGI_ScriptInit ScriptInit;
 IGI_HumanPlayer_LoadParameters HumanPlayer_LoadParameters;
-IGI_ParseWeaponConfig ParseWeaponConfig;
+IGI_ParseWeaponConfig ParseWeaponConfig, ParseWeaponConfigOut = nullptr;
 IGI_DisableInput DisableInput;
 IGI_EnableInput EnableInput;
 IGI_TaskTypeSet TaskTypeSet;
@@ -139,18 +139,21 @@ void DllCleanup() {
 
 int __cdecl ParseConfigDetour(char* qFile) {
 	LOG_INFO("%s : qFile : %s\n", FUNC_NAME, qFile);
-	GT_ShowInfo("ParseConfigDetour : ");
-	GT_ShowInfo(qFile);
+	Sleep(100);
 	return ParseConfigOut(qFile);
 }
 
 int __cdecl CreateConfigDetour(char* qFile) {
 	LOG_INFO("%s : qFile : %s\n", FUNC_NAME, qFile);
-	GT_ShowInfo("CreateConfigDetour : ");
-	GT_ShowInfo(qFile);
+	Sleep(100);
 	return CreateConfigOut(qFile);
 }
 
+int __cdecl ParseWeaponConfigDetour(int index, char* cfgFile) {
+	LOG_INFO("%s index : %d cfgFile : %s\n", FUNC_NAME,index, cfgFile);
+	Sleep(100);
+	return ParseWeaponConfigOut(index,cfgFile);
+}
 
 BOOL WINAPI  DllMain(HINSTANCE hModule, DWORD fdwReason, LPVOID lpvReserved)
 {
@@ -260,6 +263,10 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 		LOG_CONSOLE("CreateConfig Createhook success %p", mh_status);
 	}
 
+	if (MH_CreateHook(reinterpret_cast<void**>(ParseWeaponConfig), &ParseWeaponConfigDetour, reinterpret_cast<void**>(&ParseWeaponConfigOut)) == MH_OK) {
+		LOG_CONSOLE("ParseWeaponConfig Createhook success %p", mh_status);
+	}
+
 	//if (MH_CreateHook(reinterpret_cast<void**>(LoadLevelMenu), &LevelLoadRestart, reinterpret_cast<void**>(&LoadLevelMenuOut)) == MH_OK) {
 	//	LOG_CONSOLE("LoadLevelMenu Createhook success %p", mh_status);
 	//}
@@ -279,7 +286,7 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 	//if (MH_CreateHook(reinterpret_cast<void**>(UpdateQTask), &UpdateQTaskDetour, reinterpret_cast<void**>(&UpdateQTaskOut)) == MH_OK) {
 	//	GT_ShowInfo("UpdateQTask Createhook success");
 	//}
-	
+
 	//IGINativeCaller::g_IGINativeCaller = new IGINativeCaller();
 
 	DllMainLoop();
@@ -293,18 +300,22 @@ void DllMainLoop() {
 	while (!GT_IsKeyPressed(VK_END)) {
 
 		if (GT_IsKeyToggled(VK_F1)) {
-			LOG_CONSOLE("Native caller config");
-			char configFile[] = "LOCAL:config.qsc";
-			g_IGINativeCaller->NativeCaller<char*>((int)HASH::CONFIG_PARSE_HASH, configFile);
+			auto configFile = IGI_NATIVE_CONFIG_FILE;
+			g_IGINativeCaller->NativeCaller((int)HASH::CONFIG_PARSE_HASH, configFile);
 			//IGI_NATIVE_CONFIG_PARSE(configFile)
 		}
 
 		else if (GT_IsKeyToggled(VK_F2)) {
-			LOG_CONSOLE("Native caller config");
-			char configFile[] = "LOCAL:config.qsc";
-			 //NativeCaller<char*>((int)HASH::CONFIG_CREATE_HASH, configFile);
+			auto configFile = IGI_NATIVE_CONFIG_FILE;
+			//g_IGINativeCaller->NativeCaller((int)HASH::CONFIG_CREATE_HASH, configFile);
 			IGI_NATIVE_CONFIG_CREATE(configFile)
 		}
+
+		if (GT_IsKeyToggled(VK_F3)) {
+			auto configFile = IGI_NATIVE_WEAPON_CONFIG_FILE;
+			IGI_NATIVE_WEAPON_CONFIG_PARSE(configFile);
+		}
+
 
 		//if (GT_IsKeyPressed(VK_MENU) && GT_IsKeyToggled('Q')) {
 		//	LOG_CONSOLE("Quit game main loop");
@@ -677,7 +688,7 @@ void LevelStartPatch() {
 
 
 DWORD GetMainThreadId() {
-	const std::tr1::shared_ptr<void> hThreadSnapshot(
+	const std::shared_ptr<void> hThreadSnapshot(
 		CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0), CloseHandle);
 	if (hThreadSnapshot.get() == INVALID_HANDLE_VALUE) {
 		throw std::runtime_error("GetMainThreadId failed");

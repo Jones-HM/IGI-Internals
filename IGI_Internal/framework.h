@@ -12,4 +12,8 @@
 #include <ostream>
 #include <string>
 #include <map>
+#include <functional>
+#include <list>
+#include <memory>
+#include <type_traits>
 
