@@ -56,6 +56,9 @@
     <ClInclude Include="Libs\GTLibc.hpp">
       <Filter>GTLib</Filter>
     </ClInclude>
+    <ClInclude Include="NativeConst.hpp">
+      <Filter>Natives</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Natives">

@@ -142,8 +142,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <ShowProgress>LinkVerbose</ShowProgress>
-      <LinkStatus>true</LinkStatus>
+      <ShowProgress>NotSet</ShowProgress>
+      <LinkStatus>false</LinkStatus>
       <ProgramDatabaseFile />
       <AdditionalLibraryDirectories>$(SolutionDir)$(SolutionName)\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
@@ -193,6 +193,7 @@
   <ItemGroup>
     <ClInclude Include="Libs\GTConsole.hpp" />
     <ClInclude Include="Libs\GTLibc.hpp" />
+    <ClInclude Include="NativeConst.hpp" />
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
     <ClInclude Include="Utils\Console.hpp" />
     <ClInclude Include="DllMain.hpp" />

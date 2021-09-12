@@ -2,27 +2,13 @@
 #define FORCEINLINE __forceinline
 #include "Common.h"
 #include "Logger.hpp"
+#include "NativeConst.hpp"
 using namespace Utility;
 
-/*Re-Defining standard constants*/
-#if !defined(FILE_NAME) && !defined(LINE_NO) && !defined(FUNC_NAME)
-#define FILE_NAME __FILE__
-#define LINE_NO __LINE__
-#define FUNC_NAME __func__
-#endif
-
-#define TYPEID(x) typeid(x).name()
-#define TYPE(x) std::string(typeid(x).name())
-#define CHECK_TYPE(x,y) TYPE(x) == std::string(y)
-#define CHECK_TYPE_INT(x) CHECK_TYPE(x, "int")
-#define CHECK_TYPE_CHAR(x) CHECK_TYPE(x, "char")
-#define CHECK_TYPE_CHAR_PTR(x) CHECK_TYPE(x, "char*")
-#define CHECK_TYPE_CONST_CHAR_PTR(x) CHECK_TYPE(x, "char const *")
-#define CHECK_TYPE_INT_PTR(x) CHECK_TYPE(x, "int*")
-#define CHECK_TYPE_CONST_INT_PTR(x) CHECK_TYPE(x, "int const *")
-#define LINE_DEBUG LOG_CONSOLE("[%s] LINE : %d", FUNC_NAME, LINE_NO);
-
 namespace IGI {
+	typedef uint32_t NativeHash;
+	typedef void* Void;
+
 	class NativeCaller
 	{
 	private:
@@ -34,127 +20,150 @@ namespace IGI {
 		std::list<std::map<int, std::function<int(int, const char*)>>> nativeMap2List2;
 
 		template<typename NF, typename NM>
-		void NativeMapInsert(int nativeHash, NF nativeFunc, NM& nativeMap) {
+		void NativeMapInsert(NativeHash nativeHash, NF nativeFunc, NM& nativeMap) {
 			nativeMap[nativeHash] = nativeFunc;
 		}
 
-		//Init Hashes with only 0 Arguments.
-		void InitHashesArgs0();
+		template<typename NF, typename NM, typename NML>
+		void NativeMapAdd(NativeHash nativeHash, NF nativeFunc, NM& nativeMap, NML& nativeMapList) {
+			NativeMapInsert(nativeHash, nativeFunc, nativeMap);
+			nativeMapList.push_back(nativeMap);
+		}
 
+
+		//Init Hashes with only 0 Arguments.
+		void InitHashMapArgs0();
 		//Init Hashes with only 1 Arguments.
-		void InitHashesArgs1();
-		void InitHashesArgs2();
-		void InitHashesArgs3();
-		void InitHashesArgs4();
+		void InitHashMapArgs1();
+		void InitHashMapArgs2();
+		void InitHashMapArgs3();
+		void InitHashMapArgs4();
 
 		void InitHashMaps();
 
 	public:
 
 		NativeCaller();
-		~NativeCaller();
+		~NativeCaller() = default;
 
 		template<class... Args>
-		void NativeInvoke(Args... args)
+		void NativeInvoker(Args... args)
 		{
-			nativeArgc = sizeof...(Args) - 1;
+			nativeArgc = sizeof...(Args) - 1;//Not counting NativeHash as Arg.
 			NativeCall(args...);
 		}
 
+	private:
 		template <typename T>
-		void NativeCall(int nativeHash) {
-			NativeInvokeHash(nativeHash);
+		void NativeCall(T nativeHash) {
+			LOG_INFO("nativeHash type: %s", TYPEID(nativeHash));
+			NativeInvoke(nativeHash);
 		}
 
 		template <typename T>
-		void NativeCall(int nativeHash, T param) {
-			NativeInvokeHash(nativeHash, param);
+		void NativeCall(NativeHash nativeHash, T param) {
+			NativeInvoke(nativeHash, param);
 		}
 
 		template <typename T1, typename T2>
-		void NativeCall(int nativeHash, T1 param1, T2 param2) {
-			NativeInvokeHash(nativeHash, param1, param2);
+		void NativeCall(NativeHash nativeHash, T1 param1, T2 param2) {
+			NativeInvoke(nativeHash, param1, param2);
 		}
 
 		template <typename T1, typename T2, typename T3>
-		void NativeCall(int nativeHash, T1 param1, T2 param2, T3 param3) {
-			NativeInvokeHash(nativeHash, param1, param2, param3);
+		void NativeCall(NativeHash nativeHash, T1 param1, T2 param2, T3 param3) {
+			NativeInvoke(nativeHash, param1, param2, param3);
 		}
 
 		template <typename T1, typename T2, typename T3, typename T4>
-		void NativeCall(int nativeHash, T1 param1, T2 param2 = NULL, T3 param3 = NULL, T4 param4 = NULL) {
-			NativeInvokeHash(nativeHash, param1, param2, param3, param4);
+		void NativeCall(NativeHash nativeHash, T1 param1, T2 param2 = nullptr, T3 param3 = nullptr, T4 param4 = nullptr) {
+			NativeInvoke(nativeHash, param1, param2, param3, param4);
 		}
 
-		template <typename T1, typename T2 = int, typename T3 = int, typename T4 = int>
-		void NativeInvokeHash(int nativeHash, T1 param1 = NULL, T2 param2 = NULL, T3 param3 = NULL, T4 param4 = NULL) {
+		template <typename T1 = Void, typename T2 = Void, typename T3 = Void, typename T4 = Void>
+		void NativeInvoke(NativeHash nativeHash, T1 param1 = nullptr, T2 param2 = nullptr, T3 param3 = nullptr, T4 param4 = nullptr) {
+			LOG_INFO("%s() Hash : 0x%X param1: %p param2: %p param3: %p param4: %p nativeArgc : %d", FUNC_NAME, nativeHash, param1, param2, param3, param4, nativeArgc);
 			static_assert(sizeof(nativeHash) <= sizeof(uint32_t));
 
-			LOG_INFO("%s() Hash : 0x%X param1: %p param2: %p param3: %p param4: %p nativeArgc : %d", FUNC_NAME, nativeHash, param1, param2, param3, param4, nativeArgc);
+#define IS_SAME_T1(T) std::is_same_v<T1,T>
+#define IS_SAME_T2(T1X,T2X) IS_SAME_T1(T1X) && std::is_same_v<T2,T2X>
 
 			if (nativeArgc == 0) {
+				LOG_DEBUG("%s() NativeArg count 0", FUNC_NAME);
+				bool hashFound = NativeInvokeT(nativeHash, nativeMap0List0);
 			}
 
-			if (nativeArgc == 1) {
+			else if (nativeArgc == 1)
+			{
+#ifdef _DEBUG
+				if (IS_SAME_T1(LPCSTR))
+					LOG_DEBUG("%s() NativeArg count 1 param1: %s type : %s", FUNC_NAME, (LPCSTR)param1, TYPEID(param1));
+				else if (IS_SAME_T1(INT))
+					LOG_DEBUG("%s() NativeArg count 1 param1 : %d type : %s", FUNC_NAME, (INT)param1, TYPEID(param1));
+#endif
 
-				if (CHECK_TYPE_CONST_CHAR_PTR(param1)) {
-					LOG_INFO("%s() nativeArgc1 param1: %s type : %s", FUNC_NAME, (const char*)param1, TYPEID(param1));
-					NativeInvokeHash1(nativeHash, (const char*)param1, nativeMap1List1);
-				}
-				else if (CHECK_TYPE_INT(param1)) {
-					LOG_INFO("%s() nativeArgc1 param1: %p type : %s", FUNC_NAME, (int)param1, TYPEID(param1));
-					NativeInvokeHash1(nativeHash, (int)param1, nativeMap1List2);
-				}
-
+				bool hashFound = NativeInvokeT(nativeHash, nativeMap1List1, param1);
+				if (!hashFound)
+					hashFound = NativeInvokeT(nativeHash, nativeMap1List2, param1);
 			}
-			else if (nativeArgc == 2) {
-
-				if (CHECK_TYPE_CONST_CHAR_PTR(param1) && CHECK_TYPE_INT(param2)) {
-					LOG_INFO("%s() nativeArgc2 param1: %s type : %s param2: %p type : %s", FUNC_NAME, (const char*)param1, TYPEID(param1), (int)param2, TYPEID(param2));
-					NativeInvokeHash2(nativeHash, (const char*)param1, (int)param2, nativeMap2List1);
-				}
-				else if (CHECK_TYPE_INT(param1) && CHECK_TYPE_CONST_CHAR_PTR(param2)) {
-					LOG_INFO("%s() nativeArgc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (const char*)param2, TYPEID(param2));
-					NativeInvokeHash2(nativeHash, (int)param1, (const char*)param2, nativeMap2List2);
-				}
+			else if (nativeArgc == 2)
+			{
+#ifdef _DEBUG
+				if (IS_SAME_T2(INT, LPCSTR))
+					LOG_INFO("%s() nativeArgc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (LPCSTR)param2, TYPEID(param2));
+				else if (IS_SAME_T2(LPCSTR, INT))
+					LOG_INFO("%s() nativeArgc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (LPCSTR)param1, TYPEID(param1), (int)param2, TYPEID(param2));
+#endif
+				bool hashFound = NativeInvokeT(nativeHash, nativeMap2List1, param1, param2);
+				if (!hashFound)
+					hashFound = NativeInvokeT(nativeHash, nativeMap2List2, param1, param2);
 			}
 		}
 
-		//Hashes call with 1 Args.
-		template <typename T1, typename L>
-		FORCEINLINE void NativeInvokeHash1(int nativeHash, T1 param, L nativeMapListArg) {
-			LOG_INFO("%s() Hash : 0x%X param: %p type : %s nativeArgc: %d", FUNC_NAME, nativeHash, param, TYPEID(param), nativeArgc);
+
+		//Gneral Invoke hashes method with N Args.
+		template <typename T1 = Void, typename T2 = Void, typename T3 = Void, typename T4 = Void, typename ML>
+		bool NativeInvokeT(NativeHash nativeHash, ML nativeMapListArg = nullptr, T1 param1 = nullptr, T2 param2 = nullptr, T3 param3 = nullptr, T4 param4 = nullptr) {
+			LOG_INFO("%s() Hash : 0x%X param1: %p type : %s param2: %p type : %s nativeArgc: %d", FUNC_NAME, nativeHash, param1, TYPEID(param1), param2, TYPEID(param2), nativeArgc);
+
+#define IS_SAME_MAP(MAP) std::is_same_v<decltype(nativeMapListArg), decltype(MAP)>
+#define IS_SAME_T1(T) std::is_same_v<T1,T>
+#define IS_SAME_T2(T1X,T2X) IS_SAME_T1(T1X) && std::is_same_v<T2,T2X>
+#define IS_SAME_T3(T1X,T2X,T3X) IS_SAME_T2(T1X,T2X) && std::is_same_v<T3,T3X>
+#define IS_SAME_T4(T1X,T2X,T3X,T4X) IS_SAME_T3(T1X,T2X,T3X) && std::is_same_v<T4,T4X>
 
 			for (auto const& nativeMapList : nativeMapListArg) {
 				for (auto const& nativeMap : nativeMapList) {
+					//LOG_INFO("%s TYPE nativeMap type : '%s'", FUNC_NAME, TYPEID(nativeMap));
+
 					if (nativeMap.first == nativeHash) {
-						auto NativeHandler = nativeMap.second;
-						auto nativeArg = param;
-						NativeHandler(nativeArg);
-						LOG_INFO("%s calling with Hash : 0x%X param : %p\n", FUNC_NAME, nativeHash, param);
-						return;
+
+						if constexpr (IS_SAME_MAP(nativeMap0List0)) {
+							std::invoke(nativeMap.second);
+							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
+							return true;
+						}
+
+						if constexpr ((IS_SAME_MAP(nativeMap1List1) && IS_SAME_T1(LPCSTR))
+							|| (IS_SAME_MAP(nativeMap1List2) && IS_SAME_T1(INT))
+							) {
+							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
+							std::invoke(nativeMap.second, param1);
+							return true;
+						}
+
+						if constexpr ((IS_SAME_MAP(nativeMap2List1) && IS_SAME_T2(LPCSTR, INT))
+							|| (IS_SAME_MAP(nativeMap2List2) && IS_SAME_T2(INT, LPCSTR))
+							) {
+							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
+							std::invoke(nativeMap.second, param1, param2);
+							return true;
+						}
 					}
 				}
 			}
 			LOG_ERROR("Error finding handler for Hash 0x%X", nativeHash);
-		}
-
-		//Hashes call with 2 Args.
-		template <typename T1, typename T2, typename L>
-		FORCEINLINE void NativeInvokeHash2(int nativeHash, T1 param1, T2 param2, L nativeMapListArg) {
-			LOG_INFO("%s() Hash : 0x%X param1: %p type : %s param2: %p type : %s  nativeArgc: %d", FUNC_NAME, nativeHash, param1, TYPEID(param1), param2, TYPEID(param2), nativeArgc);
-
-			for (auto const& nativeMapList : nativeMapListArg) {
-				for (auto const& nativeMap : nativeMapList) {
-					if (nativeMap.first == nativeHash) {
-						auto NativeHandler = nativeMap.second;
-						NativeHandler(param1, param2);
-						LOG_INFO("%s calling with Hash %p param1 : %p param2 : %p\n", FUNC_NAME, nativeHash, param1, param2);
-						return;
-					}
-				}
-			}
-			LOG_ERROR("Error finding handler for Hash 0x%X", nativeHash);
+			return false;
 		}
 	};
 	inline NativeCaller g_NativeCaller;

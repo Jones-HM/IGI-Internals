@@ -7,12 +7,8 @@ NativeCaller::NativeCaller()
 	InitHashMaps();
 }
 
-NativeCaller::~NativeCaller() {
-
-}
-
 //Init Hashes with only 0 Arguments.
-void NativeCaller::InitHashesArgs0() {
+void NativeCaller::InitHashMapArgs0() {
 	//Map to store Hashes and Handlers.
 	std::map<int, std::function<int(void)>> nativeMap0;
 
@@ -23,28 +19,34 @@ void NativeCaller::InitHashesArgs0() {
 	std::function<int(void)> QTaskUpdate{ (int(__cdecl*)(void))HASH::QTASK_UPDATE };
 	std::function<int(void)> LevelRestart{ (int(__cdecl*)(void))HASH::LEVEL_RESTART };
 
+	//Adding Native methods with Args0 to HashMap.
+	NativeMapAdd((NativeHash)HASH::STATUS_TIMER, StatusTimer, nativeMap0,nativeMap0List0);
+	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, HumanPlayerLoad, nativeMap0, nativeMap0List0);
+	NativeMapAdd((NativeHash)HASH::QHASH_RESET, QHashReset, nativeMap0, nativeMap0List0);
+	NativeMapAdd((NativeHash)HASH::QTASK_UPDATE, QTaskUpdate, nativeMap0, nativeMap0List0);
+	NativeMapAdd((NativeHash)HASH::LEVEL_RESTART, LevelRestart, nativeMap0, nativeMap0List0);
+
 }
 
 //Init Hashes with only 1 Arguments.
-void NativeCaller::InitHashesArgs1() {
+void NativeCaller::InitHashMapArgs1() {
 
 	//Map to store Hashes and Handlers.
 	std::map<int, std::function<int(const char*)>> nativeMap1;
+	std::map<int, std::function<int(int)>> nativeMap2;
 
 	//Declaring Function for Native hashes.
 	std::function<int(const char*)> ConfigParse{ (int(__cdecl*)(const char*))HASH::CONFIG_PARSE };
 	std::function<int(const char*)> ConfigCreate{ (int(__cdecl*)(const char*))HASH::CONFIG_CREATE };
+	std::function<int(int)> GameSetFrames{ (int(__cdecl*)(int))HASH::GAME_SET_FRAMES };
 
-	//Add ConfigParse method to map.
-	NativeMapInsert((int)HASH::CONFIG_PARSE, ConfigParse, nativeMap1);
-	nativeMap1List1.push_back(nativeMap1);
-
-	//Add ConfigCreate method to map.
-	NativeMapInsert((int)HASH::CONFIG_CREATE, ConfigCreate, nativeMap1);
-	nativeMap1List1.push_back(nativeMap1);
+	//Adding Native methods with Args1 to HashMap.
+	NativeMapAdd((NativeHash)HASH::CONFIG_PARSE, ConfigParse, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::CONFIG_CREATE, ConfigCreate, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::GAME_SET_FRAMES, GameSetFrames, nativeMap2, nativeMap1List2);
 }
 
-void NativeCaller::InitHashesArgs2() {
+void NativeCaller::InitHashMapArgs2() {
 
 	//Map to store Hashes and Handlers.
 	std::map<int, std::function<int(int, const char*)>> nativeMap2;
@@ -52,18 +54,18 @@ void NativeCaller::InitHashesArgs2() {
 	//Declaring Function for Native hashes.
 	std::function<int(int, const char*)> ParseWeaponConfig{ (int(__cdecl*)(int index, const char* cfgFile))HASH::WEAPON_CONFIG_PARSE };
 
-	//Add ParseWeaponConfig method to map.
-	NativeMapInsert((int)HASH::WEAPON_CONFIG_PARSE, ParseWeaponConfig, nativeMap2);
-	nativeMap2List2.push_back(nativeMap2);
+	//Adding Native methods with Args2 to HashMap.
+	NativeMapAdd((NativeHash)HASH::WEAPON_CONFIG_PARSE, ParseWeaponConfig, nativeMap2, nativeMap2List2);
 }
 
-void NativeCaller::InitHashesArgs3() {
+void NativeCaller::InitHashMapArgs3() {
 }
 
-void NativeCaller::InitHashesArgs4() {
+void NativeCaller::InitHashMapArgs4() {
 }
 
 void NativeCaller::InitHashMaps() {
-	InitHashesArgs1();
-	InitHashesArgs2();
+	InitHashMapArgs0();
+	InitHashMapArgs1();
+	InitHashMapArgs2();
 }
