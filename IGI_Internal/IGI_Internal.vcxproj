@@ -194,6 +194,7 @@
     <ClInclude Include="Libs\GTConsole.hpp" />
     <ClInclude Include="Libs\GTLibc.hpp" />
     <ClInclude Include="NativeConst.hpp" />
+    <ClInclude Include="PatternScanner.hpp" />
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
     <ClInclude Include="Utils\Console.hpp" />
     <ClInclude Include="DllMain.hpp" />
@@ -223,7 +224,6 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\haseeb_mir\source\repos\IGI_Internal_v1\IGI_Internal\Natives;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <ClCompile Include="Utils\Logger.cpp" />
-    <ClCompile Include="Utils\ThreadsEx.hpp" />
     <ClCompile Include="Utils\Utility.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

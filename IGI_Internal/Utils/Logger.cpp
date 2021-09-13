@@ -66,7 +66,7 @@ namespace Utility {
 
 	void Log::LogToFile(const char* buff) {
 
-		const std::string fileName = GetOurModuleFolder() + "\\IGI-Internal.log";
+		const std::string fileName = GetModuleFolder() + "\\IGI-Internal.log";
 
 		std::ofstream logFile;
 		logFile.open(fileName, std::ios_base::app);

@@ -4,28 +4,18 @@
 #define _CRT_SECURE_NO_DEPRECATE
 #define DLL_EXPORT __declspec( dllexport )
 
-#include "logger.hpp"
-#include "Console.hpp"
-#include "GTLibc.hpp"
 #include "DllMain.hpp"
-#include "AutoMsgBox.hpp"
-#include "ThreadsEx.hpp"
-#include "General.hpp"
-#include "MinHook.hpp"
-#include "NativeCaller.hpp"
-#include "NativeHelper.hpp"
-#include "Natives.hpp"
 
 using namespace IGI;
 
 //Include all static libraries for project.
 #if defined _M_IX86
 #if defined(DBG_x86)
-#pragma comment(lib,"hook/libMinHook-x86-mdd.lib")
+#pragma comment(lib,"hook/libMinHook-x86-Debug.lib")
 #pragma comment(lib,"libs/GTLibc-x86-Debug.lib")
 #pragma comment(lib,"libs/GTConsole-x86-Debug.lib")
 #elif defined(RLS_x86)
-#pragma comment(lib,"hook/libMinHook-x86-md.lib")
+#pragma comment(lib,"hook/libMinHook-x86-Release.lib")
 #pragma comment(lib,"libs/GTLibc-x86-Release.lib")
 #pragma comment(lib,"libs/GTConsole-x86-Release.lib")
 #endif
@@ -120,10 +110,7 @@ IGI_LevelStartCaller LevelStartCaller;
 IGI_SetFramesVar SetFramesVar, SetFramesVarOut;
 IGI_HashReset HashReset, HashResetOut = nullptr;
 IGI_StartLevelLbl StartLevelLbl;
-bool GetThreadState(DWORD tid);
-DWORD GetMainThreadId();
-void StartThreadTimer(HANDLE, DWORD, DWORD);
-DWORD exec_tid = 0;
+
 //Global vars.
 int timerID;
 HookProc hookProc;
@@ -182,7 +169,7 @@ BOOL WINAPI  DllMain(HINSTANCE hModule, DWORD fdwReason, LPVOID lpvReserved)
 	case DLL_PROCESS_ATTACH:
 		DisableThreadLibraryCalls(hModule);
 		CreateThread(0, 0, MainThread, hModule, 0, 0);
-		SetOurModuleHandle(hModule);
+		SetModuleHandle(hModule);
 		result = 1;
 		break;
 	case DLL_PROCESS_DETACH:
@@ -310,12 +297,26 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 	InitPointers();
 	LOG_INFO("Initializing Pointers DONE!");
 
+	//Init Signature patterns.
+	std::string sigErrorReason;
+	bool initSigs = InitSigPatterns(sigErrorReason);
+	if (initSigs)
+		LOG_INFO("Initializing Signatures Scanning DONE!");
+	else {
+		auto sigError = "Pattern signatures not found!\nReason: " + sigErrorReason;
+		LOG_DEBUG(sigError.c_str());
+		GT_ShowError(sigError.c_str());
+		DllCleanup();
+		return EXIT_FAILURE;
+	}
+
 	// Initialize MinHook.
 	MH_STATUS mh_status = MH_Initialize();
 	if (mh_status != MH_OK)
 	{
 		LOG_ERROR("Minhook Init Error : %s", MH_StatusToString(mh_status));
-		return 1;
+		DllCleanup();
+		return EXIT_FAILURE;
 	}
 	else
 	{

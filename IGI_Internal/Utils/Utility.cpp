@@ -11,7 +11,7 @@ const std::string Utility::GetRunningExecutableFolder() {
 	return currentPath.substr(0, currentPath.find_last_of("\\"));
 }
 
-const std::string Utility::GetOurModuleFolder() {
+const std::string Utility::GetModuleFolder() {
 
 	char fileName[MAX_PATH];
 	GetModuleFileNameA(ourModule, fileName, MAX_PATH);
@@ -20,12 +20,12 @@ const std::string Utility::GetOurModuleFolder() {
 	return currentPath.substr(0, currentPath.find_last_of("\\"));
 }
 
-void Utility::SetOurModuleHandle(const HMODULE module) {
+void Utility::SetModuleHandle(const HMODULE module) {
 
 	ourModule = module;
 }
 
-const HMODULE Utility::GetOurModuleHandle() {
+const HMODULE Utility::GetModuleHandle() {
 
 	return ourModule;
 }
