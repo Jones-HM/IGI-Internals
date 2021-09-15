@@ -16,8 +16,10 @@ namespace IGI {
 		std::list<std::map<int, std::function<int(void)>>> nativeMap0List0;
 		std::list<std::map<int, std::function<int(const char*)>>> nativeMap1List1;
 		std::list<std::map<int, std::function<int(int)>>> nativeMap1List2;
+		std::list<std::map<int, std::function<int(float)>>> nativeMap1List3;
 		std::list<std::map<int, std::function<int(const char*, int)>>> nativeMap2List1;
 		std::list<std::map<int, std::function<int(int, const char*)>>> nativeMap2List2;
+		std::list<std::map<int, std::function<int(float, float)>>> nativeMap2List3;
 
 		template<typename NF, typename NM>
 		void NativeMapInsert(NativeHash nativeHash, NF nativeFunc, NM& nativeMap) {
@@ -38,7 +40,6 @@ namespace IGI {
 		void InitHashMapArgs2();
 		void InitHashMapArgs3();
 		void InitHashMapArgs4();
-
 		void InitHashMaps();
 
 	public:
@@ -101,10 +102,11 @@ namespace IGI {
 				else if (IS_SAME_T1(INT))
 					LOG_DEBUG("%s() NativeArg count 1 param1 : %d type : %s", FUNC_NAME, (INT)param1, TYPEID(param1));
 #endif
-
 				bool hashFound = NativeInvokeT(nativeHash, nativeMap1List1, param1);
 				if (!hashFound)
 					hashFound = NativeInvokeT(nativeHash, nativeMap1List2, param1);
+				if (!hashFound)
+					hashFound = NativeInvokeT(nativeHash, nativeMap1List3, param1);
 			}
 			else if (nativeArgc == 2)
 			{
@@ -113,10 +115,14 @@ namespace IGI {
 					LOG_INFO("%s() nativeArgc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (LPCSTR)param2, TYPEID(param2));
 				else if (IS_SAME_T2(LPCSTR, INT))
 					LOG_INFO("%s() nativeArgc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (LPCSTR)param1, TYPEID(param1), (int)param2, TYPEID(param2));
+				else if (IS_SAME_T2(INT, INT))
+					LOG_INFO("%s() nativeArgc2 param1: %d type : %s param2: %d type : %s", FUNC_NAME, (INT)param1, TYPEID(param1), (INT)param2, TYPEID(param2));
 #endif
 				bool hashFound = NativeInvokeT(nativeHash, nativeMap2List1, param1, param2);
 				if (!hashFound)
 					hashFound = NativeInvokeT(nativeHash, nativeMap2List2, param1, param2);
+				if (!hashFound)
+					hashFound = NativeInvokeT(nativeHash, nativeMap2List3, param1, param2);
 			}
 		}
 
@@ -146,17 +152,26 @@ namespace IGI {
 
 						if constexpr ((IS_SAME_MAP(nativeMap1List1) && IS_SAME_T1(LPCSTR))
 							|| (IS_SAME_MAP(nativeMap1List2) && IS_SAME_T1(INT))
+							|| (IS_SAME_MAP(nativeMap1List3) && IS_SAME_T1(INT))
 							) {
+
+							if constexpr (IS_SAME_MAP(nativeMap1List3) && IS_SAME_T1(INT))
+								std::invoke(nativeMap.second, (float)((float)param1 / MUSIC_CONST));
+							else
+								std::invoke(nativeMap.second, param1);
 							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
-							std::invoke(nativeMap.second, param1);
 							return true;
 						}
 
 						if constexpr ((IS_SAME_MAP(nativeMap2List1) && IS_SAME_T2(LPCSTR, INT))
 							|| (IS_SAME_MAP(nativeMap2List2) && IS_SAME_T2(INT, LPCSTR))
+							|| (IS_SAME_MAP(nativeMap2List3) && IS_SAME_T2(INT, INT))
 							) {
+							if constexpr (IS_SAME_MAP(nativeMap2List3) && IS_SAME_T2(INT, INT))
+								std::invoke(nativeMap.second, (float)((float)param1 / MUSIC_CONST), (float)((float)param2 / MUSIC_CONST));
+							else
+								std::invoke(nativeMap.second, param1, param2);
 							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
-							std::invoke(nativeMap.second, param1, param2);
 							return true;
 						}
 					}

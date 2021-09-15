@@ -84,7 +84,6 @@ extern "C" {
 #define GT_NULL NULL /*Pointer NULL*/
 #define GT_NULLF 0.0f       /*Floating NULL*/
 #define GT_HotKeysPressed(...) GT_HotKeysDown(__VA_ARGS__, NULL)
-	typedef DOUBLE* PDOUBLE;
 
 	/*Re-Defining standard constants*/
 #if !defined(FILE_NAME) && !defined(LINE_NO) && !defined(FUNC_NAME)
@@ -96,25 +95,6 @@ extern "C" {
 /*define date and time regardless if it will bind with GTConsole or not*/
 #define CURR_DATE __DATE__
 #define CURR_TIME __TIME__
-
-/*Defining Architecture Build Type*/
-#if defined(_WIN64)
-#define BUILD_ARCH_64
-	static int gt_x64 = 1;
-	static int gt_x86 = 0;
-
-#elif defined(_WIN32)
-#define BUILD_ARCH_32
-	static int gt_x64 = 0;
-	static int gt_x86 = 1;
-#endif
-
-	/*Defining exception handling constants*/
-#if !defined(gt_try) && !defined(gt_catch) && !defined(gt_throw)
-#define gt_try BOOL GT_HadError = FALSE;
-#define gt_catch(x)  GT_ExitJump: if (GT_HadError)
-#define gt_throw(x) GT_HadError = TRUE; goto GT_ExitJump;
-#endif
 
 /*Enum for OPCODE type*/
 	typedef enum GT_OPCODE

@@ -112,7 +112,7 @@
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
@@ -219,7 +219,9 @@
     </ClCompile>
     <ClCompile Include="Utils\AutoMsgBox.cpp" />
     <ClCompile Include="Utils\Console.cpp" />
-    <ClCompile Include="Utils\Fibers.cpp" />
+    <ClInclude Include="Utils\Fibers.hpp">
+      <FileType>CppCode</FileType>
+    </ClInclude>
     <ClCompile Include="DllMain.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\haseeb_mir\source\repos\IGI_Internal_v1\IGI_Internal\Natives;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>

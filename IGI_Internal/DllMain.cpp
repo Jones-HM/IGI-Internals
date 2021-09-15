@@ -3,8 +3,14 @@
 #define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING  1
 #define _CRT_SECURE_NO_DEPRECATE
 #define DLL_EXPORT __declspec( dllexport )
+#define PTR_READ(addr) *(PINT)addr
+#define PTR_READ_OFF(addr,off) (PTR_READ((addr + off)))
+#define PTR_READ_OFF2(addr,off1,off2) *(PINT)(PTR_READ_OFF(addr,off1) + off2)
+#define PTR_READ_OFF3(addr,off1,off2,off3) *(PINT)(PTR_READ_OFF2(addr,off1,off2) + off3)
+#define PTR_READ_FINAL(addr,off1,off2,off3) PTR_READ_OFF2(PTR_READ(addr),off1,off2) + (DWORD)off3
 
 #include "DllMain.hpp"
+#include "Fibers.hpp"
 
 using namespace IGI;
 
@@ -26,8 +32,8 @@ using namespace IGI;
 typedef int(__cdecl* IGI_StatusTimer)();
 typedef int(__cdecl* IGI_ParseWeaponConfig)(int index, char* cfgFile);
 typedef int(__cdecl* IGI_HumanPlayer_LoadParameters)();
-typedef int(__cdecl* IGI_EnableInput)(int* fileName);
-typedef int(__cdecl* IGI_DisableInput)(int* fileName);
+typedef int(__cdecl* IGI_EnableInput)(char* fileName);
+typedef int(__cdecl* IGI_DisableInput)(char* fileName);
 typedef int(__cdecl* IGI_CompileConfig)(int a1, char* qFile, int a3);
 typedef int(__cdecl* IGI_ParseConfig)(char* qFile);
 typedef int(__cdecl* IGI_LevelLoad)(int levelAddr, int levelLen, int param3, int param4);
@@ -46,6 +52,7 @@ typedef int(__cdecl* IGI_LevelStartMain)(int param);
 typedef int(__cdecl* IGI_HashInit)(char a1);
 typedef void(__cdecl* IGI_HashReset)();
 typedef int(__cdecl* IGI_StartLevel)(int param1, int param2, int param3, int param4);
+typedef int(__cdecl* IGI_QuitLvl)(int param1, int param2, int param3, int param4);
 typedef void(__cdecl* IGI_StartLevelLbl)(int param);
 typedef int(__cdecl* IGI_MenuManager)(int a1, char* a2, char a3, char a4, int a5);
 typedef int(__cdecl* IGI_LevelStartCaller)(int param);
@@ -61,14 +68,12 @@ typedef int(__cdecl* IGI_StatusMsg)(int sendStatus, const char* buffer, const ch
 #define ShowStatusMsgBox(msg)  StatusMsgBox(msg, NULL, 1)
 #define ShowStatusDlg(msg)  StatusMsgBox(msg, NULL, 0)
 void StartLevelMain(int, bool, bool, char);
-void LevelStartPatch();
 
 int __cdecl LevelLoadDetour(int levelAddr, int levelLen);
 int __cdecl HashInitDetour(char a1);
 void __cdecl HashResetDetour();
 void __cdecl UpdateQTaskDetour();
 void __cdecl LoadLevelMenuDetour();
-void LevelLoadRestart();
 void DllMainLoop();
 MH_STATUS DLL_FreezeThread(LPVOID pTarget, BOOL enable);
 
@@ -99,7 +104,7 @@ IGI_HashInit HashInit, HashInitOut = nullptr;
 IGI_RemoveSymbol RemoveSymbol;
 IGI_QuitLevel QuitLevel;
 IGI_UpdateQTask UpdateQTask, UpdateQTaskOut = nullptr;
-IGI_StartLevel StartLevel;
+IGI_StartLevel StartLevel, StartLevelOut;
 IGI_StartLevelParam StartLevelParam;
 IGI_QuitLevelParam QuitLevelParam;
 IGI_MenuManager MenuManager;
@@ -110,6 +115,7 @@ IGI_LevelStartCaller LevelStartCaller;
 IGI_SetFramesVar SetFramesVar, SetFramesVarOut;
 IGI_HashReset HashReset, HashResetOut = nullptr;
 IGI_StartLevelLbl StartLevelLbl;
+IGI_QuitLvl QuitLvl, QuitLvlOut;
 
 //Global vars.
 int timerID;
@@ -126,7 +132,7 @@ void DllCleanup() {
 		LOG_ERROR("Error disabling hook");
 	else
 		LOG_WARNING("[-]All Hooks disabled");
-	Sleep(0x7D0u);
+
 
 #ifdef _DEBUG
 	if (GetConsole()->IsAllocated()) {
@@ -159,6 +165,74 @@ void __cdecl SetFramesDetour(int frames) {
 	return SetFramesVarOut(frames);
 }
 
+int __cdecl  StartLevelDetour(int param1, int param2, int param3, int param4) {
+	LOG_WARNING("%s param1 : %p param2 : %p param3 : %p param4 : %p\n", FUNC_NAME, param1, param2, param3, param4);
+	Sleep(100);
+	return StartLevelOut(param1, param2, param3, param4);
+}
+
+int __cdecl  QuitLvlDetour(int param1, int param2, int param3, int param4) {
+	LOG_WARNING("%s param1 : %p param2 : %p param3 : %p param4 : %p\n", FUNC_NAME, param1, param2, param3, param4);
+	Sleep(100);
+	return QuitLvlOut(param1, param2, param3, param4);
+}
+
+auto GameDummy = (int(__cdecl*)(char*, int, float, float))0x415950;
+decltype(GameDummy) GameDummyOut;
+//0x004f0e10; LevelLoad.
+//0x004b8890; -GameDefine.
+//decltype(GameDummy) GameDummyOut;
+
+FORCEINLINE std::string to_hex_string(const unsigned int i)
+{
+	return (static_cast<std::stringstream const&>(std::stringstream() << "0x" << std::hex << i)).str();
+}
+
+int EnableAllHooks();
+typedef int(__cdecl* DummyCallable)(int*, int, float);
+
+DummyCallable dummyCallable, dummyCallableOut = nullptr;
+
+int __cdecl dummyCallableDetour(int* param1, int param2, float param3) {
+	LOG_WARNING("%s param1 : %p param2 : %p param3 : %f", FUNC_NAME, param1, param2, param3);
+	return dummyCallableOut(param1, param2, param3);
+}
+
+int __cdecl GameDummyDetour(char* param1, int param2, float param3, float param4) {
+	LOG_WARNING("%s param1 : %p param2 : %p param3 : %f param4 : %f", FUNC_NAME, param1, param2, param3, param4);
+
+	//std::string dummyCallStr = "auto DefineGameSymbol = (int(__cdecl*)(int**, int*, int, int))";
+	//std::string dummyCallInvoke = "std::invoke(DefineGameSymbol," + std::string("(int**)") + to_hex_string((int)param1) + ",(int*)" + to_hex_string((int)param2) + ",*(int*)0xA758A8," + to_hex_string((int)param4) + ");//" + std::string((LPCSTR)param1);
+	//LOG_INFO("%s0x%X;", dummyCallStr.c_str(), (int)0x004b8890);
+	//LOG_INFO("%s", dummyCallInvoke.c_str());
+	//LOG_INFO("%s", "Sleep(0x7D0u);");
+
+	//dummyCallable = (DummyCallable)param2;
+	//decltype(dummyCallable) dummyCallableOut = nullptr;
+
+	//std::string dummyCallStr = "auto " + std::string((LPCSTR)param1) + " = (int(__cdecl*)(int*, int, float))";
+	//std::string dummyCallInvoke = "std::invoke(" + std::string((LPCSTR)param1) + ",(int*)" + to_hex_string((int)(int*)0x0019F994) + ",*(int*)0xA758A8" + "," + to_hex_string(param4) + ");";
+	//LOG_INFO("%s0x%X;", dummyCallStr.c_str(), (int)param2);
+	//LOG_INFO("%s", dummyCallInvoke.c_str());
+	//LOG_INFO("%s", "Sleep(0x7D0u);");
+
+	//auto lamdaFunc = [&](int* param1, int param2, int param3) -> int __cdecl{
+	//	LOG_WARNING("%s param1 : %p param2 : %p param3 : %p", FUNC_NAME,param1, param2, param3);
+	//	return dummyCallableOut(param1, param2, param3);
+	//};
+
+	//auto mh_status = MH_CreateHookEx(dummyCallable, &dummyCallableDetour, &dummyCallableOut);
+
+	//if (mh_status == MH_OK) {
+	//	LOG_INFO("dummyCallable Hooking DONE!");
+	//	EnableAllHooks();
+	//}
+	//else
+	//	LOG_ERROR("Minhook Hooking error : %s", MH_StatusToString(mh_status));
+
+	Sleep(100);
+	return GameDummyOut(param1, param2, param3, param4);
+}
 
 BOOL WINAPI  DllMain(HINSTANCE hModule, DWORD fdwReason, LPVOID lpvReserved)
 {
@@ -222,11 +296,30 @@ int CreateAllHooks() {
 	else
 		LOG_ERROR("Minhook Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_CreateHookEx(SetFramesVar, &SetFramesDetour, &SetFramesVarOut);
+	//mh_status = MH_CreateHookEx(SetFramesVar, &SetFramesDetour, &SetFramesVarOut);
+	//if (mh_status == MH_OK)
+	//	LOG_INFO("SetFramesVar Hooking DONE!");
+	//else
+	//	LOG_ERROR("SetFramesVar Hooking error : %s", MH_StatusToString(mh_status));
+
+	//mh_status = MH_CreateHookEx(StartLevel, &StartLevelDetour, &StartLevelOut);
+	//if (mh_status == MH_OK)
+	//	LOG_INFO("StartLevel Hooking DONE!");
+	//else
+	//	LOG_ERROR("StartLevel Createhook error : %s", MH_StatusToString(mh_status));
+
+	//mh_status = MH_CreateHookEx(QuitLvl, &QuitLvlDetour, &QuitLvlOut);
+	//if (mh_status == MH_OK)
+	//	LOG_INFO("QuitLvl Hooking DONE!");
+	//else
+	//	LOG_ERROR("QuitLvl Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_CreateHookEx(GameDummy, &GameDummyDetour, &GameDummyOut);
 	if (mh_status == MH_OK)
-		LOG_INFO("SetFramesVar Hooking DONE!");
+		LOG_INFO("GameDummy Hooking DONE!");
 	else
-		LOG_ERROR("SetFramesVar Hooking error : %s", MH_StatusToString(mh_status));
+		LOG_ERROR("GameDummy Createhook error : %s", MH_StatusToString(mh_status));
+
 
 	//mh_status = MH_CreateHookEx(LoadLevelMenu, &LoadLevelMenuDetour, &LoadLevelMenuOut);
 	//if (mh_status == MH_OK)
@@ -240,7 +333,7 @@ int CreateAllHooks() {
 int EnableAllHooks() {
 	auto mh_status = MH_EnableHook(MH_ALL_HOOKS);
 	if (mh_status == MH_OK)
-		LOG_WARNING("[+]All Hooks enabled");
+		;//LOG_WARNING("[+]All Hooks enabled");
 	else
 		LOG_ERROR("Error enabling Hooks Reason: %s", MH_StatusToString(mh_status));
 	return mh_status;
@@ -275,6 +368,7 @@ void InitPointers() {
 	ParseConfig = reinterpret_cast<IGI_ParseConfig>(0x405850);
 	UpdateQTask = reinterpret_cast<IGI_UpdateQTask>(0x4F0E90);
 	QuitLevel = reinterpret_cast<IGI_QuitLevel>(0x416550);
+	QuitLvl = reinterpret_cast<IGI_QuitLvl>(0x416550);
 	MenuManager = reinterpret_cast<IGI_MenuManager>(0x418B00);
 	LevelStartInit = reinterpret_cast<IGI_LevelStartInit>(0x004012A0);
 	LevelStartMain = reinterpret_cast<IGI_LevelStartMain>(0x00402070);
@@ -286,7 +380,7 @@ void InitPointers() {
 }
 
 
-DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
+DWORD WINAPI MainThread(LPVOID hModule) {
 #ifdef _DEBUG
 	GetConsole()->Allocate();
 	GetConsole()->Clear();
@@ -299,7 +393,7 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 
 	//Init Signature patterns.
 	std::string sigErrorReason;
-	bool initSigs = InitSigPatterns(sigErrorReason);
+	bool initSigs = true;//InitSigPatterns(sigErrorReason);
 	if (initSigs)
 		LOG_INFO("Initializing Signatures Scanning DONE!");
 	else {
@@ -307,6 +401,7 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 		LOG_DEBUG(sigError.c_str());
 		GT_ShowError(sigError.c_str());
 		DllCleanup();
+		FreeLibraryAndExitThread((HMODULE)hModule, 0);
 		return EXIT_FAILURE;
 	}
 
@@ -316,6 +411,7 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 	{
 		LOG_ERROR("Minhook Init Error : %s", MH_StatusToString(mh_status));
 		DllCleanup();
+		FreeLibraryAndExitThread((HMODULE)hModule, 0);
 		return EXIT_FAILURE;
 	}
 	else
@@ -332,38 +428,102 @@ DWORD WINAPI MainThread(LPVOID lpThreadParameter) {
 		}
 	}
 
-	DllMainLoop();
-	FreeLibraryAndExitThread((HMODULE)lpThreadParameter, 0);
+	while (!GT_IsKeyPressed(VK_END)) {
+		DllMainLoop();
+	}
+
+	//Fiber::fiber_handle = CreateFiber(NULL, Fiber::fiber_thread, nullptr);
+	//Fiber::fiber_thread(NULL);
+	FreeLibraryAndExitThread((HMODULE)hModule, 0);
 }
 
 void DllMainLoop() {
-	char* resultCompile = NULL;
-	BOOL enableInput = FALSE, bypassSymbol = FALSE, loadRes = FALSE;
 
-	while (!GT_IsKeyPressed(VK_END)) {
-
-		if (GT_IsKeyToggled(VK_F1)) {
-			NATIVE_INVOKE((NativeHash)HASH::CONFIG_PARSE, NATIVE_CONFIG_FILE);
-			//NATIVE_CONFIG::CONFIG_PARSE(NATIVE_CONFIG_FILE);
-		}
-
-		else if (GT_IsKeyToggled(VK_F2)) {
-			CONFIG::CONFIG_CREATE(NATIVE_CONFIG_FILE);
-		}
-
-		else if (GT_IsKeyToggled(VK_F3)) {
-			CONFIG::WEAPON_CONFIG_PARSE(NATIVE_WEAPON_CONFIG_FILE);
-		}
-		else if (GT_IsKeyToggled(VK_F4)) {
-			GAME::GAME_SET_FRAMES(120);
-		}
-
-		else if (GT_IsKeyToggled(VK_F5)) {
-			NATIVE_INVOKE((NativeHash)HASH::LEVEL_RESTART);
-		}
-
-		Sleep(10);
+	if (GT_IsKeyToggled(VK_F1)) {
+		NATIVE_INVOKE((NativeHash)HASH::CONFIG_PARSE, NATIVE_CONFIG_FILE);
+		//NATIVE_CONFIG::CONFIG_PARSE(NATIVE_CONFIG_FILE);
 	}
+
+	else if (GT_IsKeyToggled(VK_F2)) {
+		CONFIG::CONFIG_CREATE(NATIVE_CONFIG_FILE);
+	}
+
+	else if (GT_IsKeyToggled(VK_F3)) {
+		//CONFIG::WEAPON_CONFIG_PARSE(NATIVE_WEAPON_CONFIG_FILE);
+		QuitLvl(*(PINT)0x0057BABC, *(PINT)0x00C28C5C, *(PINT)(*(PINT)0x0057BABC), *(PINT)0x00567C8C);
+
+	}
+	else if (GT_IsKeyToggled(VK_F4)) {
+		//GAME::GAME_SET_FRAMES(60);
+		StartLevelMain(2, true, true, '1');
+	}
+
+	else if (GT_IsKeyToggled(VK_F5)) {
+		//QuitLvl(*(PINT)0x0057BABC, *(PINT)0x00C28C5C, *(PINT)(*(PINT)0x0057BABC), *(PINT)0x00567C8C);
+		//NATIVE_INVOKE((NativeHash)HASH::LEVEL_RESTART);
+
+		static bool isEnabled = true;
+		if (isEnabled) {
+			SFX::MUSIC_ENABLE();
+			LOG_INFO("GAME_ENABLE_MUSIC");
+		}
+		else {
+			SFX::MUSIC_DISABLE();
+			LOG_INFO("GAME_DISABLE_MUSIC");
+		}
+
+		isEnabled = !isEnabled;
+	}
+
+	else if (GT_IsKeyToggled(VK_F6)) {
+		//auto GameSetMusicVolume = (int(__cdecl*)(int*, int, int))0x4159B0;
+		//GameSetMusicVolume((int*)0x5395E0, 0, 1);
+
+		GFX::GRAPHICS_RESET();
+		LOG_DEBUG("Graphics Reset called %s", localBuf);
+	}
+
+	else if (GT_IsKeyToggled(VK_F7)) {
+		SFX::MUSIC_UPDATE_VOLUME();
+		LOG_DEBUG("GameUpdateVolume called");
+	}
+
+	else if (GT_IsKeyToggled(VK_F8)) {
+		SFX::MUSIC_SET_VOLUME(5);
+		LOG_DEBUG("GameSetMusicVolume called");
+	}
+
+	else if (GT_IsKeyToggled(VK_F9)) {
+		SFX::MUSIC_SET_SFX_VOLUME(8);
+		LOG_DEBUG("GameSetSFXVolume called");
+	}
+
+	else if (GT_IsKeyToggled(VK_F10)) {
+		auto ForceUpdateWindow = (int(__cdecl*)(int*, int, int))0x417880;
+		auto updateWndAddr = PTR_READ_FINAL(0x568140, 0x14, 0x0, 0xA10);
+		LOG_INFO("%s baseUpdateWndAddr : %p", FUNC_NAME, updateWndAddr);
+
+		auto updateWndVal = PTR_READ(updateWndAddr);
+		LOG_INFO("%s baseUpdateWndVal : %p", FUNC_NAME, updateWndVal);
+
+		ForceUpdateWindow((int*)0x19F974, *(int*)0xA758A8, updateWndVal);
+		LOG_DEBUG("ForceUpdateWindow called");
+	}
+	else if (GT_IsKeyToggled(VK_F11)) {
+		//auto GameUpdateVolume = (int(__cdecl*)(char*))0x488e50;
+		//GameUpdateVolume((char*)0x005410fc);
+
+		auto GameCutsceneDelete = (int(__cdecl*)(char*))0x415AB0;
+		GameCutsceneDelete(localBuf);
+		LOG_DEBUG("GameCutsceneDelete called");
+	}
+
+	else if (GT_IsKeyToggled(VK_F12)) {
+		MISC::STATUSMSG_DELETE();
+		LOG_DEBUG("statusMsgDelete called");
+	}
+
+	Sleep(10);
 }
 
 int StatusMsgBox(const char* statusMsg, const char* msgSprite, char msgType)
@@ -379,7 +539,7 @@ int StatusMsgBox(const char* statusMsg, const char* msgSprite, char msgType)
 	statusType = *(PINT)(statusByte);
 	if (msgSprite == NULL)
 		statusSprite = (char*)&statusType;
-	Sleep(0x7D0u);
+
 	return StatusMsg(statusTimer, statusMsg, statusSprite, (char*)&statusByte);
 }
 
@@ -397,7 +557,7 @@ int BypassSymbolCheck(BOOL bypass) {
 		vBytes.push_back(0x3A);
 	}
 	int status = WriteMemory(symbolChkAddr, vBytes);
-	Sleep(0x7D0u);
+
 	return status;
 }
 
@@ -408,9 +568,9 @@ void StartLevelMain(int level = 1, bool disableWarn = true, bool disableErr = fa
 	*(PINT)0x00936274 = !disableWarn;//Disable Warnings.
 	*(PINT)0x00936268 = !disableErr; //Disable Errors.
 
-	HashInit(hashVar);
+	//HashInit(hashVar);
 	UpdateQTask();
-	StartLevel(*(PINT)0x0057BABC, 00000000, *(PINT)0x00C28C5C, *(PINT)0x049E7434);
+	StartLevel(*(PINT)0x0057BABC, 00000000, *(PINT)0x00C28C5C, *(PINT)(*(PINT)0x0057BABC));
 	HashReset();
 }
 

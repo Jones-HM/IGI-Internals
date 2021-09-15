@@ -5,9 +5,6 @@
     <ClCompile Include="Utils\Utility.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Utils\Fibers.cpp">
-      <Filter>Utils</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\Console.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
@@ -58,6 +55,9 @@
     </ClInclude>
     <ClInclude Include="PatternScanner.hpp">
       <Filter>Memory</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\Fibers.hpp">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

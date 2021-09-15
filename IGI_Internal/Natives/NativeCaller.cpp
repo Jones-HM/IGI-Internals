@@ -34,28 +34,54 @@ void NativeCaller::InitHashMapArgs1() {
 	//Map to store Hashes and Handlers.
 	std::map<int, std::function<int(const char*)>> nativeMap1;
 	std::map<int, std::function<int(int)>> nativeMap2;
+	std::map<int, std::function<int(float)>> nativeMap3;
 
 	//Declaring Function for Native hashes.
 	std::function<int(const char*)> ConfigParse{ (int(__cdecl*)(const char*))HASH::CONFIG_PARSE };
 	std::function<int(const char*)> ConfigCreate{ (int(__cdecl*)(const char*))HASH::CONFIG_CREATE };
-	std::function<int(int)> GameSetFrames{ (int(__cdecl*)(int))HASH::GAME_SET_FRAMES };
+	std::function<int(const char*)> EnableInput{ (int(__cdecl*)(const char*))HASH::ENABLE_INPUT };
+	std::function<int(const char*)> DisableInput{ (int(__cdecl*)(const char*))HASH::DISABLE_INPUT };
+	std::function<int(const char*)> EnableMusic{ (int(__cdecl*)(const char*))HASH::MUSIC_ENABLE };
+	std::function<int(const char*)> DisableMusic{ (int(__cdecl*)(const char*))HASH::MUSIC_DISABLE };
+	std::function<int(const char*)> CutsceneDelete{ (int(__cdecl*)(const char*))HASH::CUTSCENE_DELETE };
+	std::function<int(const char*)> StatusMsgDelete{ (int(__cdecl*)(const char*))HASH::STATUSMSG_DELETE };
+	std::function<int(const char*)> VolumeUpdate{ (int(__cdecl*)(const char*))HASH::MUSIC_UPDATE_VOLUME };
+	std::function<int(const char*)> GraphicsReset{ (int(__cdecl*)(const char*))HASH::GRAPHICS_RESET };
+
+	std::function<int(int)> FramesSet{ (int(__cdecl*)(int))HASH::FRAMES_SET };
+	std::function<int(float)> VolumeSFXSet{ (int(__cdecl*)(float))HASH::MUSIC_SET_SFX_VOLUME };
 
 	//Adding Native methods with Args1 to HashMap.
 	NativeMapAdd((NativeHash)HASH::CONFIG_PARSE, ConfigParse, nativeMap1, nativeMap1List1);
 	NativeMapAdd((NativeHash)HASH::CONFIG_CREATE, ConfigCreate, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::GAME_SET_FRAMES, GameSetFrames, nativeMap2, nativeMap1List2);
+
+	NativeMapAdd((NativeHash)HASH::ENABLE_INPUT, EnableInput, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::DISABLE_INPUT, DisableInput, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::MUSIC_ENABLE, EnableMusic, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::MUSIC_DISABLE, DisableMusic, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::CUTSCENE_DELETE, CutsceneDelete, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::STATUSMSG_DELETE, StatusMsgDelete, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::MUSIC_UPDATE_VOLUME, VolumeUpdate, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::GRAPHICS_RESET, GraphicsReset, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::FRAMES_SET, FramesSet, nativeMap2, nativeMap1List2);
+	NativeMapAdd((NativeHash)HASH::MUSIC_SET_SFX_VOLUME, VolumeSFXSet, nativeMap3, nativeMap1List3);
+
+
 }
 
 void NativeCaller::InitHashMapArgs2() {
 
 	//Map to store Hashes and Handlers.
 	std::map<int, std::function<int(int, const char*)>> nativeMap2;
+	std::map<int, std::function<int(float,float)>> nativeMap3;
 
 	//Declaring Function for Native hashes.
-	std::function<int(int, const char*)> ParseWeaponConfig{ (int(__cdecl*)(int index, const char* cfgFile))HASH::WEAPON_CONFIG_PARSE };
+	std::function<int(int, const char*)> ParseWeaponConfig{ (int(__cdecl*)(int,const char*))HASH::WEAPON_CONFIG_PARSE };
+	std::function<int(float, float)> MusicSetVolume{ (int(__cdecl*)(float,float))HASH::MUSIC_SET_VOLUME };
 
 	//Adding Native methods with Args2 to HashMap.
 	NativeMapAdd((NativeHash)HASH::WEAPON_CONFIG_PARSE, ParseWeaponConfig, nativeMap2, nativeMap2List2);
+	NativeMapAdd((NativeHash)HASH::MUSIC_SET_VOLUME, MusicSetVolume, nativeMap3, nativeMap2List3);
 }
 
 void NativeCaller::InitHashMapArgs3() {
