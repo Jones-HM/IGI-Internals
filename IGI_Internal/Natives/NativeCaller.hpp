@@ -17,6 +17,7 @@ namespace IGI {
 		std::list<std::map<int, std::function<int(const char*)>>> nativeMap1List1;
 		std::list<std::map<int, std::function<int(int)>>> nativeMap1List2;
 		std::list<std::map<int, std::function<int(float)>>> nativeMap1List3;
+		std::list<std::map<int, std::function<int(int*)>>> nativeMap1List4;
 		std::list<std::map<int, std::function<int(const char*, int)>>> nativeMap2List1;
 		std::list<std::map<int, std::function<int(int, const char*)>>> nativeMap2List2;
 		std::list<std::map<int, std::function<int(float, float)>>> nativeMap2List3;
@@ -57,7 +58,6 @@ namespace IGI {
 	private:
 		template <typename T>
 		void NativeCall(T nativeHash) {
-			LOG_INFO("nativeHash type: %s", TYPEID(nativeHash));
 			NativeInvoke(nativeHash);
 		}
 
@@ -107,6 +107,8 @@ namespace IGI {
 					hashFound = NativeInvokeT(nativeHash, nativeMap1List2, param1);
 				if (!hashFound)
 					hashFound = NativeInvokeT(nativeHash, nativeMap1List3, param1);
+				if (!hashFound)
+					hashFound = NativeInvokeT(nativeHash, nativeMap1List4, param1);
 			}
 			else if (nativeArgc == 2)
 			{
@@ -145,8 +147,8 @@ namespace IGI {
 					if (nativeMap.first == nativeHash) {
 
 						if constexpr (IS_SAME_MAP(nativeMap0List0)) {
-							std::invoke(nativeMap.second);
 							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
+							std::invoke(nativeMap.second);
 							return true;
 						}
 
@@ -154,12 +156,11 @@ namespace IGI {
 							|| (IS_SAME_MAP(nativeMap1List2) && IS_SAME_T1(INT))
 							|| (IS_SAME_MAP(nativeMap1List3) && IS_SAME_T1(INT))
 							) {
-
+							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
 							if constexpr (IS_SAME_MAP(nativeMap1List3) && IS_SAME_T1(INT))
 								std::invoke(nativeMap.second, (float)((float)param1 / MUSIC_CONST));
 							else
 								std::invoke(nativeMap.second, param1);
-							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
 							return true;
 						}
 
@@ -167,11 +168,11 @@ namespace IGI {
 							|| (IS_SAME_MAP(nativeMap2List2) && IS_SAME_T2(INT, LPCSTR))
 							|| (IS_SAME_MAP(nativeMap2List3) && IS_SAME_T2(INT, INT))
 							) {
+							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
 							if constexpr (IS_SAME_MAP(nativeMap2List3) && IS_SAME_T2(INT, INT))
 								std::invoke(nativeMap.second, (float)((float)param1 / MUSIC_CONST), (float)((float)param2 / MUSIC_CONST));
 							else
 								std::invoke(nativeMap.second, param1, param2);
-							LOG_DEBUG("Found handler for Hash 0x%X", nativeHash);
 							return true;
 						}
 					}

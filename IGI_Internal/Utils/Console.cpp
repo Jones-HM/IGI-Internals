@@ -18,7 +18,7 @@ namespace Utility {
 
 		outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
 
-		const int width = 200;
+		const int width = 60;
 		const int height = 50;
 
 		// Add some more scrolling

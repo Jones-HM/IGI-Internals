@@ -3,15 +3,17 @@
 #define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING  1
 #define _CRT_SECURE_NO_DEPRECATE
 #define DLL_EXPORT __declspec( dllexport )
-#define PTR_READ(addr) *(PINT)addr
-#define PTR_READ_OFF(addr,off) (PTR_READ((addr + off)))
-#define PTR_READ_OFF2(addr,off1,off2) *(PINT)(PTR_READ_OFF(addr,off1) + off2)
-#define PTR_READ_OFF3(addr,off1,off2,off3) *(PINT)(PTR_READ_OFF2(addr,off1,off2) + off3)
-#define PTR_READ_FINAL(addr,off1,off2,off3) PTR_READ_OFF2(PTR_READ(addr),off1,off2) + (DWORD)off3
+#define READ_PTR(addr) *(PINT)addr
+#define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
+#define READ_PTR_OFF2(addr,off1,off2) *(PINT)(READ_PTR_OFF(addr,off1) + off2)
+#define READ_PTR_OFF3(addr,off1,off2,off3) *(PINT)(READ_PTR_OFF2(addr,off1,off2) + off3)
+#define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3
 
 #include "DllMain.hpp"
 #include "Fibers.hpp"
-
+#include <fstream>
+#include <iterator>
+#include <algorithm>
 using namespace IGI;
 
 //Include all static libraries for project.
@@ -177,8 +179,89 @@ int __cdecl  QuitLvlDetour(int param1, int param2, int param3, int param4) {
 	return QuitLvlOut(param1, param2, param3, param4);
 }
 
-auto GameDummy = (int(__cdecl*)(char*, int, float, float))0x415950;
+auto GameDummy = (int(__cdecl*)(int, int, int, int))0x416FE0;
 decltype(GameDummy) GameDummyOut;
+
+auto GameDummy2 = (int(__cdecl*)(int, int, int, int))0x4F0E10;
+decltype(GameDummy2) GameDummyOut2;
+
+auto GameDummy3 = (FILE * (__cdecl*)(char*, char*))0x4A5350;
+decltype(GameDummy3) GameDummyOut3;
+
+auto GameDummy4 = (LPCSTR(__cdecl*)(int, LPCSTR,int))0x50A370;
+decltype(GameDummy4) GameDummyOut4;
+
+
+void ReadWholeFile(LPCSTR fileName, LPSTR fileMode) {
+	//LOG_WARNING("%s File : %s Mode : %s", FUNC_NAME, fileName, fileMode);
+	//char* buffer = NULL;
+	//long length;
+	//FILE* fp = fopen(fileName, fileMode);
+	try {
+		if (std::string(fileMode) == "rb") {
+			auto fileString = std::string(fileName);
+			std::ifstream ifs(fileName, std::ios::binary);
+			std::ofstream ofs(fileString.insert(fileString.length()-4,"_open"), std::ios::binary);
+			//string buffer(std::istreambuf_iterator<char>{ifs}, {});
+			std::vector<byte> buffer(std::istreambuf_iterator<char>(ifs), {});
+			std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<char>(ofs, ""));
+
+			//LOG_WARNING("Buffer: '%s'", buffer);
+		}
+		//if (fp)
+		//{
+
+		//	fseek(fp, 0, SEEK_END);
+		//	length = ftell(fp) + 0x10;
+		//	LOG_WARNING("Buffer Len: %d", length);
+		//	fseek(fp, 0, SEEK_SET);
+		//	if (std::string(fileMode) == "rb") {
+		//		buffer = (char*)malloc(length);
+		//		if (buffer)
+		//		{
+		//			fread(buffer, 1, length, fp);
+		//		}
+		//		fclose(fp);
+		//	}
+		//	else if (std::string(fileMode) == "wb") {
+		//		//fwrite(buffer, 1, length, fp);
+		//		fclose(fp);
+		//	}
+		//}
+
+		//if (buffer)
+		//{
+		//	LOG_WARNING("Buffer: '%s'", buffer);
+		//}
+	}
+	catch (const std::exception& ex) {
+		std::cout << "Exception: " << ex.what() << std::endl;
+	}
+}
+
+LPCSTR __cdecl GameDummyDetour4(int param1, LPCSTR param2, int param3) {
+	//LOG_WARNING("%s param1 : 0x%X param2 : %s param3 : 0x%X", "OpenFileEx", param1, param2, param3);
+	Sleep(100);
+	auto retVal = GameDummyOut4(param1, param2, param3);
+	//LOG_WARNING("OpenFileEx '%s'", retVal);
+	return retVal;
+}
+
+FILE* __cdecl GameDummyDetour3(char* fileName, char* fileMode) {
+	LOG_INFO("%s File : %s Mode : %s", "OpenFile", fileName, fileMode);
+	//std::ifstream ifs(fileName);
+	//string buff(std::istreambuf_iterator<char>{ifs}, {});
+	//ReadWholeFile(fileName, fileMode);
+	Sleep(100);
+	return GameDummyOut3(fileName, fileMode);
+}
+
+int __cdecl GameDummyDetour2(int param1, int param2, int param3, int param4) {
+	LOG_WARNING("%s param1 : %s param2 : %p param3 : %p  param4 : %p", FUNC_NAME, param1, param2, param3, param4);
+	Sleep(100);
+	return GameDummyOut2(param1, param2, param3, param4);
+}
+
 //0x004f0e10; LevelLoad.
 //0x004b8890; -GameDefine.
 //decltype(GameDummy) GameDummyOut;
@@ -188,18 +271,8 @@ FORCEINLINE std::string to_hex_string(const unsigned int i)
 	return (static_cast<std::stringstream const&>(std::stringstream() << "0x" << std::hex << i)).str();
 }
 
-int EnableAllHooks();
-typedef int(__cdecl* DummyCallable)(int*, int, float);
-
-DummyCallable dummyCallable, dummyCallableOut = nullptr;
-
-int __cdecl dummyCallableDetour(int* param1, int param2, float param3) {
-	LOG_WARNING("%s param1 : %p param2 : %p param3 : %f", FUNC_NAME, param1, param2, param3);
-	return dummyCallableOut(param1, param2, param3);
-}
-
-int __cdecl GameDummyDetour(char* param1, int param2, float param3, float param4) {
-	LOG_WARNING("%s param1 : %p param2 : %p param3 : %f param4 : %f", FUNC_NAME, param1, param2, param3, param4);
+int __cdecl GameDummyDetour(int param1, int param2, int param3, int param4) {
+	LOG_WARNING("%s param1 : %p param2 : %p param3 : %p param4 : %p", FUNC_NAME, param1, param2, param3, param4);
 
 	//std::string dummyCallStr = "auto DefineGameSymbol = (int(__cdecl*)(int**, int*, int, int))";
 	//std::string dummyCallInvoke = "std::invoke(DefineGameSymbol," + std::string("(int**)") + to_hex_string((int)param1) + ",(int*)" + to_hex_string((int)param2) + ",*(int*)0xA758A8," + to_hex_string((int)param4) + ");//" + std::string((LPCSTR)param1);
@@ -296,12 +369,6 @@ int CreateAllHooks() {
 	else
 		LOG_ERROR("Minhook Hooking error : %s", MH_StatusToString(mh_status));
 
-	//mh_status = MH_CreateHookEx(SetFramesVar, &SetFramesDetour, &SetFramesVarOut);
-	//if (mh_status == MH_OK)
-	//	LOG_INFO("SetFramesVar Hooking DONE!");
-	//else
-	//	LOG_ERROR("SetFramesVar Hooking error : %s", MH_StatusToString(mh_status));
-
 	//mh_status = MH_CreateHookEx(StartLevel, &StartLevelDetour, &StartLevelOut);
 	//if (mh_status == MH_OK)
 	//	LOG_INFO("StartLevel Hooking DONE!");
@@ -315,11 +382,20 @@ int CreateAllHooks() {
 	//	LOG_ERROR("QuitLvl Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_CreateHookEx(GameDummy, &GameDummyDetour, &GameDummyOut);
-	if (mh_status == MH_OK)
-		LOG_INFO("GameDummy Hooking DONE!");
-	else
+	if (mh_status != MH_OK)
 		LOG_ERROR("GameDummy Createhook error : %s", MH_StatusToString(mh_status));
 
+	mh_status = MH_CreateHookEx(GameDummy2, &GameDummyDetour2, &GameDummyOut2);
+	if (mh_status != MH_OK)
+		LOG_ERROR("GameDummy2 Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_CreateHookEx(GameDummy3, &GameDummyDetour3, &GameDummyOut3);
+	if (mh_status != MH_OK)
+		LOG_ERROR("GameDummy3 Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_CreateHookEx(GameDummy4, &GameDummyDetour4, &GameDummyOut4);
+	if (mh_status != MH_OK)
+		LOG_ERROR("GameDummy4 Createhook error : %s", MH_StatusToString(mh_status));
 
 	//mh_status = MH_CreateHookEx(LoadLevelMenu, &LoadLevelMenuDetour, &LoadLevelMenuOut);
 	//if (mh_status == MH_OK)
@@ -333,7 +409,7 @@ int CreateAllHooks() {
 int EnableAllHooks() {
 	auto mh_status = MH_EnableHook(MH_ALL_HOOKS);
 	if (mh_status == MH_OK)
-		;//LOG_WARNING("[+]All Hooks enabled");
+		LOG_WARNING("[+]All Hooks enabled");
 	else
 		LOG_ERROR("Error enabling Hooks Reason: %s", MH_StatusToString(mh_status));
 	return mh_status;
@@ -440,88 +516,98 @@ DWORD WINAPI MainThread(LPVOID hModule) {
 void DllMainLoop() {
 
 	if (GT_IsKeyToggled(VK_F1)) {
-		NATIVE_INVOKE((NativeHash)HASH::CONFIG_PARSE, NATIVE_CONFIG_FILE);
-		//NATIVE_CONFIG::CONFIG_PARSE(NATIVE_CONFIG_FILE);
+		LEVEL::RESTART();
 	}
 
 	else if (GT_IsKeyToggled(VK_F2)) {
-		CONFIG::CONFIG_CREATE(NATIVE_CONFIG_FILE);
+		auto MainRestart = (int(__cdecl*)(int, int, int, int))0x416FE0;
+		MainRestart(*(PINT)0x0054F8E8, *(PINT)0x00A972D4, *(PINT)0x0054F8E0, *(PINT)0x0054F8E4);
 	}
 
 	else if (GT_IsKeyToggled(VK_F3)) {
-		//CONFIG::WEAPON_CONFIG_PARSE(NATIVE_WEAPON_CONFIG_FILE);
 		QuitLvl(*(PINT)0x0057BABC, *(PINT)0x00C28C5C, *(PINT)(*(PINT)0x0057BABC), *(PINT)0x00567C8C);
 
 	}
 	else if (GT_IsKeyToggled(VK_F4)) {
-		//GAME::GAME_SET_FRAMES(60);
-		StartLevelMain(2, true, true, '1');
+		StartLevelMain(4, true, true, '1');
 	}
 
 	else if (GT_IsKeyToggled(VK_F5)) {
-		//QuitLvl(*(PINT)0x0057BABC, *(PINT)0x00C28C5C, *(PINT)(*(PINT)0x0057BABC), *(PINT)0x00567C8C);
-		//NATIVE_INVOKE((NativeHash)HASH::LEVEL_RESTART);
 
-		static bool isEnabled = true;
-		if (isEnabled) {
-			SFX::MUSIC_ENABLE();
-			LOG_INFO("GAME_ENABLE_MUSIC");
-		}
+		//MISC::ERRORS_DISABLE();
+		//MISC::WARNINGS_DISABLE();
+		//BypassSymbolCheck(TRUE);
+		int buff[255];
+		FILE* fp;
+		auto param1 = ".\\ymbe.afp";
+		auto param2 = "rb";
+		auto OpenFile = (FILE * (__cdecl*)(LPCSTR, LPCSTR))0x4A5350;
+
+		fp = OpenFile(param1, param2);
+		if (fp == NULL) GT_ShowError("OpenFile pointer is null");
+
 		else {
-			SFX::MUSIC_DISABLE();
-			LOG_INFO("GAME_DISABLE_MUSIC");
+			LOG_WARNING("Buffer : %s", (byte**)fp);
 		}
-
-		isEnabled = !isEnabled;
 	}
 
 	else if (GT_IsKeyToggled(VK_F6)) {
-		//auto GameSetMusicVolume = (int(__cdecl*)(int*, int, int))0x4159B0;
-		//GameSetMusicVolume((int*)0x5395E0, 0, 1);
-
-		GFX::GRAPHICS_RESET();
-		LOG_DEBUG("Graphics Reset called %s", localBuf);
+		CONFIG::CONFIG_WRITE(NATIVE_CONST_CONFIG_FILE);
+		LOG_INFO("Config Create Run");
 	}
 
 	else if (GT_IsKeyToggled(VK_F7)) {
-		SFX::MUSIC_UPDATE_VOLUME();
-		LOG_DEBUG("GameUpdateVolume called");
+		const char* cfgFile = "LOCAL:objects.qsc";
+		QFILE::QSC_COMPILE(cfgFile);
+		LOG_INFO("Config Objects Run");
 	}
 
 	else if (GT_IsKeyToggled(VK_F8)) {
-		SFX::MUSIC_SET_VOLUME(5);
-		LOG_DEBUG("GameSetMusicVolume called");
 	}
 
 	else if (GT_IsKeyToggled(VK_F9)) {
-		SFX::MUSIC_SET_SFX_VOLUME(8);
-		LOG_DEBUG("GameSetSFXVolume called");
 	}
 
 	else if (GT_IsKeyToggled(VK_F10)) {
 		auto ForceUpdateWindow = (int(__cdecl*)(int*, int, int))0x417880;
-		auto updateWndAddr = PTR_READ_FINAL(0x568140, 0x14, 0x0, 0xA10);
+		auto updateWndAddr = READ_STATIC_PTR_OFF3(0x568140, 0x14, 0x0, 0xA10);
 		LOG_INFO("%s baseUpdateWndAddr : %p", FUNC_NAME, updateWndAddr);
 
-		auto updateWndVal = PTR_READ(updateWndAddr);
+		auto updateWndVal = READ_PTR(updateWndAddr);
 		LOG_INFO("%s baseUpdateWndVal : %p", FUNC_NAME, updateWndVal);
 
 		ForceUpdateWindow((int*)0x19F974, *(int*)0xA758A8, updateWndVal);
 		LOG_DEBUG("ForceUpdateWindow called");
 	}
-	else if (GT_IsKeyToggled(VK_F11)) {
-		//auto GameUpdateVolume = (int(__cdecl*)(char*))0x488e50;
-		//GameUpdateVolume((char*)0x005410fc);
 
-		auto GameCutsceneDelete = (int(__cdecl*)(char*))0x415AB0;
-		GameCutsceneDelete(localBuf);
-		LOG_DEBUG("GameCutsceneDelete called");
+	else if (GT_IsKeyToggled(VK_F11)) {
 	}
 
 	else if (GT_IsKeyToggled(VK_F12)) {
-		MISC::STATUSMSG_DELETE();
-		LOG_DEBUG("statusMsgDelete called");
+
+		auto playerRemoveProfile = (int(__cdecl*)(char*, int, int))0x00405400;
+		auto removeWndAddr1 = READ_STATIC_PTR_OFF3(0x00568168, 0xC, 0x0, 0xE08);
+		auto removeWndAddr2 = READ_STATIC_PTR_OFF3(0x00568140, 0xC, 0x0, 0xE40);
+
+		LOG_INFO("%s removeWndAddr1 : %p", FUNC_NAME, removeWndAddr1);
+		LOG_INFO("%s removeWndAddr2 : %p", FUNC_NAME, removeWndAddr2);
+
+		auto removeWndVal1 = READ_PTR(removeWndAddr1);
+		auto removeWndVal2 = READ_PTR(removeWndAddr2);
+		LOG_INFO("%s baseUpdateWndVal1 : %p", FUNC_NAME, removeWndVal1);
+		LOG_INFO("%s baseUpdateWndVal2 : %p", FUNC_NAME, removeWndVal2);
+
+		//playerRemoveProfile((char*)0x0019F948,0x0, removeWndVal);
+		LOG_DEBUG("playerRemoveProfile called");
 	}
+
+	else if (GT_IsKeyToggled(VK_HOME)) {
+
+	}
+
+	else if (GT_IsKeyToggled(VK_SNAPSHOT)) {
+	}
+
 
 	Sleep(10);
 }
