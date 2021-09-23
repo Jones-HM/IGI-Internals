@@ -108,11 +108,11 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\haseeb_mir\source\repos\IGI_Internal_v1\IGI_Internal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(SolutionName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ShowProgress>LinkVerboseLib</ShowProgress>
@@ -134,7 +134,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>C:\Users\haseeb_mir\source\repos\IGI_Internal_v1\IGI_Internal;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(SolutionName);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -193,7 +193,7 @@
   <ItemGroup>
     <ClInclude Include="Libs\GTConsole.hpp" />
     <ClInclude Include="Libs\GTLibc.hpp" />
-    <ClInclude Include="NativeConst.hpp" />
+    <ClInclude Include="Natives\NativeConst.hpp" />
     <ClInclude Include="PatternScanner.hpp" />
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
     <ClInclude Include="Utils\Console.hpp" />
@@ -228,6 +228,17 @@
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Utility.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets" Condition="Exists('..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets'))" />
+  </Target>
 </Project>

@@ -48,6 +48,7 @@ namespace IGI {
 
 	namespace QFILE {
 		NATIVE_DECL void QSC_COMPILE(const char* qscFile) { NATIVE_INVOKE((NativeHash)HASH::QSC_COMPILE, qscFile); }
+
 	}
 
 	namespace GFX {
@@ -68,7 +69,7 @@ namespace IGI {
 		NATIVE_DECL void STATUS_MESSAGE_DELETE() { NATIVE_INVOKE((NativeHash)HASH::STATUS_MESSAGE_DELETE, (LPCSTR)localBuf); }
 		NATIVE_DECL void STATUS_MESSAGE_TIMER() { NATIVE_INVOKE((NativeHash)HASH::STATUS_MESSAGE_TIMER); }
 		NATIVE_DECL void GAMEMATERIAL_LOAD() { NATIVE_INVOKE((NativeHash)HASH::GAMEMATERIAL_LOAD); }
-
+		NATIVE_DECL void LOG_ADD(const char* logMsg) { NATIVE_INVOKE((NativeHash)HASH::LOG_ADD, logMsg); }
 		NATIVE_DECL void WARNINGS_DISABLE() { *(PINT)0x00936274 = 0; }
 		NATIVE_DECL void ERRORS_DISABLE() { *(PINT)0x00936268 = 0; }
 	}

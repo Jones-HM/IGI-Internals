@@ -1,7 +1,7 @@
 #ifndef __CONSOLE_H__
 #define __CONSOLE_H__
 #undef UNICODE
-#include "..\Common.h"
+#include "Common.hpp"
 
 namespace ConsoleForeground {
 	enum {

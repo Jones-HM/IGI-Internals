@@ -26,31 +26,34 @@ namespace Utility {
 
 	}
 
-	void Log::Write(eLogType logType, const char* fmt, ...) {
+	void Log::Write(bool logConsole, bool logFile, eLogType logType, const char* fmt, ...) {
 
-		char buf[2048] = { 0 };
+		char fmtBuff[2048] = { NULL };
 		va_list va_alist;
 
 		va_start(va_alist, fmt);
-		vsprintf_s(buf, fmt, va_alist);
+		vsprintf_s(fmtBuff, fmt, va_alist);
 		va_end(va_alist);
 
 		GetConsole()->SetTextColor(logTypeToColorMap[logType]);
+		char logBuff[2048] = { NULL };
 
-		char buff2[2048] = { 0 };
-		sprintf_s(buff2, "%s %s\n", GetTimeFormatted().c_str(), buf);
 		// Print to console
-		printf(buff2);
+		if (logConsole) {
+			sprintf_s(logBuff, "%s %s", GetTimeFormatted().c_str(), fmtBuff);
+			std::cout << logBuff << std::endl;
+		}
 
 #ifndef _DEBUG
 		if (logType == LogTypeDebug) {
 			return;
 		}
 #endif
-
-		sprintf_s(buff2, "%s%s %s\n", GetTimeFormatted().c_str(), logTypeToFormatMap[logType].c_str(), buf);
 		// Write to log file
-		LogToFile(buff2);
+		if (logFile) {
+			sprintf_s(logBuff, "%s%s %s\n", GetTimeFormatted().c_str(), logTypeToFormatMap[logType].c_str(), fmtBuff);
+			LogToFile(logBuff);
+		}
 	}
 
 	const std::string Log::GetTimeFormatted() const {
@@ -66,7 +69,7 @@ namespace Utility {
 
 	void Log::LogToFile(const char* buff) {
 
-		const std::string fileName = GetModuleFolder() + "\\IGI-Internal.log";
+		const std::string fileName = GetModuleFolder() + "\\" + LOG_FILE_NAME;
 
 		std::ofstream logFile;
 		logFile.open(fileName, std::ios_base::app);

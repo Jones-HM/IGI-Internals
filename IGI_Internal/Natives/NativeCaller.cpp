@@ -53,6 +53,7 @@ void NativeCaller::InitHashMapArgs1() {
 	std::function<int(const char*)> VolumeUpdate{ (int(__cdecl*)(const char*))HASH::MUSIC_UPDATE_VOLUME };
 	std::function<int(const char*)> GraphicsReset{ (int(__cdecl*)(const char*))HASH::GRAPHICS_RESET };
 	std::function<int(const char*)> QscCompile{ (int(__cdecl*)(const char*))HASH::QSC_COMPILE };
+	std::function<int(const char*)> LogAdd{ (int(__cdecl*)(const char*))HASH::LOG_ADD };
 	std::function<int(int*)> QTaskUpdateList{ (int(__cdecl*)(int*))HASH::QTASK_UPDATE_LIST };
 
 	std::function<int(int)> FramesSet{ (int(__cdecl*)(int))HASH::FRAMES_SET };
@@ -70,6 +71,7 @@ void NativeCaller::InitHashMapArgs1() {
 	NativeMapAdd((NativeHash)HASH::MUSIC_UPDATE_VOLUME, VolumeUpdate, nativeMap1, nativeMap1List1);
 	NativeMapAdd((NativeHash)HASH::GRAPHICS_RESET, GraphicsReset, nativeMap1, nativeMap1List1);
 	NativeMapAdd((NativeHash)HASH::QSC_COMPILE, QscCompile, nativeMap1, nativeMap1List1);
+	NativeMapAdd((NativeHash)HASH::LOG_ADD, LogAdd, nativeMap1, nativeMap1List1);
 	NativeMapAdd((NativeHash)HASH::FRAMES_SET, FramesSet, nativeMap2, nativeMap1List2);
 	NativeMapAdd((NativeHash)HASH::MUSIC_SET_SFX_VOLUME, VolumeSFXSet, nativeMap3, nativeMap1List3);
 	NativeMapAdd((NativeHash)HASH::QTASK_UPDATE_LIST, QTaskUpdateList, nativeMap4, nativeMap1List4);

@@ -1,6 +1,6 @@
 #pragma once
 #define FORCEINLINE __forceinline
-#include "Common.h"
+#include "Common.hpp"
 #include "Logger.hpp"
 #include "NativeConst.hpp"
 using namespace Utility;

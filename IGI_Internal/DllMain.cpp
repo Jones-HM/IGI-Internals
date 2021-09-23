@@ -1,19 +1,6 @@
 #pragma
-#define GT_BUILD_DLL
-#define _SILENCE_TR1_NAMESPACE_DEPRECATION_WARNING  1
-#define _CRT_SECURE_NO_DEPRECATE
-#define DLL_EXPORT __declspec( dllexport )
-#define READ_PTR(addr) *(PINT)addr
-#define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
-#define READ_PTR_OFF2(addr,off1,off2) *(PINT)(READ_PTR_OFF(addr,off1) + off2)
-#define READ_PTR_OFF3(addr,off1,off2,off3) *(PINT)(READ_PTR_OFF2(addr,off1,off2) + off3)
-#define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3
 
 #include "DllMain.hpp"
-#include "Fibers.hpp"
-#include <fstream>
-#include <iterator>
-#include <algorithm>
 using namespace IGI;
 
 //Include all static libraries for project.
@@ -22,14 +9,36 @@ using namespace IGI;
 #pragma comment(lib,"hook/libMinHook-x86-Debug.lib")
 #pragma comment(lib,"libs/GTLibc-x86-Debug.lib")
 #pragma comment(lib,"libs/GTConsole-x86-Debug.lib")
+#ifdef STACK_WALKER
+#pragma comment(lib,"libs/StackWalker-x86-Debug.lib")
+#endif
 #elif defined(RLS_x86)
 #pragma comment(lib,"hook/libMinHook-x86-Release.lib")
 #pragma comment(lib,"libs/GTLibc-x86-Release.lib")
 #pragma comment(lib,"libs/GTConsole-x86-Release.lib")
+#ifdef STACK_WALKER
+#pragma comment(lib,"libs/StackWalker-x86-Release.lib")
+#endif
 #endif
 #else
-#error This project supports only 32bit builds.
+#error This project supports only x86 (32-Bit) builds.
 #endif
+
+#ifdef STACK_WALKER
+//Extend stackwalker for Output.
+class StackWalkerEx : public StackWalker
+{
+protected:
+	virtual void OnOutput(LPCSTR stackText) { LOG_FILE("%s", stackText); }
+};
+
+//Place in Current method to get stack information.
+void foo() {
+	StackWalkerEx sw;
+	sw.ShowCallstack();
+}
+#endif // STACK_WALKER
+
 
 typedef int(__cdecl* IGI_StatusTimer)();
 typedef int(__cdecl* IGI_ParseWeaponConfig)(int index, char* cfgFile);
@@ -71,7 +80,6 @@ typedef int(__cdecl* IGI_StatusMsg)(int sendStatus, const char* buffer, const ch
 #define ShowStatusDlg(msg)  StatusMsgBox(msg, NULL, 0)
 void StartLevelMain(int, bool, bool, char);
 
-int __cdecl LevelLoadDetour(int levelAddr, int levelLen);
 int __cdecl HashInitDetour(char a1);
 void __cdecl HashResetDetour();
 void __cdecl UpdateQTaskDetour();
@@ -143,6 +151,28 @@ void DllCleanup() {
 #endif
 }
 
+void ReadWholeFile(LPCSTR fileName, LPCSTR fileMode = "rb") {
+	LOG_WARNING("%s File : %s Mode : %s", FUNC_NAME, fileName, fileMode);
+	try {
+		if (std::string(fileMode) == "rb") {
+			auto fileString = std::string(fileName);
+			std::ifstream ifs(fileName, std::ios::binary);
+			if (ifs.good()) {
+				std::ofstream ofs(fileString.insert(fileString.length() - 4, "_open"), std::ios::binary);
+				std::vector<byte> buffer(std::istreambuf_iterator<char>(ifs), {});
+				std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<char>(ofs, ""));
+			}
+			else
+			{
+				LOG_WARNING("%s File : %s doesn't exist", FUNC_NAME, fileName);
+			}
+		}
+	}
+	catch (const std::exception& ex) {
+		std::cout << "Exception: " << ex.what() << std::endl;
+	}
+}
+
 int __cdecl ParseConfigDetour(char* qFile) {
 	LOG_WARNING("%s : qFile : %s\n", FUNC_NAME, qFile);
 	Sleep(100);
@@ -179,133 +209,75 @@ int __cdecl  QuitLvlDetour(int param1, int param2, int param3, int param4) {
 	return QuitLvlOut(param1, param2, param3, param4);
 }
 
-auto GameDummy = (int(__cdecl*)(int, int, int, int))0x416FE0;
-decltype(GameDummy) GameDummyOut;
 
-auto GameDummy2 = (int(__cdecl*)(int, int, int, int))0x4F0E10;
-decltype(GameDummy2) GameDummyOut2;
+//Dummies detours.
+auto GameResourcesLoad = (int*(__cdecl*)(char*,char**))0x4B5F00;
+decltype(GameResourcesLoad) GameResourcesLoadOut;
 
-auto GameDummy3 = (FILE * (__cdecl*)(char*, char*))0x4A5350;
-decltype(GameDummy3) GameDummyOut3;
+auto CompileQVM = (void(__cdecl*)(char*))0x4B85B0;
+decltype(CompileQVM) CompileQVMOut;
 
-auto GameDummy4 = (LPCSTR(__cdecl*)(int, LPCSTR,int))0x50A370;
-decltype(GameDummy4) GameDummyOut4;
+auto GameOpenFile = (FILE * (__cdecl*)(char*, char*))0x4A5350;
+decltype(GameOpenFile) GameOpenFileOut;
 
+auto LoadQVM = (int*(__cdecl*)(LPCSTR))0x4B80B0;
+decltype(LoadQVM) LoadQVMOut;
 
-void ReadWholeFile(LPCSTR fileName, LPSTR fileMode) {
-	//LOG_WARNING("%s File : %s Mode : %s", FUNC_NAME, fileName, fileMode);
-	//char* buffer = NULL;
-	//long length;
-	//FILE* fp = fopen(fileName, fileMode);
-	try {
-		if (std::string(fileMode) == "rb") {
-			auto fileString = std::string(fileName);
-			std::ifstream ifs(fileName, std::ios::binary);
-			std::ofstream ofs(fileString.insert(fileString.length()-4,"_open"), std::ios::binary);
-			//string buffer(std::istreambuf_iterator<char>{ifs}, {});
-			std::vector<byte> buffer(std::istreambuf_iterator<char>(ifs), {});
-			std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<char>(ofs, ""));
+auto AssembleQAS = (int (__cdecl*)(char*, char*))0x4BB270;
+decltype(AssembleQAS) AssembleQASOut;
 
-			//LOG_WARNING("Buffer: '%s'", buffer);
-		}
-		//if (fp)
-		//{
-
-		//	fseek(fp, 0, SEEK_END);
-		//	length = ftell(fp) + 0x10;
-		//	LOG_WARNING("Buffer Len: %d", length);
-		//	fseek(fp, 0, SEEK_SET);
-		//	if (std::string(fileMode) == "rb") {
-		//		buffer = (char*)malloc(length);
-		//		if (buffer)
-		//		{
-		//			fread(buffer, 1, length, fp);
-		//		}
-		//		fclose(fp);
-		//	}
-		//	else if (std::string(fileMode) == "wb") {
-		//		//fwrite(buffer, 1, length, fp);
-		//		fclose(fp);
-		//	}
-		//}
-
-		//if (buffer)
-		//{
-		//	LOG_WARNING("Buffer: '%s'", buffer);
-		//}
-	}
-	catch (const std::exception& ex) {
-		std::cout << "Exception: " << ex.what() << std::endl;
-	}
+int __cdecl AssembleQASDetour(char* fileOut, char* fileIn) {
+	int qasRet = AssembleQASOut(fileOut, fileIn);
+	LOG_INFO("%s fileIn : %s fileOut : %s  Status : %d", "AssembleQAS", fileIn, fileOut, qasRet);
+	return qasRet;
 }
 
-LPCSTR __cdecl GameDummyDetour4(int param1, LPCSTR param2, int param3) {
-	//LOG_WARNING("%s param1 : 0x%X param2 : %s param3 : 0x%X", "OpenFileEx", param1, param2, param3);
+int* __cdecl GameResourcesLoadDetour(char* param1, char** param2) {
+	int* resAddr = GameResourcesLoadOut(param1, param2);
+	LOG_FILE("%s File '%s'\t Address %p", "LoadResource", param1, (int)resAddr);
+	return resAddr;
+}
+
+void __cdecl CompileQVMDetour(char* fileName) {
+	//LOG_INFO("%s fileName : %s", "CompileQVM", fileName);
+	
+	*(PDWORD64)(0x000201B1) += 1;
+	strcpy((char*)0x943606, fileName);
 	Sleep(100);
-	auto retVal = GameDummyOut4(param1, param2, param3);
-	//LOG_WARNING("OpenFileEx '%s'", retVal);
-	return retVal;
+	CompileQVMOut(fileName);
 }
 
-FILE* __cdecl GameDummyDetour3(char* fileName, char* fileMode) {
-	LOG_INFO("%s File : %s Mode : %s", "OpenFile", fileName, fileMode);
-	//std::ifstream ifs(fileName);
-	//string buff(std::istreambuf_iterator<char>{ifs}, {});
+int* __cdecl LoadQVMDetour(LPCSTR fileName) {
+	LOG_INFO("%s fileName : %s", "LoadQVM", fileName);
+
+	auto CompileQVM = (int(__cdecl*)(int))0x4B85B0;
+	auto CompileCleanUp = (int(__cdecl*)(int*))0x4B83D0;
+	auto qvmFile = LoadQVMOut(fileName);
+
+	//ReadWholeFile(fileName);
+	return qvmFile;
+}
+
+FILE* __cdecl GameOpenFileDetour(char* fileName, char* fileMode) {
+	if(std::string(fileMode) == "wb")
+	LOG_INFO("%s File : '%s' Mode : '%s'", "OpenFile", fileName, fileMode);
+
 	//ReadWholeFile(fileName, fileMode);
 	Sleep(100);
-	return GameDummyOut3(fileName, fileMode);
+	return GameOpenFileOut(fileName, fileMode);
 }
 
-int __cdecl GameDummyDetour2(int param1, int param2, int param3, int param4) {
-	LOG_WARNING("%s param1 : %s param2 : %p param3 : %p  param4 : %p", FUNC_NAME, param1, param2, param3, param4);
+int __cdecl LevelLoadDetour(int param1, int param2, int param3, int param4) {
+	LOG_INFO("%s param1 : %s param2 : %p param3 : %p  param4 : %p", "LevelLoad", param1, param2, param3, param4);
 	Sleep(100);
-	return GameDummyOut2(param1, param2, param3, param4);
+	return LevelLoadOut(param1, param2, param3, param4);
 }
 
-//0x004f0e10; LevelLoad.
+//0x4f0e10; LevelLoad.
+//0x416FE0; LevelLoadMenu.
 //0x004b8890; -GameDefine.
-//decltype(GameDummy) GameDummyOut;
+//0x4A5350 - OpenFile.
 
-FORCEINLINE std::string to_hex_string(const unsigned int i)
-{
-	return (static_cast<std::stringstream const&>(std::stringstream() << "0x" << std::hex << i)).str();
-}
-
-int __cdecl GameDummyDetour(int param1, int param2, int param3, int param4) {
-	LOG_WARNING("%s param1 : %p param2 : %p param3 : %p param4 : %p", FUNC_NAME, param1, param2, param3, param4);
-
-	//std::string dummyCallStr = "auto DefineGameSymbol = (int(__cdecl*)(int**, int*, int, int))";
-	//std::string dummyCallInvoke = "std::invoke(DefineGameSymbol," + std::string("(int**)") + to_hex_string((int)param1) + ",(int*)" + to_hex_string((int)param2) + ",*(int*)0xA758A8," + to_hex_string((int)param4) + ");//" + std::string((LPCSTR)param1);
-	//LOG_INFO("%s0x%X;", dummyCallStr.c_str(), (int)0x004b8890);
-	//LOG_INFO("%s", dummyCallInvoke.c_str());
-	//LOG_INFO("%s", "Sleep(0x7D0u);");
-
-	//dummyCallable = (DummyCallable)param2;
-	//decltype(dummyCallable) dummyCallableOut = nullptr;
-
-	//std::string dummyCallStr = "auto " + std::string((LPCSTR)param1) + " = (int(__cdecl*)(int*, int, float))";
-	//std::string dummyCallInvoke = "std::invoke(" + std::string((LPCSTR)param1) + ",(int*)" + to_hex_string((int)(int*)0x0019F994) + ",*(int*)0xA758A8" + "," + to_hex_string(param4) + ");";
-	//LOG_INFO("%s0x%X;", dummyCallStr.c_str(), (int)param2);
-	//LOG_INFO("%s", dummyCallInvoke.c_str());
-	//LOG_INFO("%s", "Sleep(0x7D0u);");
-
-	//auto lamdaFunc = [&](int* param1, int param2, int param3) -> int __cdecl{
-	//	LOG_WARNING("%s param1 : %p param2 : %p param3 : %p", FUNC_NAME,param1, param2, param3);
-	//	return dummyCallableOut(param1, param2, param3);
-	//};
-
-	//auto mh_status = MH_CreateHookEx(dummyCallable, &dummyCallableDetour, &dummyCallableOut);
-
-	//if (mh_status == MH_OK) {
-	//	LOG_INFO("dummyCallable Hooking DONE!");
-	//	EnableAllHooks();
-	//}
-	//else
-	//	LOG_ERROR("Minhook Hooking error : %s", MH_StatusToString(mh_status));
-
-	Sleep(100);
-	return GameDummyOut(param1, param2, param3, param4);
-}
 
 BOOL WINAPI  DllMain(HINSTANCE hModule, DWORD fdwReason, LPVOID lpvReserved)
 {
@@ -349,30 +321,21 @@ BOOL WriteMemory(LPVOID address, std::vector< BYTE >& vBytes)
 };
 
 int CreateAllHooks() {
+	
 	auto mh_status = MH_CreateHookEx(ParseConfig, &ParseConfigDetour, &ParseConfigOut);
-
-	if (mh_status == MH_OK)
-		LOG_INFO("ParseConfig Hooking DONE!");
-	else
-		LOG_ERROR("Minhook Hooking error : %s", MH_StatusToString(mh_status));
+	if (mh_status != MH_OK)
+		LOG_ERROR("ParseConfig Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_CreateHookEx(CreateConfig, &CreateConfigDetour, &CreateConfigOut);
+	if (mh_status != MH_OK)
+		LOG_ERROR("CreateConfig Hooking error : %s", MH_StatusToString(mh_status));
 
-	if (mh_status == MH_OK)
-		LOG_INFO("CreateConfig Hooking DONE!");
-	else
-		LOG_ERROR("Minhook Hooking error : %s", MH_StatusToString(mh_status));
-
-	mh_status = MH_CreateHookEx(ParseWeaponConfig, &ParseWeaponConfigDetour, &ParseWeaponConfigOut);
-	if (mh_status == MH_OK)
-		LOG_INFO("ParseWeaponConfig Hooking DONE!");
-	else
-		LOG_ERROR("Minhook Hooking error : %s", MH_StatusToString(mh_status));
+	//mh_status = MH_CreateHookEx(ParseWeaponConfig, &ParseWeaponConfigDetour, &ParseWeaponConfigOut);
+	//if (mh_status != MH_OK)
+	//	LOG_ERROR("ParseWeaponConfig Hooking error : %s", MH_StatusToString(mh_status));
 
 	//mh_status = MH_CreateHookEx(StartLevel, &StartLevelDetour, &StartLevelOut);
-	//if (mh_status == MH_OK)
-	//	LOG_INFO("StartLevel Hooking DONE!");
-	//else
+	//if (mh_status != MH_OK)
 	//	LOG_ERROR("StartLevel Createhook error : %s", MH_StatusToString(mh_status));
 
 	//mh_status = MH_CreateHookEx(QuitLvl, &QuitLvlDetour, &QuitLvlOut);
@@ -381,27 +344,29 @@ int CreateAllHooks() {
 	//else
 	//	LOG_ERROR("QuitLvl Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_CreateHookEx(GameDummy, &GameDummyDetour, &GameDummyOut);
+	mh_status = MH_CreateHookEx(GameResourcesLoad, &GameResourcesLoadDetour, &GameResourcesLoadOut);
 	if (mh_status != MH_OK)
-		LOG_ERROR("GameDummy Createhook error : %s", MH_StatusToString(mh_status));
+		LOG_ERROR("GameResourcesLoad Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_CreateHookEx(GameDummy2, &GameDummyDetour2, &GameDummyOut2);
+	mh_status = MH_CreateHookEx(LevelLoad, &LevelLoadDetour, &LevelLoadOut);
 	if (mh_status != MH_OK)
-		LOG_ERROR("GameDummy2 Createhook error : %s", MH_StatusToString(mh_status));
+		LOG_ERROR("LevelLoad Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_CreateHookEx(GameDummy3, &GameDummyDetour3, &GameDummyOut3);
+	mh_status = MH_CreateHookEx(GameOpenFile, &GameOpenFileDetour, &GameOpenFileOut);
 	if (mh_status != MH_OK)
-		LOG_ERROR("GameDummy3 Createhook error : %s", MH_StatusToString(mh_status));
+		LOG_ERROR("GameOpenFile Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_CreateHookEx(GameDummy4, &GameDummyDetour4, &GameDummyOut4);
+	mh_status = MH_CreateHookEx(LoadQVM, &LoadQVMDetour, &LoadQVMOut);
 	if (mh_status != MH_OK)
-		LOG_ERROR("GameDummy4 Createhook error : %s", MH_StatusToString(mh_status));
+		LOG_ERROR("LoadQVM Createhook error : %s", MH_StatusToString(mh_status));
 
-	//mh_status = MH_CreateHookEx(LoadLevelMenu, &LoadLevelMenuDetour, &LoadLevelMenuOut);
-	//if (mh_status == MH_OK)
-	//	LOG_INFO("LoadLevelMenu Hooking DONE!");
-	//else
-	//	LOG_ERROR("LoadLevelMenu Createhook error : %s", MH_StatusToString(mh_status));
+	//mh_status = MH_CreateHookEx(CompileQVM, &CompileQVMDetour, &CompileQVMOut);
+	//if (mh_status != MH_OK)
+	//	LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_CreateHookEx(AssembleQAS, &AssembleQASDetour, &AssembleQASOut);
+	if (mh_status != MH_OK)
+		LOG_ERROR("AssembleQAS Createhook error : %s", MH_StatusToString(mh_status));
 
 	return mh_status;
 }
@@ -451,7 +416,6 @@ void InitPointers() {
 	LevelStartCaller = reinterpret_cast<IGI_LevelStartCaller>(0x00416900);
 	SetFramesVar = reinterpret_cast<IGI_SetFramesVar>(0x00402820);
 	StartLevelLbl = reinterpret_cast<IGI_StartLevelLbl>(0x004869B0);
-	LevelLoad = (IGI_LevelLoad)0x4F0E10;
 	LoadLevelMenu = (IGI_LoadLevelMenu)0x00416fe0;
 }
 
@@ -461,6 +425,10 @@ DWORD WINAPI MainThread(LPVOID hModule) {
 	GetConsole()->Allocate();
 	GetConsole()->Clear();
 #endif
+
+	GT_InitTrainerWindowEx("IGI-Base", 50, 50, 1200, 700, BG_TEAL, FG_YELLOW);
+	GT_SetFontSize(0.2f, false);
+	GT_SetConsoleTextColor(BG_TEAL | FG_YELLOW);
 
 	LOG_INFO("[+]Dll Attached");
 	LOG_INFO("Initializing Pointers...");
@@ -516,12 +484,28 @@ DWORD WINAPI MainThread(LPVOID hModule) {
 void DllMainLoop() {
 
 	if (GT_IsKeyToggled(VK_F1)) {
-		LEVEL::RESTART();
+		CONFIG::CONFIG_READ(NATIVE_CONST_CONFIG_FILE);
 	}
 
 	else if (GT_IsKeyToggled(VK_F2)) {
-		auto MainRestart = (int(__cdecl*)(int, int, int, int))0x416FE0;
-		MainRestart(*(PINT)0x0054F8E8, *(PINT)0x00A972D4, *(PINT)0x0054F8E0, *(PINT)0x0054F8E4);
+		
+		const char* qscFile = "LOCAL:hconfig.qsc";
+		auto AssembleQVM = (int(__cdecl*)(const char*, const char*))0x4BB270;
+		auto LoadResourceFunc = (char* (__cdecl*)(const char*, char**))0x4B5F00;
+		auto OpenFileFunc = (char* (__cdecl*)(const char*, const char*))0x4A5350;
+
+		std::string qasFile = std::string(qscFile);
+		size_t lastindex = qasFile.find_last_of(".");
+		auto qvmFile = qasFile.substr(0, lastindex).append(".qvm");
+		qasFile = qasFile.substr(0, lastindex).append(".qas");
+
+		LoadResourceFunc(qscFile, NULL);
+		OpenFileFunc(qasFile.c_str(), "wb");
+
+		auto assembleRet = AssembleQVM(qvmFile.c_str(), qasFile.c_str());
+		(assembleRet == 0) ? LOG_INFO("AssembleQVM Success") : LOG_ERROR("AssembleQVM Error");
+		//auto MainRestart = (int(__cdecl*)(int, int, int, int))0x416FE0;
+		//MainRestart(*(PINT)0x0054F8E8, *(PINT)0x00A972D4, *(PINT)0x0054F8E0, *(PINT)0x0054F8E4);
 	}
 
 	else if (GT_IsKeyToggled(VK_F3)) {
@@ -536,24 +520,17 @@ void DllMainLoop() {
 
 		//MISC::ERRORS_DISABLE();
 		//MISC::WARNINGS_DISABLE();
-		//BypassSymbolCheck(TRUE);
-		int buff[255];
-		FILE* fp;
-		auto param1 = ".\\ymbe.afp";
-		auto param2 = "rb";
-		auto OpenFile = (FILE * (__cdecl*)(LPCSTR, LPCSTR))0x4A5350;
-
-		fp = OpenFile(param1, param2);
-		if (fp == NULL) GT_ShowError("OpenFile pointer is null");
-
-		else {
-			LOG_WARNING("Buffer : %s", (byte**)fp);
-		}
+		
+		auto CompileQVM = (int(__cdecl*)(const char*))0x4B85B0;
+		CompileQVM("LOCAL:config.qvm");
+		LOG_INFO("CompileQVM Run");
 	}
 
 	else if (GT_IsKeyToggled(VK_F6)) {
-		CONFIG::CONFIG_WRITE(NATIVE_CONST_CONFIG_FILE);
-		LOG_INFO("Config Create Run");
+		auto LoadResourceFunc = (char* (__cdecl*)(const char*, char**))0x4B5F00;
+		auto retVal = LoadResourceFunc("LOCAL:hconfig.qsc",NULL);
+
+		LOG_INFO("LoadResource Run '%s'\n", retVal);
 	}
 
 	else if (GT_IsKeyToggled(VK_F7)) {
@@ -660,24 +637,6 @@ void StartLevelMain(int level = 1, bool disableWarn = true, bool disableErr = fa
 	HashReset();
 }
 
-int __cdecl LevelLoadDetour(int levelAddr, int levelLen) {
-
-	*(PINT)0x00936274 = 0;//Disable Warnings.
-	//int gameLevel = *((PDWORD)0x539560);
-	//HWND hwnd = GT_FindGameWindow("IGI");
-
-	char buf[0x50] = { NULL };
-	wsprintf(buf, "levelAddr is 0x%X levelLen: %d\n", levelAddr, levelLen);
-	GT_ShowInfo(buf);
-
-	HashInit('1');
-	UpdateQTask();
-
-	//SetForegroundWindow(hwnd);
-	int ret = LevelLoadOut(levelAddr, levelLen, *(PINT)0x04A27C18, 0x1);
-	HashReset();
-	return ret;
-}
 
 int __cdecl HashInitDetour(char hashVal) {
 	//AutoMsgBox::Show("HashInitDetour",1);

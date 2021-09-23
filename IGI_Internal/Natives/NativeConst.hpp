@@ -1,5 +1,5 @@
 #pragma once
-#include "Common.h"
+#include "Common.hpp"
 
 namespace IGI {
 /*Re-Defining standard constants*/
@@ -9,11 +9,17 @@ namespace IGI {
 #define FUNC_NAME __func__
 #endif
 
+//Defining Helper for Pointers.
+#define READ_PTR(addr) *(PINT)addr
+#define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
+#define READ_PTR_OFF2(addr,off1,off2) *(PINT)(READ_PTR_OFF(addr,off1) + off2)
+#define READ_PTR_OFF3(addr,off1,off2,off3) *(PINT)(READ_PTR_OFF2(addr,off1,off2) + off3)
+#define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3
+
 #define TYPEID(x) typeid(x).name()
 #define TYPE(x) std::string(typeid(x).name())
 #define CHECK_TYPE(x,y) TYPE(x) == std::string(y)
 #define LINE_DEBUG LOG_DEBUG("[%s] LINE : %d", FUNC_NAME, LINE_NO);
-
 
 //Player profile constants.
 #define PLAYER_ACTIVE_MISSION_OFF  0x20

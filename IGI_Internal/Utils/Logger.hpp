@@ -1,11 +1,15 @@
 #ifndef __LOG_H__
 #define __LOG_H__
 
-#include "..\Common.h"
-#define LOG_INFO( fmt, ...)	GetLog()->Write( eLogType::LogTypePrint,	fmt, ##__VA_ARGS__ )
-#define LOG_DEBUG( fmt, ...)	GetLog()->Write( eLogType::LogTypeDebug,	fmt, ##__VA_ARGS__ )
-#define LOG_WARNING( fmt, ...)	GetLog()->Write( eLogType::LogTypeWarning,	fmt, ##__VA_ARGS__ )
-#define LOG_ERROR( fmt, ...)	GetLog()->Write( eLogType::LogTypeError,	fmt, ##__VA_ARGS__ )
+#include "Common.hpp"
+#define LOG_INFO( fmt, ...)	GetLog()->Write(true,true, eLogType::LogTypePrint,	fmt, ##__VA_ARGS__ )
+#define LOG_DEBUG( fmt, ...)	GetLog()->Write(true,true,  eLogType::LogTypeDebug,	fmt, ##__VA_ARGS__ )
+#define LOG_WARNING( fmt, ...)	GetLog()->Write(true,true,  eLogType::LogTypeWarning,	fmt, ##__VA_ARGS__ )
+#define LOG_ERROR( fmt, ...)	GetLog()->Write(true,true,  eLogType::LogTypeError,	fmt, ##__VA_ARGS__ )
+#define LOG_CONSOLE( fmt, ...)	GetLog()->Write(true,false,  eLogType::LogTypePrint,	fmt, ##__VA_ARGS__ )
+#define LOG_FILE( fmt, ...)	GetLog()->Write(false,true,  eLogType::LogTypePrint,	fmt, ##__VA_ARGS__ )
+
+#define LOG_FILE_NAME "IGI-Internal.log"
 
 namespace Utility {
 
@@ -25,7 +29,7 @@ namespace Utility {
 		Log();
 		~Log();
 
-		void				Write(eLogType logType, const char* fmt, ...);
+		void				Write(bool,bool,eLogType logType, const char* fmt, ...);
 
 	private:
 

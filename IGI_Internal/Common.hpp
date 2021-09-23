@@ -19,3 +19,5 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <iterator>
+#include <algorithm>

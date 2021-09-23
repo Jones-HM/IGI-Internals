@@ -1,5 +1,5 @@
 #pragma once
-#include ".\Common.h"
+#include "Common.hpp"
 /*
      * @brief Scan for a given byte pattern on a module
      *

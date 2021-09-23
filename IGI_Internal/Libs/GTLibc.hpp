@@ -62,7 +62,7 @@ extern "C" {
 #endif
 
 #ifdef GT_BUILD_CLI
-#include "GTConsole.h"
+#include "GTConsole.hpp"
 #endif
 
 /*Defining WIN32 Constants*/
