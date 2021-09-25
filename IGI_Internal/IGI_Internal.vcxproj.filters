@@ -20,16 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
-    <ClInclude Include="Common.h">
-      <Filter>Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Natives\NativeHelper.hpp">
       <Filter>Natives</Filter>
     </ClInclude>
     <ClInclude Include="Natives\Natives.hpp">
       <Filter>Natives</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\General.hpp">
+    <ClInclude Include="Utils\Utility.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Console.hpp">
@@ -58,6 +55,12 @@
     </ClInclude>
     <ClInclude Include="Natives\NativeConst.hpp">
       <Filter>Natives</Filter>
+    </ClInclude>
+    <ClInclude Include="Utils\DebugHelper.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Common.hpp">
+      <Filter>Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

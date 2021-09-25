@@ -1,7 +1,11 @@
 #pragma
+//ich liebe es zu programmieren und Deustchland <3
 
 #include "DllMain.hpp"
 using namespace IGI;
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+#include <boost/stacktrace.hpp>
+#define STACK_WALKER
 
 //Include all static libraries for project.
 #if defined _M_IX86
@@ -33,10 +37,10 @@ protected:
 };
 
 //Place in Current method to get stack information.
-void foo() {
+/*
 	StackWalkerEx sw;
 	sw.ShowCallstack();
-}
+*/
 #endif // STACK_WALKER
 
 
@@ -151,6 +155,30 @@ void DllCleanup() {
 #endif
 }
 
+namespace bs = boost::stacktrace;
+void BoostStackDump(const bs::stacktrace& st) {
+	const std::string fileName = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+	std::ofstream fout(fileName, std::ios_base::app);
+	fout << "StackDump:" << std::endl;
+
+	for (bs::frame frame : st) {
+		fout << "Name: '" << frame.name() << "'"
+			<< "\tAddress: 0x" << frame.address()
+			<< "\tLine: " << frame.source_line()
+			<< " File: " << frame.source_file()
+			<< std::endl;
+	}
+	fout.close();
+}
+
+void BoostStackTrace(const bs::stacktrace& st) {
+	const std::string fileName = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+	std::ofstream fout(fileName, std::ios_base::app);
+	fout << "StackTrace:" << std::endl;
+	fout << st;
+	fout.close();
+}
+
 void ReadWholeFile(LPCSTR fileName, LPCSTR fileMode = "rb") {
 	LOG_WARNING("%s File : %s Mode : %s", FUNC_NAME, fileName, fileMode);
 	try {
@@ -182,7 +210,8 @@ int __cdecl ParseConfigDetour(char* qFile) {
 int __cdecl CreateConfigDetour(char* qFile) {
 	LOG_WARNING("%s : qFile : %s\n", FUNC_NAME, qFile);
 	Sleep(100);
-	return CreateConfigOut(qFile);
+	int retVal = CreateConfigOut(qFile);
+	return retVal;
 }
 
 int __cdecl ParseWeaponConfigDetour(int index, char* cfgFile) {
@@ -211,7 +240,7 @@ int __cdecl  QuitLvlDetour(int param1, int param2, int param3, int param4) {
 
 
 //Dummies detours.
-auto GameResourcesLoad = (int*(__cdecl*)(char*,char**))0x4B5F00;
+auto GameResourcesLoad = (int* (__cdecl*)(char*, char**))0x4B5F00;
 decltype(GameResourcesLoad) GameResourcesLoadOut;
 
 auto CompileQVM = (void(__cdecl*)(char*))0x4B85B0;
@@ -220,10 +249,10 @@ decltype(CompileQVM) CompileQVMOut;
 auto GameOpenFile = (FILE * (__cdecl*)(char*, char*))0x4A5350;
 decltype(GameOpenFile) GameOpenFileOut;
 
-auto LoadQVM = (int*(__cdecl*)(LPCSTR))0x4B80B0;
+auto LoadQVM = (int* (__cdecl*)(LPCSTR))0x4B80B0;
 decltype(LoadQVM) LoadQVMOut;
 
-auto AssembleQAS = (int (__cdecl*)(char*, char*))0x4BB270;
+auto AssembleQAS = (int(__cdecl*)(char*, char*))0x4BB270;
 decltype(AssembleQAS) AssembleQASOut;
 
 int __cdecl AssembleQASDetour(char* fileOut, char* fileIn) {
@@ -233,14 +262,26 @@ int __cdecl AssembleQASDetour(char* fileOut, char* fileIn) {
 }
 
 int* __cdecl GameResourcesLoadDetour(char* param1, char** param2) {
+
 	int* resAddr = GameResourcesLoadOut(param1, param2);
 	LOG_FILE("%s File '%s'\t Address %p", "LoadResource", param1, (int)resAddr);
+
+	auto stackTrace = DebugHelper::StackTraceWalk(true, false, true);
+	DebugHelper::StackTracePrint(stackTrace, true);
+
+	//LOG_FILE("BoostStackTrace:\n");
+	//BoostStackTrace(bs::stacktrace());
+
+	//LOG_FILE("ShowCallstack:\n");
+	//StackWalkerEx sw;
+	//sw.ShowCallstack();
+
 	return resAddr;
 }
 
 void __cdecl CompileQVMDetour(char* fileName) {
 	//LOG_INFO("%s fileName : %s", "CompileQVM", fileName);
-	
+
 	*(PDWORD64)(0x000201B1) += 1;
 	strcpy((char*)0x943606, fileName);
 	Sleep(100);
@@ -248,7 +289,7 @@ void __cdecl CompileQVMDetour(char* fileName) {
 }
 
 int* __cdecl LoadQVMDetour(LPCSTR fileName) {
-	LOG_INFO("%s fileName : %s", "LoadQVM", fileName);
+	LOG_FILE("%s fileName : %s", "LoadQVM", fileName);
 
 	auto CompileQVM = (int(__cdecl*)(int))0x4B85B0;
 	auto CompileCleanUp = (int(__cdecl*)(int*))0x4B83D0;
@@ -259,10 +300,14 @@ int* __cdecl LoadQVMDetour(LPCSTR fileName) {
 }
 
 FILE* __cdecl GameOpenFileDetour(char* fileName, char* fileMode) {
-	if(std::string(fileMode) == "wb")
-	LOG_INFO("%s File : '%s' Mode : '%s'", "OpenFile", fileName, fileMode);
+	//if (std::string(fileMode) == "wb")
+	LOG_FILE("%s File : '%s' Mode : '%s'", "OpenFile", fileName, fileMode);
 
 	//ReadWholeFile(fileName, fileMode);
+	//BoostStackTrace(bs::stacktrace());
+	auto stackTrace = DebugHelper::StackTraceWalk();
+	DebugHelper::StackTracePrint(stackTrace);
+
 	Sleep(100);
 	return GameOpenFileOut(fileName, fileMode);
 }
@@ -270,6 +315,8 @@ FILE* __cdecl GameOpenFileDetour(char* fileName, char* fileMode) {
 int __cdecl LevelLoadDetour(int param1, int param2, int param3, int param4) {
 	LOG_INFO("%s param1 : %s param2 : %p param3 : %p  param4 : %p", "LevelLoad", param1, param2, param3, param4);
 	Sleep(100);
+	auto stackTrace = DebugHelper::StackTraceWalk();
+	DebugHelper::StackTracePrint(stackTrace);
 	return LevelLoadOut(param1, param2, param3, param4);
 }
 
@@ -321,7 +368,7 @@ BOOL WriteMemory(LPVOID address, std::vector< BYTE >& vBytes)
 };
 
 int CreateAllHooks() {
-	
+
 	auto mh_status = MH_CreateHookEx(ParseConfig, &ParseConfigDetour, &ParseConfigOut);
 	if (mh_status != MH_OK)
 		LOG_ERROR("ParseConfig Hooking error : %s", MH_StatusToString(mh_status));
@@ -419,16 +466,22 @@ void InitPointers() {
 	LoadLevelMenu = (IGI_LoadLevelMenu)0x00416fe0;
 }
 
-
 DWORD WINAPI MainThread(LPVOID hModule) {
 #ifdef _DEBUG
 	GetConsole()->Allocate();
 	GetConsole()->Clear();
 #endif
+	auto g_Handle = GT_GetGameHandle4mHWND(GetForegroundWindow());
+	Utility::SetHandle(g_Handle);
 
-	GT_InitTrainerWindowEx("IGI-Base", 50, 50, 1200, 700, BG_TEAL, FG_YELLOW);
-	GT_SetFontSize(0.2f, false);
-	GT_SetConsoleTextColor(BG_TEAL | FG_YELLOW);
+	if (SymInitialize(g_Handle, NULL, TRUE) == FALSE)
+	{
+		DBG_TRACE(__FUNCTION__ ": Failed to call SymInitialize.");
+		return EXIT_FAILURE;
+	}
+
+	GT_InitTrainerWindowEx("IGI-Base", 50, 50, 1200, 700, BG_OLIVE, FG_BROWN);
+	//GT_SetConsoleTextColor(FG_WHITE);
 
 	LOG_INFO("[+]Dll Attached");
 	LOG_INFO("Initializing Pointers...");
@@ -437,7 +490,7 @@ DWORD WINAPI MainThread(LPVOID hModule) {
 
 	//Init Signature patterns.
 	std::string sigErrorReason;
-	bool initSigs = true;//InitSigPatterns(sigErrorReason);
+	bool initSigs = true;// InitSigPatterns(sigErrorReason);
 	if (initSigs)
 		LOG_INFO("Initializing Signatures Scanning DONE!");
 	else {
@@ -476,6 +529,7 @@ DWORD WINAPI MainThread(LPVOID hModule) {
 		DllMainLoop();
 	}
 
+	SymCleanup(g_Handle);
 	//Fiber::fiber_handle = CreateFiber(NULL, Fiber::fiber_thread, nullptr);
 	//Fiber::fiber_thread(NULL);
 	FreeLibraryAndExitThread((HMODULE)hModule, 0);
@@ -488,7 +542,7 @@ void DllMainLoop() {
 	}
 
 	else if (GT_IsKeyToggled(VK_F2)) {
-		
+
 		const char* qscFile = "LOCAL:hconfig.qsc";
 		auto AssembleQVM = (int(__cdecl*)(const char*, const char*))0x4BB270;
 		auto LoadResourceFunc = (char* (__cdecl*)(const char*, char**))0x4B5F00;
@@ -520,7 +574,7 @@ void DllMainLoop() {
 
 		//MISC::ERRORS_DISABLE();
 		//MISC::WARNINGS_DISABLE();
-		
+
 		auto CompileQVM = (int(__cdecl*)(const char*))0x4B85B0;
 		CompileQVM("LOCAL:config.qvm");
 		LOG_INFO("CompileQVM Run");
@@ -528,7 +582,7 @@ void DllMainLoop() {
 
 	else if (GT_IsKeyToggled(VK_F6)) {
 		auto LoadResourceFunc = (char* (__cdecl*)(const char*, char**))0x4B5F00;
-		auto retVal = LoadResourceFunc("LOCAL:hconfig.qsc",NULL);
+		auto retVal = LoadResourceFunc("LOCAL:hconfig.qsc", NULL);
 
 		LOG_INFO("LoadResource Run '%s'\n", retVal);
 	}

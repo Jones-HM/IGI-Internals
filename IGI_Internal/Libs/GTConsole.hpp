@@ -74,13 +74,6 @@ extern "C" {
 #define FUNC_NAME __func__
 #endif
 
-/*Defining exception handling constants*/
-#if !defined(gt_try) && !defined(gt_catch) && !defined(gt_throw)
-#define gt_try BOOL GT_HadError=FALSE;
-#define gt_catch(x) GT_ExitJump:if(GT_HadError)
-#define gt_throw(x) GT_HadError=TRUE;goto GT_ExitJump;
-#endif
-
 /*Enum to store Foreground colors*/
 	typedef enum FG_COLORS {
 		FG_BLACK = 0, FG_BLUE = 1, FG_GREEN = 2, FG_CYAN = 3, FG_RED = 4,

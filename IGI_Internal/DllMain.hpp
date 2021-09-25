@@ -11,13 +11,14 @@
 #include "GTLibc.hpp"
 #include "DllMain.hpp"
 #include "AutoMsgBox.hpp"
-#include "General.hpp"
+#include "Utility.hpp"
 #include "MinHook.hpp"
 #include "NativeCaller.hpp"
 #include "NativeHelper.hpp"
 #include "Natives.hpp"
 #include "PatternScanner.hpp"
 #include "StackWalker.hpp"
+#include "DebugHelper.hpp"
 
 using namespace Utility;
 BOOL __stdcall DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);

@@ -120,6 +120,7 @@
       <IgnoreAllDefaultLibraries>false</IgnoreAllDefaultLibraries>
       <GenerateMapFile>false</GenerateMapFile>
       <MapExports>false</MapExports>
+      <AssemblyDebug>false</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -191,6 +192,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Common.hpp" />
     <ClInclude Include="Libs\GTConsole.hpp" />
     <ClInclude Include="Libs\GTLibc.hpp" />
     <ClInclude Include="Natives\NativeConst.hpp" />
@@ -198,8 +200,8 @@
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
     <ClInclude Include="Utils\Console.hpp" />
     <ClInclude Include="DllMain.hpp" />
-    <ClInclude Include="Common.h" />
-    <ClInclude Include="Utils\General.hpp" />
+    <ClInclude Include="Utils\DebugHelper.hpp" />
+    <ClInclude Include="Utils\Utility.hpp" />
     <ClInclude Include="Natives\NativeCaller.hpp" />
     <ClInclude Include="Natives\NativeHelper.hpp" />
     <ClInclude Include="Natives\Natives.hpp">
@@ -233,12 +235,14 @@
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets" Condition="Exists('..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets')" />
+    <Import Project="..\packages\boost.1.77.0.0\build\boost.targets" Condition="Exists('..\packages\boost.1.77.0.0\build\boost.targets')" />
+    <Import Project="..\packages\boost_stacktrace_noop-vc141.1.77.0.0\build\boost_stacktrace_noop-vc141.targets" Condition="Exists('..\packages\boost_stacktrace_noop-vc141.1.77.0.0\build\boost_stacktrace_noop-vc141.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\stacktrace.redist.0.1\build\native\stacktrace.redist.targets'))" />
+    <Error Condition="!Exists('..\packages\boost.1.77.0.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.77.0.0\build\boost.targets'))" />
+    <Error Condition="!Exists('..\packages\boost_stacktrace_noop-vc141.1.77.0.0\build\boost_stacktrace_noop-vc141.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_stacktrace_noop-vc141.1.77.0.0\build\boost_stacktrace_noop-vc141.targets'))" />
   </Target>
 </Project>

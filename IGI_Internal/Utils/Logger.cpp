@@ -1,6 +1,6 @@
 #include "Logger.hpp"
 #include "Console.hpp"
-#include "General.hpp"
+#include "Utility.hpp"
 
 #include <time.h>
 #include <fstream>
