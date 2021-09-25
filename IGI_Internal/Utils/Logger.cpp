@@ -3,7 +3,6 @@
 #include "Utility.hpp"
 #include <time.h>
 
-
 namespace Utility {
 
 	static Log g_Log;

@@ -1,18 +1,17 @@
 #pragma once
 //
-// Debug Helpers is internal Helper file for Debugging remote or current process using StackWalk for Stack trace 
+// Debug Helper is internal Helper file for Debugging remote or current process using StackWalk for Stack trace 
 // Using dbghelp as Core lib provides all functionality fore core debugging.
 // This file is part of IGI-Internals.
 // CopyLeft @ 2021
 // 
 
-#ifndef _DEBUG_HELPER_
-#define _DEBUG_HELPER_
+#ifndef _DBG_HELPER_
+#define _DBG_HELPER_
 
 #include "Common.hpp"
 #include <dbghelp.h>
 #include "Logger.hpp"
-#include "Utility.hpp"
 #include "Utility.hpp"
 
 #define FRAME_SIZE 0x64
@@ -62,13 +61,13 @@ namespace DebugHelper
 	//StackFrame to hold all stack information.
 	typedef struct _StackFrame
 	{
-		DWORD symbolAddress; //Method address.
+		uint32_t symbolAddress; //Method address.
 		string symbolName; //Method name.
 		string moduleName; //Module name
-		UINT lineNo; //Line number.
+		uint32_t lineNo; //Line number.
 		string fileName; //File path of module.
-		UINT frameNo; //Frame number.
-		std::array<DWORD,4> params; //Method parameters.
+		uint32_t frameNo; //Frame number.
+		std::array<uint32_t,4> params; //Method parameters.
 		CONTEXT context; //Stack Context.
 	}StackFrame;
 
@@ -125,7 +124,7 @@ namespace DebugHelper
 
 			int index = 0;
 			bool bSwapParam = false;
-			std::array<DWORD, 4> param;
+			std::array<uint32_t, 4> param;
 
 			//Walk untill all Stacks are traversed - Get info for ThreadId,Frame,Context of Stack. 
 			while (StackWalk(machine, process, thread, &frame, &context, NULL, SymFunctionTableAccess, SymGetModuleBase, NULL))
@@ -172,7 +171,7 @@ namespace DebugHelper
 				char symbolBuffer[sizeof(IMAGEHLP_SYMBOL) + 0xFF];
 				auto symbolImg = (PIMAGEHLP_SYMBOL)symbolBuffer;
 				symbolImg->SizeOfStruct = (sizeof IMAGEHLP_SYMBOL) + 0xFF;
-				symbolImg->MaxNameLength = 0xFF+1;
+				symbolImg->MaxNameLength = 0xFF;
 
 				if (SymGetSymFromAddr(process, frame.AddrPC.Offset, &offset, symbolImg))
 				{
@@ -237,11 +236,11 @@ namespace DebugHelper
 				fout << "Name: " << st.symbolName << "\t";
 
 			if (st.symbolAddress != 0)
-				fout << "Address: " << HexFmtAddr(st.symbolAddress);
+				fout << "Address: " << HEX_ADDR_FMT(st.symbolAddress);
 
 			fout << "\tParams: [";
 			for (int i : {0, 1, 2, 3}) {
-				fout << HexFmtAddr(st.params[i]);
+				fout << HEX_ADDR_FMT(st.params[i]);
 				if (i < 3) fout << ",";
 			}
 			fout << "]\t";
@@ -272,17 +271,17 @@ namespace DebugHelper
 					<< std::endl;
 #else
 				fout << "\n\tGENERAL-PURPOSE-REGISTERS\n"
-					<< "\tEAX: " <<HexFmtAddr(st.context.Eax)
-					<< "\tEBX: " <<HexFmtAddr(st.context.Ebx)
-					<< "\tECX: " <<HexFmtAddr(st.context.Ecx)
-					<< "\tEDX: " <<HexFmtAddr(st.context.Edx)
+					<< "\tEAX: " <<HEX_ADDR_FMT(st.context.Eax)
+					<< "\tEBX: " <<HEX_ADDR_FMT(st.context.Ebx)
+					<< "\tECX: " <<HEX_ADDR_FMT(st.context.Ecx)
+					<< "\tEDX: " <<HEX_ADDR_FMT(st.context.Edx)
 
 					<< "\n\tSPECIAL-PURPOSE-REGISTERS\n"
-					<< "\tESI: " <<HexFmtAddr(st.context.Esi)
-					<< "\tEDI: " <<HexFmtAddr(st.context.Edi)
-					<< "\tEBP: " <<HexFmtAddr(st.context.Ebp)
-					<< "\tESP: " <<HexFmtAddr(st.context.Esp)
-					<< "\tEIP: " <<HexFmtAddr(st.context.Eip)
+					<< "\tESI: " <<HEX_ADDR_FMT(st.context.Esi)
+					<< "\tEDI: " <<HEX_ADDR_FMT(st.context.Edi)
+					<< "\tEBP: " <<HEX_ADDR_FMT(st.context.Ebp)
+					<< "\tESP: " <<HEX_ADDR_FMT(st.context.Esp)
+					<< "\tEIP: " <<HEX_ADDR_FMT(st.context.Eip)
 					<< std::endl;
 #endif
 			}

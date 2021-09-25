@@ -17,6 +17,9 @@
     <ClCompile Include="Utils\Logger.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Natives\Natives.cpp">
+      <Filter>Natives</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
@@ -56,7 +59,7 @@
     <ClInclude Include="Natives\NativeConst.hpp">
       <Filter>Natives</Filter>
     </ClInclude>
-    <ClInclude Include="Utils\DebugHelper.hpp">
+    <ClInclude Include="Utils\DbgHelper.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Common.hpp">

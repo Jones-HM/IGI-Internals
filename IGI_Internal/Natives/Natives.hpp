@@ -1,4 +1,8 @@
 #pragma once
+#include "Common.hpp"
+#include "Logger.hpp"
+typedef uint32_t NativeHash;
+
 namespace IGI {
 	enum class HASH
 	{
@@ -51,4 +55,18 @@ namespace IGI {
 		WEAPON_CONFIG_READ = 0x4071E0,
 		WEAPON_TYPE_OPEN = 0x413B70,
 	};
+
+	class Natives {
+	private:
+		std::map<uint32_t, string> nativesHashMap;
+	public:
+		Natives();
+		~Natives() = default;
+
+		void InitNativesHashMap();
+		string FindNativeName(uint32_t);
+		NativeHash FindNativeAddr(string);
+		int GetNativesCount() { return nativesHashMap.size(); }
+	};
+	inline Natives g_Natives;
 }

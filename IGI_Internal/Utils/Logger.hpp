@@ -9,7 +9,7 @@
 #define LOG_CONSOLE( fmt, ...)	GetLog()->Write(true,false,  eLogType::LogTypePrint,	fmt, ##__VA_ARGS__ )
 #define LOG_FILE( fmt, ...)	GetLog()->Write(false,true,  eLogType::LogTypePrint,	fmt, ##__VA_ARGS__ )
 
-#define LOG_FILE_NAME "IGI-Internal.log"
+#define LOG_FILE_NAME "IGI-Internals.log"
 
 namespace Utility {
 

@@ -6,10 +6,9 @@
 #define DLL_EXPORT __declspec( dllexport )
 
 #include "Common.hpp"
-#include "logger.hpp"
+#include "Logger.hpp"
 #include "Console.hpp"
 #include "GTLibc.hpp"
-#include "DllMain.hpp"
 #include "AutoMsgBox.hpp"
 #include "Utility.hpp"
 #include "MinHook.hpp"
@@ -17,9 +16,13 @@
 #include "NativeHelper.hpp"
 #include "Natives.hpp"
 #include "PatternScanner.hpp"
-#include "StackWalker.hpp"
-#include "DebugHelper.hpp"
+
+#ifdef _DEBUG
+#include "DbgHelper.hpp"
+#endif
 
 using namespace Utility;
-BOOL __stdcall DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved);
+using namespace IGI;
+
+BOOL __stdcall DllMain(HINSTANCE, DWORD, LPVOID);
 void DllMainLoop();

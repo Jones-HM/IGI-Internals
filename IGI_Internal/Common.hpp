@@ -23,5 +23,9 @@
 #include <algorithm>
 #include <iomanip>
 #include <array>
+
 using std::string;
-#define HexFmtAddr(addr) std::setw(8) << std::setfill('0') << std::uppercase << std::hex << addr
+using std::vector;
+
+#define HEX_ADDR_FMT(addr) std::setw(8) << std::setfill('0') << std::uppercase << std::hex << addr
+#define HEX_ADDR_STR(addr) (static_cast<std::stringstream const&>(std::stringstream() << HEX_ADDR_FMT(addr))).str()

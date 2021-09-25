@@ -200,7 +200,7 @@
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
     <ClInclude Include="Utils\Console.hpp" />
     <ClInclude Include="DllMain.hpp" />
-    <ClInclude Include="Utils\DebugHelper.hpp" />
+    <ClInclude Include="Utils\DbgHelper.hpp" />
     <ClInclude Include="Utils\Utility.hpp" />
     <ClInclude Include="Natives\NativeCaller.hpp" />
     <ClInclude Include="Natives\NativeHelper.hpp" />
@@ -219,6 +219,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="Natives\Natives.cpp" />
     <ClCompile Include="Utils\AutoMsgBox.cpp" />
     <ClCompile Include="Utils\Console.cpp" />
     <ClInclude Include="Utils\Fibers.hpp">

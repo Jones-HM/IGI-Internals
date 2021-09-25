@@ -2,7 +2,7 @@
 //ich liebe es zu programmieren und Deustchland <3
 
 #include "DllMain.hpp"
-using namespace IGI;
+
 
 //Include all static libraries for project.
 #if defined _M_IX86
@@ -19,7 +19,6 @@ using namespace IGI;
 #else
 #error This project supports only x86 (32-Bit) builds.
 #endif
-
 
 typedef int(__cdecl* IGI_StatusTimer)();
 typedef int(__cdecl* IGI_ParseWeaponConfig)(int index, char* cfgFile);
