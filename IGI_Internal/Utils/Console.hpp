@@ -53,8 +53,8 @@ namespace Utility {
 		void				Allocate();
 		void				DeAllocate();
 
-		void				SetTitle(const std::string& title);
-		const std::string	GetTitle();
+		void				SetTitle(const string& title);
+		const string	GetTitle();
 
 		void				Clear();
 

@@ -1,9 +1,8 @@
 #include "Logger.hpp"
 #include "Console.hpp"
 #include "Utility.hpp"
-
 #include <time.h>
-#include <fstream>
+
 
 namespace Utility {
 
@@ -56,7 +55,7 @@ namespace Utility {
 		}
 	}
 
-	const std::string Log::GetTimeFormatted() const {
+	const string Log::GetTimeFormatted() const {
 
 		struct tm timeStruct;
 		time_t currTime = time(NULL);
@@ -69,7 +68,7 @@ namespace Utility {
 
 	void Log::LogToFile(const char* buff) {
 
-		const std::string fileName = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+		const string fileName = GetModuleFolder() + "\\" + LOG_FILE_NAME;
 
 		std::ofstream logFile;
 		logFile.open(fileName, std::ios_base::app);

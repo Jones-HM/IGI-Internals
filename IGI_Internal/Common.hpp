@@ -23,3 +23,5 @@
 #include <algorithm>
 #include <iomanip>
 #include <array>
+using std::string;
+#define HexFmtAddr(addr) std::setw(8) << std::setfill('0') << std::uppercase << std::hex << addr

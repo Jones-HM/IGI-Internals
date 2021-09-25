@@ -21,7 +21,7 @@ namespace Utility {
 	};
 
 	typedef std::map<int32_t, int32_t> intIntMap;
-	typedef std::map<int32_t, std::string> intStringMap;
+	typedef std::map<int32_t, string> intStringMap;
 
 	class Log {
 	public:
@@ -35,7 +35,7 @@ namespace Utility {
 
 		void				LogToFile(const char* buff);
 
-		const std::string	GetTimeFormatted() const;
+		const string	GetTimeFormatted() const;
 
 
 		intIntMap			logTypeToColorMap;

@@ -46,12 +46,12 @@ namespace Utility {
 		FreeConsole();
 	}
 
-	void Console::SetTitle(const std::string& title) {
+	void Console::SetTitle(const string& title) {
 
 		SetConsoleTitle(title.c_str());
 	}
 
-	const std::string Console::GetTitle() {
+	const string Console::GetTitle() {
 
 		TCHAR title[MAX_PATH];
 		GetConsoleTitle(title, MAX_PATH);

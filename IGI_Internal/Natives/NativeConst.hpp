@@ -17,8 +17,8 @@ namespace IGI {
 #define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3
 
 #define TYPEID(x) typeid(x).name()
-#define TYPE(x) std::string(typeid(x).name())
-#define CHECK_TYPE(x,y) TYPE(x) == std::string(y)
+#define TYPE(x) string(typeid(x).name())
+#define CHECK_TYPE(x,y) TYPE(x) == string(y)
 #define LINE_DEBUG LOG_DEBUG("[%s] LINE : %d", FUNC_NAME, LINE_NO);
 
 //Player profile constants.

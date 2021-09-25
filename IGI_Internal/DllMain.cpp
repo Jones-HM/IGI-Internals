@@ -3,9 +3,6 @@
 
 #include "DllMain.hpp"
 using namespace IGI;
-#define BOOST_STACKTRACE_USE_ADDR2LINE
-#include <boost/stacktrace.hpp>
-#define STACK_WALKER
 
 //Include all static libraries for project.
 #if defined _M_IX86
@@ -13,35 +10,15 @@ using namespace IGI;
 #pragma comment(lib,"hook/libMinHook-x86-Debug.lib")
 #pragma comment(lib,"libs/GTLibc-x86-Debug.lib")
 #pragma comment(lib,"libs/GTConsole-x86-Debug.lib")
-#ifdef STACK_WALKER
-#pragma comment(lib,"libs/StackWalker-x86-Debug.lib")
-#endif
+
 #elif defined(RLS_x86)
 #pragma comment(lib,"hook/libMinHook-x86-Release.lib")
 #pragma comment(lib,"libs/GTLibc-x86-Release.lib")
 #pragma comment(lib,"libs/GTConsole-x86-Release.lib")
-#ifdef STACK_WALKER
-#pragma comment(lib,"libs/StackWalker-x86-Release.lib")
-#endif
 #endif
 #else
 #error This project supports only x86 (32-Bit) builds.
 #endif
-
-#ifdef STACK_WALKER
-//Extend stackwalker for Output.
-class StackWalkerEx : public StackWalker
-{
-protected:
-	virtual void OnOutput(LPCSTR stackText) { LOG_FILE("%s", stackText); }
-};
-
-//Place in Current method to get stack information.
-/*
-	StackWalkerEx sw;
-	sw.ShowCallstack();
-*/
-#endif // STACK_WALKER
 
 
 typedef int(__cdecl* IGI_StatusTimer)();
@@ -155,35 +132,11 @@ void DllCleanup() {
 #endif
 }
 
-namespace bs = boost::stacktrace;
-void BoostStackDump(const bs::stacktrace& st) {
-	const std::string fileName = GetModuleFolder() + "\\" + LOG_FILE_NAME;
-	std::ofstream fout(fileName, std::ios_base::app);
-	fout << "StackDump:" << std::endl;
-
-	for (bs::frame frame : st) {
-		fout << "Name: '" << frame.name() << "'"
-			<< "\tAddress: 0x" << frame.address()
-			<< "\tLine: " << frame.source_line()
-			<< " File: " << frame.source_file()
-			<< std::endl;
-	}
-	fout.close();
-}
-
-void BoostStackTrace(const bs::stacktrace& st) {
-	const std::string fileName = GetModuleFolder() + "\\" + LOG_FILE_NAME;
-	std::ofstream fout(fileName, std::ios_base::app);
-	fout << "StackTrace:" << std::endl;
-	fout << st;
-	fout.close();
-}
-
 void ReadWholeFile(LPCSTR fileName, LPCSTR fileMode = "rb") {
 	LOG_WARNING("%s File : %s Mode : %s", FUNC_NAME, fileName, fileMode);
 	try {
-		if (std::string(fileMode) == "rb") {
-			auto fileString = std::string(fileName);
+		if (string(fileMode) == "rb") {
+			auto fileString = string(fileName);
 			std::ifstream ifs(fileName, std::ios::binary);
 			if (ifs.good()) {
 				std::ofstream ofs(fileString.insert(fileString.length() - 4, "_open"), std::ios::binary);
@@ -211,6 +164,10 @@ int __cdecl CreateConfigDetour(char* qFile) {
 	LOG_WARNING("%s : qFile : %s\n", FUNC_NAME, qFile);
 	Sleep(100);
 	int retVal = CreateConfigOut(qFile);
+	
+	auto stackTrace = DebugHelper::StackTraceWalk(true);
+	DebugHelper::StackTracePrint(stackTrace, true);
+
 	return retVal;
 }
 
@@ -266,15 +223,8 @@ int* __cdecl GameResourcesLoadDetour(char* param1, char** param2) {
 	int* resAddr = GameResourcesLoadOut(param1, param2);
 	LOG_FILE("%s File '%s'\t Address %p", "LoadResource", param1, (int)resAddr);
 
-	auto stackTrace = DebugHelper::StackTraceWalk(true, false, true);
+	auto stackTrace = DebugHelper::StackTraceWalk(true);
 	DebugHelper::StackTracePrint(stackTrace, true);
-
-	//LOG_FILE("BoostStackTrace:\n");
-	//BoostStackTrace(bs::stacktrace());
-
-	//LOG_FILE("ShowCallstack:\n");
-	//StackWalkerEx sw;
-	//sw.ShowCallstack();
 
 	return resAddr;
 }
@@ -300,13 +250,12 @@ int* __cdecl LoadQVMDetour(LPCSTR fileName) {
 }
 
 FILE* __cdecl GameOpenFileDetour(char* fileName, char* fileMode) {
-	//if (std::string(fileMode) == "wb")
+	//if (string(fileMode) == "wb")
 	LOG_FILE("%s File : '%s' Mode : '%s'", "OpenFile", fileName, fileMode);
 
 	//ReadWholeFile(fileName, fileMode);
-	//BoostStackTrace(bs::stacktrace());
-	auto stackTrace = DebugHelper::StackTraceWalk();
-	DebugHelper::StackTracePrint(stackTrace);
+	auto stackTrace = DebugHelper::StackTraceWalk(true);
+	DebugHelper::StackTracePrint(stackTrace,true);
 
 	Sleep(100);
 	return GameOpenFileOut(fileName, fileMode);
@@ -315,8 +264,8 @@ FILE* __cdecl GameOpenFileDetour(char* fileName, char* fileMode) {
 int __cdecl LevelLoadDetour(int param1, int param2, int param3, int param4) {
 	LOG_INFO("%s param1 : %s param2 : %p param3 : %p  param4 : %p", "LevelLoad", param1, param2, param3, param4);
 	Sleep(100);
-	auto stackTrace = DebugHelper::StackTraceWalk();
-	DebugHelper::StackTracePrint(stackTrace);
+	auto stackTrace = DebugHelper::StackTraceWalk(true);
+	DebugHelper::StackTracePrint(stackTrace, true);
 	return LevelLoadOut(param1, param2, param3, param4);
 }
 
@@ -489,7 +438,7 @@ DWORD WINAPI MainThread(LPVOID hModule) {
 	LOG_INFO("Initializing Pointers DONE!");
 
 	//Init Signature patterns.
-	std::string sigErrorReason;
+	string sigErrorReason;
 	bool initSigs = true;// InitSigPatterns(sigErrorReason);
 	if (initSigs)
 		LOG_INFO("Initializing Signatures Scanning DONE!");
@@ -548,7 +497,7 @@ void DllMainLoop() {
 		auto LoadResourceFunc = (char* (__cdecl*)(const char*, char**))0x4B5F00;
 		auto OpenFileFunc = (char* (__cdecl*)(const char*, const char*))0x4A5350;
 
-		std::string qasFile = std::string(qscFile);
+		string qasFile = string(qscFile);
 		size_t lastindex = qasFile.find_last_of(".");
 		auto qvmFile = qasFile.substr(0, lastindex).append(".qvm");
 		qasFile = qasFile.substr(0, lastindex).append(".qas");

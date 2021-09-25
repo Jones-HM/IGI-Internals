@@ -3,21 +3,21 @@
 static HMODULE g_Module;
 static HANDLE g_Handle;
 
-const std::string Utility::GetRunningExecutableFolder() {
+const string Utility::GetRunningExecutableFolder() {
 
 	char fileName[MAX_PATH];
 	GetModuleFileNameA(NULL, fileName, MAX_PATH);
 
-	std::string currentPath = fileName;
+	string currentPath = fileName;
 	return currentPath.substr(0, currentPath.find_last_of("\\"));
 }
 
-const std::string Utility::GetModuleFolder() {
+const string Utility::GetModuleFolder() {
 
 	char fileName[MAX_PATH];
 	GetModuleFileNameA(g_Module, fileName, MAX_PATH);
 
-	std::string currentPath = fileName;
+	string currentPath = fileName;
 	return currentPath.substr(0, currentPath.find_last_of("\\"));
 }
 
@@ -43,12 +43,12 @@ const HANDLE Utility::GetHandle() {
 
 
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error.
-std::string Utility::GetLastErrorAsString()
+string Utility::GetLastErrorAsString()
 {
 	//Get the error message ID, if any.
 	DWORD errorMessageID = ::GetLastError();
 	if (errorMessageID == 0) {
-		return std::string(); //No error message has been recorded
+		return string(); //No error message has been recorded
 	}
 
 	LPSTR messageBuffer = nullptr;
@@ -58,8 +58,8 @@ std::string Utility::GetLastErrorAsString()
 	size_t size = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 		NULL, errorMessageID, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&messageBuffer, 0, NULL);
 
-	//Copy the error message into a std::string.
-	std::string message(messageBuffer, size);
+	//Copy the error message into a string.
+	string message(messageBuffer, size);
 
 	//Free the Win32's string's buffer.
 	LocalFree(messageBuffer);
@@ -67,10 +67,10 @@ std::string Utility::GetLastErrorAsString()
 	return message;
 }
 
-std::string Utility::GetBaseFileName(std::string fileName)
+string Utility::GetBaseFileName(string fileName)
 {
 	size_t pos = fileName.rfind(("."));
-	if (pos == std::string::npos)  //No extension.
+	if (pos == string::npos)  //No extension.
 		return fileName;
 
 	if (pos == 0)    //. is at the front. Not an extension.
@@ -79,20 +79,20 @@ std::string Utility::GetBaseFileName(std::string fileName)
 	return fileName.substr(0, pos);
 }
 
-const std::string Utility::GetModuleName(const HMODULE module) {
+const string Utility::GetModuleName(const HMODULE module) {
 
 	char fileName[MAX_PATH];
 	GetModuleFileNameA(module, fileName, MAX_PATH);
 
-	std::string fullPath = fileName;
+	string fullPath = fileName;
 
 	size_t lastIndex = fullPath.find_last_of("\\") + 1;
 	return fullPath.substr(lastIndex, fullPath.length() - lastIndex);
 }
 
-const std::string Utility::GetModuleNameWithoutExtension(const HMODULE module) {
+const string Utility::GetModuleNameWithoutExtension(const HMODULE module) {
 
-	const std::string fileNameWithExtension = GetModuleName(module);
+	const string fileNameWithExtension = GetModuleName(module);
 
 	size_t lastIndex = fileNameWithExtension.find_last_of(".");
 	if (lastIndex == -1) {
