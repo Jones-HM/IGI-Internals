@@ -75,13 +75,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
@@ -195,8 +195,8 @@
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="Libs\GTConsole.hpp" />
     <ClInclude Include="Libs\GTLibc.hpp" />
+    <ClInclude Include="Memory\Memory.hpp" />
     <ClInclude Include="Natives\NativeConst.hpp" />
-    <ClInclude Include="PatternScanner.hpp" />
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
     <ClInclude Include="Utils\Console.hpp" />
     <ClInclude Include="DllMain.hpp" />
@@ -213,6 +213,7 @@
     <ClInclude Include="Utils\Logger.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Natives\NativeCaller.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</ExcludedFromBuild>
@@ -231,6 +232,17 @@
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Utility.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets" Condition="Exists('..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets')" />
+  </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets'))" />
+  </Target>
 </Project>

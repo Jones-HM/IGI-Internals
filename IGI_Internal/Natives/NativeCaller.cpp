@@ -1,19 +1,23 @@
-#include "NativeCaller.hpp"
-#include "Natives.hpp"
+#include "NativeCaller.hpp" 
+#include "Natives.hpp" 
 using namespace IGI;
 
-NativeCaller::NativeCaller() 
+NativeCaller::NativeCaller()
 {
+	g_NativeCaller = this;
 	InitHashMaps();
 }
 
-//Init Hashes with only 0 Arguments.
+NativeCaller::~NativeCaller() {
+	g_NativeCaller = nullptr;
+}
+
+//Init Hashes with only 0 Arguments. 
 void NativeCaller::InitHashMapArgs0() {
-	//Map to store Hashes and Handlers.
+	//Map to store Hashes and Handlers. 
 	std::map<int, std::function<int(void)>> nativeMap0;
 
-	//Declaring Function for Native hashes.
-	std::function<int(void)> StatusTimer{ (int(__cdecl*)(void))HASH::STATUS_MESSAGE_TIMER };
+	//Declaring Function for Native hashes. 
 	std::function<int(void)> HumanPlayerLoad{ (int(__cdecl*)(void))HASH::HUMANPLAYER_LOAD };
 	std::function<int(void)> GameMaterialLoad{ (int(__cdecl*)(void))HASH::GAMEMATERIAL_LOAD };
 	std::function<int(void)> QHashReset{ (int(__cdecl*)(void))HASH::QHASH_RESET };
@@ -21,8 +25,7 @@ void NativeCaller::InitHashMapArgs0() {
 	std::function<int(void)> LevelRestart{ (int(__cdecl*)(void))HASH::LEVEL_RESTART };
 	std::function<int(void)> WeaponTypeOpen{ (int(__cdecl*)(void))HASH::WEAPON_TYPE_OPEN };
 
-	//Adding Native methods with Args0 to HashMap.
-	NativeMapAdd((NativeHash)HASH::STATUS_MESSAGE_TIMER, StatusTimer, nativeMap0,nativeMap0List0);
+	//Adding Native methods with Args0 to HashMap. 
 	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, HumanPlayerLoad, nativeMap0, nativeMap0List0);
 	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, GameMaterialLoad, nativeMap0, nativeMap0List0);
 	NativeMapAdd((NativeHash)HASH::QHASH_RESET, QHashReset, nativeMap0, nativeMap0List0);
@@ -32,16 +35,16 @@ void NativeCaller::InitHashMapArgs0() {
 
 }
 
-//Init Hashes with only 1 Arguments.
+//Init Hashes with only 1 Arguments. 
 void NativeCaller::InitHashMapArgs1() {
 
-	//Map to store Hashes and Handlers.
-	std::map<int, std::function<int(const char*)>> nativeMap1;
-	std::map<int, std::function<int(int)>> nativeMap2;
-	std::map<int, std::function<int(float)>> nativeMap3;
-	std::map<int, std::function<int(int*)>> nativeMap4;
+	//Map to store Hashes and Handlers. 
+	std::map<int, std::function<int(const char*)>> native_map1;
+	std::map<int, std::function<int(int)>> native_map2;
+	std::map<int, std::function<int(float)>> native_map3;
+	std::map<int, std::function<int(int*)>> native_map4;
 
-	//Declaring Function for Native hashes.
+	//Declaring Function for Native hashes. 
 	std::function<int(const char*)> ConfigRead{ (int(__cdecl*)(const char*))HASH::CONFIG_READ };
 	std::function<int(const char*)> ConfigWrite{ (int(__cdecl*)(const char*))HASH::CONFIG_WRITE };
 	std::function<int(const char*)> InputEnable{ (int(__cdecl*)(const char*))HASH::INPUT_ENABLE };
@@ -56,42 +59,44 @@ void NativeCaller::InitHashMapArgs1() {
 	std::function<int(const char*)> LogAdd{ (int(__cdecl*)(const char*))HASH::LOG_ADD };
 	std::function<int(int*)> QTaskUpdateList{ (int(__cdecl*)(int*))HASH::QTASK_UPDATE_LIST };
 
+	std::function<int(int)> QHashInit{ (int(__cdecl*)(int))HASH::QHASH_INIT };
 	std::function<int(int)> FramesSet{ (int(__cdecl*)(int))HASH::FRAMES_SET };
 	std::function<int(float)> VolumeSFXSet{ (int(__cdecl*)(float))HASH::MUSIC_SET_SFX_VOLUME };
 
-	//Adding Native methods with Args1 to HashMap.
-	NativeMapAdd((NativeHash)HASH::CONFIG_READ, ConfigRead, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::CONFIG_WRITE, ConfigWrite, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::INPUT_ENABLE, InputEnable, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::INPUT_DISABLE, InputDisable, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::MUSIC_ENABLE, EnableMusic, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::MUSIC_DISABLE, DisableMusic, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::CUTSCENE_DELETE, CutsceneDelete, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::STATUS_MESSAGE_DELETE, StatusMsgDelete, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::MUSIC_UPDATE_VOLUME, VolumeUpdate, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::GRAPHICS_RESET, GraphicsReset, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::QSC_COMPILE, QscCompile, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::LOG_ADD, LogAdd, nativeMap1, nativeMap1List1);
-	NativeMapAdd((NativeHash)HASH::FRAMES_SET, FramesSet, nativeMap2, nativeMap1List2);
-	NativeMapAdd((NativeHash)HASH::MUSIC_SET_SFX_VOLUME, VolumeSFXSet, nativeMap3, nativeMap1List3);
-	NativeMapAdd((NativeHash)HASH::QTASK_UPDATE_LIST, QTaskUpdateList, nativeMap4, nativeMap1List4);
+	//Adding Native methods with Args1 to HashMap. 
+	NativeMapAdd((NativeHash)HASH::CONFIG_READ, ConfigRead, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::CONFIG_WRITE, ConfigWrite, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::INPUT_ENABLE, InputEnable, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::INPUT_DISABLE, InputDisable, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::MUSIC_ENABLE, EnableMusic, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::MUSIC_DISABLE, DisableMusic, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::CUTSCENE_DELETE, CutsceneDelete, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::STATUS_MESSAGE_DELETE, StatusMsgDelete, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::MUSIC_UPDATE_VOLUME, VolumeUpdate, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::GRAPHICS_RESET, GraphicsReset, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::QSC_COMPILE, QscCompile, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::LOG_ADD, LogAdd, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::FRAMES_SET, FramesSet, native_map2, native_map1_list2);
+	NativeMapAdd((NativeHash)HASH::QHASH_INIT, QHashInit, native_map2, native_map1_list2);
+	NativeMapAdd((NativeHash)HASH::MUSIC_SET_SFX_VOLUME, VolumeSFXSet, native_map3, native_map1_list3);
+	NativeMapAdd((NativeHash)HASH::QTASK_UPDATE_LIST, QTaskUpdateList, native_map4, native_map1_list4);
 
 
 }
 
 void NativeCaller::InitHashMapArgs2() {
 
-	//Map to store Hashes and Handlers.
-	std::map<int, std::function<int(int, const char*)>> nativeMap2;
-	std::map<int, std::function<int(float,float)>> nativeMap3;
+	//Map to store Hashes and Handlers. 
+	std::map<int, std::function<int(int, const char*)>> native_map2;
+	std::map<int, std::function<int(float, float)>> native_map3;
 
-	//Declaring Function for Native hashes.
+	//Declaring Function for Native hashes. 
 	std::function<int(int, const char*)> WeaponConfigRead{ (int(__cdecl*)(int,const char*))HASH::WEAPON_CONFIG_READ };
 	std::function<int(float, float)> MusicSetVolume{ (int(__cdecl*)(float,float))HASH::MUSIC_SET_VOLUME };
 
-	//Adding Native methods with Args2 to HashMap.
-	NativeMapAdd((NativeHash)HASH::WEAPON_CONFIG_READ, WeaponConfigRead, nativeMap2, nativeMap2List2);
-	NativeMapAdd((NativeHash)HASH::MUSIC_SET_VOLUME, MusicSetVolume, nativeMap3, nativeMap2List3);
+	//Adding Native methods with Args2 to HashMap. 
+	NativeMapAdd((NativeHash)HASH::WEAPON_CONFIG_READ, WeaponConfigRead, native_map2, native_map2_list2);
+	NativeMapAdd((NativeHash)HASH::MUSIC_SET_VOLUME, MusicSetVolume, native_map3, native_map2_list3);
 }
 
 void NativeCaller::InitHashMapArgs3() {
@@ -104,4 +109,6 @@ void NativeCaller::InitHashMaps() {
 	InitHashMapArgs0();
 	InitHashMapArgs1();
 	InitHashMapArgs2();
+	InitHashMapArgs3();
+	InitHashMapArgs4();
 }

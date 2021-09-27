@@ -1,7 +1,7 @@
-#ifndef __CONSOLE_H__
-#define __CONSOLE_H__
-#undef UNICODE
-#include "Common.hpp"
+#ifndef __CONSOLE_H__ 
+#define __CONSOLE_H__ 
+#undef UNICODE 
+#include "Common.hpp" 
 
 namespace ConsoleForeground {
 	enum {
@@ -50,23 +50,23 @@ namespace Utility {
 	class Console {
 	public:
 
-		void				Allocate();
-		void				DeAllocate();
+		void    Allocate();
+		void    DeAllocate();
 
-		void				SetTitle(const string& title);
-		const string	GetTitle();
+		void    SetTitle(const string& title);
+		const string GetTitle();
 
-		void				Clear();
+		void    Clear();
 
-		void				SetTextColor(const int color);
-		void				SetBackgroundColor(const int color);
+		void    SetTextColor(const int color);
+		void    SetBackgroundColor(const int color);
 
-		bool				IsAllocated() const { return isAllocated; }
+		bool    IsAllocated() const { return is_allocated; }
 
 	private:
 
-		bool				isAllocated = false;
-		HANDLE			outputHandle = INVALID_HANDLE_VALUE;
+		bool    is_allocated = false;
+		HANDLE   output_handle = INVALID_HANDLE_VALUE;
 	};
 
 	Console* GetConsole();

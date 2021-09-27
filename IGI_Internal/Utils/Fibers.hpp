@@ -1,6 +1,7 @@
-#pragma once
-#include <windows.h>
-#include "dllmain.hpp"
+#pragma once 
+#include <windows.h> 
+#include "dllmain.hpp" 
+#include "..\Libs\GTLibc.hpp"
 #pragma comment(lib, "winmm.lib")
 using namespace IGI;
 
@@ -41,4 +42,3 @@ namespace Fiber {
 		}
 	}
 }
-

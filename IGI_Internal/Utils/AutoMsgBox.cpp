@@ -1,102 +1,102 @@
-#include "AutoMsgBox.hpp"
+#include "AutoMsgBox.hpp" 
 
 static class AutoMsgBox {
 
 private:
 
-	static void MessageBoxHook(string caption, uint32_t uTimeout)
+	static void MessageBoxHook(string caption, uint32_t u_timeout)
 	{
 		MessageBoxInit();
-		if (hHook != NULL)
+		if (h_hook != NULL)
 			throw new std::exception("multiple calls are not supported");
 
-		hookTimeout = uTimeout;
-		hookCaption = !caption.empty() ? caption : "";
-		hHook = SetWindowsHookEx(WH_CALLWNDPROCRET, (HOOKPROC)hookProc, 0, GetCurrentThreadId());
+		hook_timeout = u_timeout;
+		hook_caption = !caption.empty() ? caption : "";
+		h_hook = SetWindowsHookEx(WH_CALLWNDPROCRET, (HOOKPROC)hook_proc, 0, GetCurrentThreadId());
 	}
 
-	static intptr_t MessageBoxHookProc(int nCode, intptr_t wParam, intptr_t lParam)
+	static intptr_t MessageBoxHookProc(int n_code, intptr_t w_param, intptr_t l_param)
 	{
-		if (nCode < 0)
-			return CallNextHookEx(hHook, nCode, wParam, lParam);
+		if (n_code < 0)
+			return CallNextHookEx(h_hook, n_code, w_param, l_param);
 
-		auto msg = reinterpret_cast<CWPRETSTRUCT*>(lParam);
-		auto hook = hHook;
+		auto msg = reinterpret_cast<CWPRETSTRUCT*>(l_param);
+		auto hook = h_hook;
 
-		//Hook Messagebox on Initialization.
-		if (!hookCaption.empty() && msg->message == WM_INITDIALOG)
+		//Hook Messagebox on Initialization. 
+		if (!hook_caption.empty() && msg->message == WM_INITDIALOG)
 		{
-			int nLength = GetWindowTextLength(msg->hwnd);
-			char* text = new char[captionLen + 1];
+			int n_length = GetWindowTextLength(msg->hwnd);
+			char* text = new char[caption_len + 1];
 
-			GetWindowText(msg->hwnd, text, captionLen + 1);
+			GetWindowText(msg->hwnd, text, caption_len + 1);
 
-			//If Capttion window found Unhook it.
-			if (hookCaption == text)
+			//If Capttion window found Unhook it. 
+			if (hook_caption == text)
 			{
-				hookCaption = string("");
-				SetTimer(msg->hwnd, (uintptr_t)timerID, hookTimeout, (TIMERPROC)hookTimer);
-				UnhookWindowsHookEx(hHook);
-				hHook = 0;
+				hook_caption = string("");
+				SetTimer(msg->hwnd, (uintptr_t)timer_i_d, hook_timeout, (TIMERPROC)hook_timer);
+				UnhookWindowsHookEx(h_hook);
+				h_hook = 0;
 			}
 		}
 
-		return CallNextHookEx(hook, nCode, wParam, lParam);
+		return CallNextHookEx(hook, n_code, w_param, l_param);
 	}
 
-	static void MessageBoxTimerProc(HWND hWnd, uint32_t uMsg, uintptr_t nIDEvent, uint32_t dwTime)
+	static void MessageBoxTimerProc(HWND h_wnd, uint32_t u_msg, uintptr_t n_i_d_event, uint32_t dw_time)
 	{
-		if (nIDEvent == (uintptr_t)timerID)
+		if (n_i_d_event == (uintptr_t)timer_i_d)
 		{
-			short dw = (short)SendMessage(hWnd, DM_GETDEFID, 0, 0);
-			EndDialog(hWnd, (intptr_t)dw);
+			short dw = (short)SendMessage(h_wnd, DM_GETDEFID, 0, 0);
+			EndDialog(h_wnd, (intptr_t)dw);
 		}
 	}
 
 public:
 	static void MessageBoxInit() {
-		hookProc = HookProc(MessageBoxHookProc);
-		hookTimer = TimerProc(MessageBoxTimerProc);
-		hookTimeout = 0;
-		hookCaption = string("");
-		hHook = 0;
-		timerID = 42;
+		hook_proc = HookProc(MessageBoxHookProc);
+		hook_timer = TimerProc(MessageBoxTimerProc);
+		hook_timeout = 0;
+		hook_caption = string("");
+		h_hook = 0;
+		timer_i_d = 42;
 	}
 
-	//Different overloaded methods for Showing message.
+	//Different overloaded methods for Showing message. 
 	static int Show() {
 		string message = "";
 		string caption = " ";
-		captionLen = caption.length();
+		caption_len = caption.length();
 		MessageBoxHook(caption, 1000);
 		return MessageBox((HWND)NULL, message.c_str(), caption.c_str(), MB_SETFOREGROUND);
 	}
 
 	static int Show(string message) {
 		string caption = " ";
-		captionLen = caption.length();
+		caption_len = caption.length();
 		MessageBoxHook(caption, 1000);
 		return MessageBox((HWND)NULL, message.c_str(), caption.c_str(), MB_SETFOREGROUND);
 	}
 
-	static int Show(string message, uint32_t uTimeout) {
+	static int Show(string message, uint32_t u_timeout) {
 		string caption = " ";
-		captionLen = caption.length();
-		MessageBoxHook(caption, uTimeout);
+		caption_len = caption.length();
+		MessageBoxHook(caption, u_timeout);
 		return MessageBox((HWND)NULL, message.c_str(), caption.c_str(), MB_SETFOREGROUND);
 	}
 
-	static int Show(string message, string caption, uint32_t uTimeout) {
-		captionLen = caption.length();
-		MessageBoxHook(caption, uTimeout);
+	static int Show(string message, string caption, uint32_t u_timeout) {
+		caption_len = caption.length();
+		MessageBoxHook(caption, u_timeout);
 		return MessageBox((HWND)NULL, message.c_str(), caption.c_str(), MB_SETFOREGROUND);
 	}
 
-	static int Show(string message, string caption, uint32_t uTimeout, uint32_t iconType) {
-		captionLen = caption.length();
-		MessageBoxHook(caption, uTimeout);
+	static int Show(string message, string caption, uint32_t u_timeout, uint32_t icon_type) {
+		caption_len = caption.length();
+		MessageBoxHook(caption, u_timeout);
 		caption = !caption.empty() ? caption : "";
-		return MessageBox((HWND)0, message.c_str(), caption.c_str(), iconType);
+		return MessageBox((HWND)0, message.c_str(), caption.c_str(), icon_type);
 	}
 
 };

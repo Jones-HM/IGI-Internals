@@ -1,45 +1,45 @@
-#include "Console.hpp"
+#include "Console.hpp" 
 
 namespace Utility {
 
-	static Console g_Console;
+	static Console g__console;
 
 	void Console::Allocate() {
 
-		if (isAllocated) {
+		if (is_allocated) {
 			return;
 		}
 
 		AllocConsole();
 		SetConsoleTitle("IGI Internals");
-		
+
 		freopen("CONOUT$", "w", stdout);
 		freopen("CONOUT$", "w", stderr);
 
-		outputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+		output_handle = GetStdHandle(STD_OUTPUT_HANDLE);
 
 		const int width = 60;
 		const int height = 50;
 
-		// Add some more scrolling
+		// Add some more scrolling 
 		COORD size;
 		size.X = width;
 		size.Y = height * 10;
-		SetConsoleScreenBufferSize(outputHandle, size);
+		SetConsoleScreenBufferSize(output_handle, size);
 
-		// Resize our console window
+		// Resize our console window 
 		SMALL_RECT rect;
 		rect.Left = rect.Top = 0;
 		rect.Right = width - 1;
 		rect.Bottom = height - 1;
-		SetConsoleWindowInfo(outputHandle, TRUE, &rect);
+		SetConsoleWindowInfo(output_handle, TRUE, &rect);
 
-		isAllocated = true;
+		is_allocated = true;
 	}
 
 	void Console::DeAllocate() {
 
-		if (!isAllocated) {
+		if (!is_allocated) {
 			return;
 		}
 
@@ -65,36 +65,36 @@ namespace Utility {
 	}
 
 	void Console::SetTextColor(const int color) {
-		if (!isAllocated) {
+		if (!is_allocated) {
 			return;
 
 		}
-		CONSOLE_SCREEN_BUFFER_INFO screenBuffer;
-		GetConsoleScreenBufferInfo(outputHandle, &screenBuffer);
+		CONSOLE_SCREEN_BUFFER_INFO screen_buffer;
+		GetConsoleScreenBufferInfo(output_handle, &screen_buffer);
 
-		WORD attributes = screenBuffer.wAttributes & ~FOREGROUND_RED & ~FOREGROUND_GREEN & ~FOREGROUND_BLUE & ~FOREGROUND_INTENSITY;
+		WORD attributes = screen_buffer.wAttributes & ~FOREGROUND_RED & ~FOREGROUND_GREEN & ~FOREGROUND_BLUE & ~FOREGROUND_INTENSITY;
 		attributes |= color;
 
-		SetConsoleTextAttribute(outputHandle, attributes);
+		SetConsoleTextAttribute(output_handle, attributes);
 	}
 
 	void Console::SetBackgroundColor(const int color) {
-		if (!isAllocated) {
+		if (!is_allocated) {
 			return;
 
 		}
 
-		CONSOLE_SCREEN_BUFFER_INFO screenBuffer;
-		GetConsoleScreenBufferInfo(outputHandle, &screenBuffer);
+		CONSOLE_SCREEN_BUFFER_INFO screen_buffer;
+		GetConsoleScreenBufferInfo(output_handle, &screen_buffer);
 
-		WORD attributes = screenBuffer.wAttributes & ~BACKGROUND_RED & ~BACKGROUND_GREEN & ~BACKGROUND_BLUE & ~BACKGROUND_INTENSITY;
+		WORD attributes = screen_buffer.wAttributes & ~BACKGROUND_RED & ~BACKGROUND_GREEN & ~BACKGROUND_BLUE & ~BACKGROUND_INTENSITY;
 		attributes |= color;
 
-		SetConsoleTextAttribute(outputHandle, attributes);
+		SetConsoleTextAttribute(output_handle, attributes);
 	}
 
 	Console* GetConsole() {
 
-		return &g_Console;
+		return &g__console;
 	}
 }

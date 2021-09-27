@@ -20,6 +20,9 @@
     <ClCompile Include="Natives\Natives.cpp">
       <Filter>Natives</Filter>
     </ClCompile>
+    <ClCompile Include="Memory\Memory.cpp">
+      <Filter>Memory</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
@@ -50,9 +53,6 @@
     <ClInclude Include="Libs\GTLibc.hpp">
       <Filter>GTLib</Filter>
     </ClInclude>
-    <ClInclude Include="PatternScanner.hpp">
-      <Filter>Memory</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\Fibers.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -64,6 +64,9 @@
     </ClInclude>
     <ClInclude Include="Common.hpp">
       <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Memory\Memory.hpp">
+      <Filter>Memory</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -79,5 +82,8 @@
     <Filter Include="Memory">
       <UniqueIdentifier>{204da0d2-3e73-47e7-8a5a-81c307f83fd0}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 </Project>
