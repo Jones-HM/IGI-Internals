@@ -1,4 +1,6 @@
 #include "Memory.hpp"
+#include "GTLibc.hpp"
+
 using namespace IGI;
 
 Memory::Memory() {
@@ -7,6 +9,21 @@ Memory::Memory() {
 
 Memory::~Memory() {
 	g_Memory = nullptr;
+}
+
+Memory::Memory(bool scanOnInit) {
+	g_Memory = this;
+
+	//Init Signature patterns. 
+	string sig_err_reason;
+	bool init_sigs = true;//g_Memory->SignatureScan(sig_err_reason);
+	if (init_sigs)
+		LOG_INFO("Signatures Scanning done.");
+	else {
+		auto sig_error = "Game Signatures not found!\nReason: " + sig_err_reason;
+		LOG_ERROR(sig_error.c_str());
+		throw std::exception(sig_error.c_str());
+	}
 }
 
 std::uint8_t* Memory::PatternScan(void* module, const char* signature)
@@ -72,18 +89,35 @@ bool Memory::SignatureScan(std::string& sig_error_reason) {
 #endif 
 
 	if (game_loaded_sig_addr == nullptr) {
-		sig_error_reason = "\nGame load could not be verified!";
+		sig_error_reason = "\nGame Load couldn't be verified!";
 		status = false;
 	}
 
 	if (player_loaded_sig_addr == nullptr) {
-		sig_error_reason = "\nPlayer load could not be verified!";
+		sig_error_reason = "\nPlayer Load couldn't be verified!";
 		status = false;
 	}
 
 	if (game_running_sig_addr != nullptr) {
-		sig_error_reason = "\nGame Running could not be verified!";
+		sig_error_reason = "\nGame Running couldn't be verified!";
 		status = false;
 	}
 	return status;
 }
+
+bool Memory::WriteMemory(LPVOID address, std::vector<byte>& v_bytes)
+{
+	if (address == NULL || v_bytes.size() == 0) {
+		GT_ShowError("Error occurred while writing data to memory.");
+		return false;
+	}
+
+	DWORD old_protection = NULL;
+	const SIZE_T write_len = v_bytes.size() * sizeof(byte);
+
+	VirtualProtect(address, write_len, PAGE_EXECUTE_READWRITE, &old_protection);
+	std::memcpy(address, &v_bytes[0], write_len);
+	VirtualProtect(address, write_len, old_protection, &old_protection);
+
+	return true;
+};

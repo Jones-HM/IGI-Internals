@@ -1,7 +1,8 @@
 #include "Utility.hpp" 
+#include <GTLibc.hpp>
 
-static HMODULE g__module;
-static HANDLE g__handle;
+inline HMODULE g_Module;
+inline HANDLE g_Handle;
 
 const string Utility::GetRunningExecutableFolder() {
 
@@ -15,7 +16,7 @@ const string Utility::GetRunningExecutableFolder() {
 const string Utility::GetModuleFolder() {
 
 	char file_name[MAX_PATH];
-	GetModuleFileNameA(g__module, file_name, MAX_PATH);
+	GetModuleFileNameA(g_Module, file_name, MAX_PATH);
 
 	string current_path = file_name;
 	return current_path.substr(0, current_path.find_last_of("\\"));
@@ -23,22 +24,22 @@ const string Utility::GetModuleFolder() {
 
 void Utility::SetModuleHandle(const HMODULE module) {
 
-	g__module = module;
+	g_Module = module;
 }
 
 const HMODULE Utility::GetModuleHandle() {
 
-	return g__module;
+	return g_Module;
 }
 
 void Utility::SetHandle(const HANDLE handle) {
 
-	g__handle = handle;
+	g_Handle = handle;
 }
 
 const HANDLE Utility::GetHandle() {
 
-	return g__handle;
+	return g_Handle;
 }
 
 
@@ -120,8 +121,32 @@ void Utility::WriteFile(string file_name, string file_data) {
 	fout.close();
 }
 
+bool Utility::WriteMemory(LPVOID address, std::vector<byte>& v_bytes)
+{
+	if (address == NULL || v_bytes.size() == 0) {
+		GT_ShowError("Error occurred while writing data to memory.");
+		return false;
+	}
+
+	DWORD old_protection = NULL;
+	const SIZE_T write_len = v_bytes.size() * sizeof(byte);
+
+	VirtualProtect(address, write_len, PAGE_EXECUTE_READWRITE, &old_protection);
+	std::memcpy(address, &v_bytes[0], write_len);
+	VirtualProtect(address, write_len, old_protection, &old_protection);
+
+	return true;
+};
+
 bool Utility::StrCaseCompare(const string& a, const string& b) {
 	return std::equal(a.begin(), a.end(), b.begin(), b.end(), 
 		[](char a, char b) {return tolower(a) == tolower(b); 
 	});
+}
+
+bool Utility::IsAsciiStr(const std::string& s)
+{
+    return std::all_of(s.begin(), s.end(), [](unsigned char c) { 
+        return c >= 0x20 && c <= 0x7F; 
+    });
 }

@@ -1,28 +1,38 @@
+#define _CRT_NONSTDC_NO_DEPRECATE
+#define _CRT_SECURE_NO_WARNINGS
+#define _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING 
 #include "Logger.hpp" 
 #include "Console.hpp" 
 #include "Utility.hpp" 
 #include <time.h> 
+#include <io.h>
+#include <locale>
+#include <codecvt>
+#define O_TEXT        0x4000  // file mode is text (translated)
+#define O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
+#define O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
 
 namespace Utility {
 
 	Log::Log() {
 		g_Log = this;
-		log_color_map[Utility::LOG_TYPE_PRINT] = ConsoleForeground::WHITE;
-		log_color_map[Utility::LOG_TYPE_DEBUG] = ConsoleForeground::GRAY;
-		log_color_map[Utility::LOG_TYPE_WARNING] = ConsoleForeground::YELLOW;
-		log_color_map[Utility::LOG_TYPE_ERROR] = ConsoleForeground::RED;
+		g_Log_Color[TYPE_PRINT] = ConsoleForeground::WHITE;
+		g_Log_Color[TYPE_DEBUG] = ConsoleForeground::GRAY;
+		g_Log_Color[TYPE_WARNING] = ConsoleForeground::YELLOW;
+		g_Log_Color[TYPE_ERROR] = ConsoleForeground::RED;
 
-		log_format_map[Utility::LOG_TYPE_PRINT] = "";
-		log_format_map[Utility::LOG_TYPE_DEBUG] = " [Debug]";
-		log_format_map[Utility::LOG_TYPE_WARNING] = " [Warning]";
-		log_format_map[Utility::LOG_TYPE_ERROR] = " [Error]";
+		g_Log_Format[TYPE_PRINT] = "";
+		g_Log_Format[TYPE_DEBUG] = " [Debug]";
+		g_Log_Format[TYPE_WARNING] = " [Warning]";
+		g_Log_Format[TYPE_ERROR] = " [Error]";
 	}
 
 	Log::~Log() {
 		g_Log = nullptr;
 	}
 
-	void Log::Write(bool log_console, bool log_file, ELOG_TYPE log_type, const char* fmt, ...) {
+	void Log::WriteA(bool log_console, bool log_file, ELOG_TYPE log_type, const char* fmt, ...) {
 
 		char fmt_buff[2048] = { NULL };
 		va_list va_alist;
@@ -31,7 +41,7 @@ namespace Utility {
 		vsprintf_s(fmt_buff, fmt, va_alist);
 		va_end(va_alist);
 
-		GetConsole()->SetTextColor(log_color_map[log_type]);
+		if(g_Console) g_Console->SetTextColor(g_Log_Color[log_type]);
 		char log_buff[2048] = { NULL };
 
 		// Print to console 
@@ -41,16 +51,43 @@ namespace Utility {
 		}
 
 #ifndef _DEBUG 
-		if (log_type == LogTypeDebug) {
-			return;
+		if (log_type == TYPE_DEBUG) {
+			log_file = true;
 		}
 #endif 
 		// Write to log file 
 		if (log_file) {
-			sprintf_s(log_buff, "%s%s %s\n", GetTimeFormatted().c_str(), log_format_map[log_type].c_str(), fmt_buff);
-			LogToFile(log_buff);
+			sprintf_s(log_buff, "%s%s %s\n", GetTimeFormatted().c_str(), g_Log_Format[log_type].c_str(), fmt_buff);
+			LogFileA(log_buff);
 		}
 	}
+
+	void Log::WriteW(bool log_console, bool log_file, ELOG_TYPE log_type, const wchar_t* buff) {
+
+		if (g_Console) g_Console->SetTextColor(g_Log_Color[log_type]);
+			
+		// Print to console 
+		if (log_console) {
+			int result = setmode(fileno(stdout), O_U16TEXT);
+			if (result == -1)
+				perror("Cannot set mode");
+			else
+				std::wcout << buff << std::endl;
+		}
+
+#ifndef _DEBUG 
+		if (log_type == TYPE_DEBUG) {
+			log_file = true;
+		}
+#endif 
+		// Write to log file 
+		if (log_file) {
+			LogFileW(buff);
+		}
+
+		if (setmode(fileno(stdout), O_TEXT) == -1) perror("Cannot set mode");
+	}
+
 
 	const string Log::GetTimeFormatted() const {
 
@@ -63,7 +100,7 @@ namespace Utility {
 		return buff;
 	}
 
-	void Log::LogToFile(const char* buff) {
+	void Log::LogFileA(const char* buff) {
 
 		const string file_name = GetModuleFolder() + "\\" + LOG_FILE_NAME;
 
@@ -76,4 +113,19 @@ namespace Utility {
 		}
 		fout << buff;
 	}
+
+	void Log::LogFileW(const wchar_t* buff) {
+		int result = setmode(fileno(stdout), O_U16TEXT);
+
+		const string file_name = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+		const std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t>());
+		if (result != -1) {
+			std::wofstream wf(file_name, std::ios_base::app);
+			wf.imbue(utf8_locale);
+			wf << buff << std::endl;
+			wf.close();
+		}
+		if (setmode(fileno(stdout), O_TEXT) == -1) perror("Cannot set mode");
+	}
+
 }

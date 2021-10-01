@@ -13,11 +13,12 @@ namespace IGI {
 		std::uint8_t* PatternScan(void*, const char*);
 	public:
 		Memory();
+		Memory(bool);
 		~Memory();
 		Memory(const Memory&) = default;
 		Memory(Memory&&) = default;
 
-
+		bool WriteMemory(LPVOID,std::vector<byte>&);
 		bool SignatureScan(std::string&);
 	};
 	inline Memory* g_Memory{};

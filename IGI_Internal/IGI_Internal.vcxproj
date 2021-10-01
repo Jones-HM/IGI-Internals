@@ -31,7 +31,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -39,7 +39,7 @@
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>NotSet</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -101,7 +101,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>DBG_x86;WIN32;_DEBUG;IGISTATUSMSG_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DBG_x86;WIN32;_DEBUG;IGISTATUSMSG_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROJECT_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -129,7 +129,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>RLS_x86;WIN32;NDEBUG;IGISTATUSMSG_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>RLS_x86;WIN32;NDEBUG;IGISTATUSMSG_EXPORTS;_WINDOWS;_USRDLL;_CRT_SECURE_NO_DEPRECATE;PROJECT_NAME="$(ProjectName)";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -193,8 +193,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Common.hpp" />
+    <ClInclude Include="HookDetours.hpp" />
+    <ClInclude Include="Hook\Hook.hpp" />
+    <ClInclude Include="Hook\MinHook.hpp" />
     <ClInclude Include="Libs\GTConsole.hpp" />
     <ClInclude Include="Libs\GTLibc.hpp" />
+    <ClInclude Include="Libs\json.hpp" />
     <ClInclude Include="Memory\Memory.hpp" />
     <ClInclude Include="Natives\NativeConst.hpp" />
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
@@ -213,6 +217,7 @@
     <ClInclude Include="Utils\Logger.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Hook\Hook.cpp" />
     <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Natives\NativeCaller.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</ExcludedFromBuild>
@@ -229,20 +234,10 @@
     <ClCompile Include="DllMain.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:\Users\haseeb_mir\source\repos\IGI_Internal_v1\IGI_Internal\Natives;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <ClCompile Include="Utils\DbgHelper.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Utility.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets" Condition="Exists('..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\nlohmann.json.3.10.2\build\native\nlohmann.json.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

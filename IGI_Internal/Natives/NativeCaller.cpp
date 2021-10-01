@@ -24,6 +24,7 @@ void NativeCaller::InitHashMapArgs0() {
 	std::function<int(void)> QTaskUpdate{ (int(__cdecl*)(void))HASH::QTASK_UPDATE };
 	std::function<int(void)> LevelRestart{ (int(__cdecl*)(void))HASH::LEVEL_RESTART };
 	std::function<int(void)> WeaponTypeOpen{ (int(__cdecl*)(void))HASH::WEAPON_TYPE_OPEN };
+	std::function<int(void)> WeaponTotalGet{ (int(__cdecl*)(void))HASH::WEAPON_TOTAL_COUNT };
 
 	//Adding Native methods with Args0 to HashMap. 
 	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, HumanPlayerLoad, nativeMap0, nativeMap0List0);
@@ -32,6 +33,7 @@ void NativeCaller::InitHashMapArgs0() {
 	NativeMapAdd((NativeHash)HASH::QTASK_UPDATE, QTaskUpdate, nativeMap0, nativeMap0List0);
 	NativeMapAdd((NativeHash)HASH::LEVEL_RESTART, LevelRestart, nativeMap0, nativeMap0List0);
 	NativeMapAdd((NativeHash)HASH::WEAPON_TYPE_OPEN, WeaponTypeOpen, nativeMap0, nativeMap0List0);
+	NativeMapAdd((NativeHash)HASH::WEAPON_TOTAL_COUNT, WeaponTotalGet, nativeMap0, nativeMap0List0);
 
 }
 
@@ -52,7 +54,7 @@ void NativeCaller::InitHashMapArgs1() {
 	std::function<int(const char*)> EnableMusic{ (int(__cdecl*)(const char*))HASH::MUSIC_ENABLE };
 	std::function<int(const char*)> DisableMusic{ (int(__cdecl*)(const char*))HASH::MUSIC_DISABLE };
 	std::function<int(const char*)> CutsceneDelete{ (int(__cdecl*)(const char*))HASH::CUTSCENE_DELETE };
-	std::function<int(const char*)> StatusMsgDelete{ (int(__cdecl*)(const char*))HASH::STATUS_MESSAGE_DELETE };
+	std::function<int(const char*)> StatusMsgDelete{ (int(__cdecl*)(const char*))HASH::STATUS_MESSAGE_CLEAR };
 	std::function<int(const char*)> VolumeUpdate{ (int(__cdecl*)(const char*))HASH::MUSIC_UPDATE_VOLUME };
 	std::function<int(const char*)> GraphicsReset{ (int(__cdecl*)(const char*))HASH::GRAPHICS_RESET };
 	std::function<int(const char*)> QscCompile{ (int(__cdecl*)(const char*))HASH::QSC_COMPILE };
@@ -71,7 +73,7 @@ void NativeCaller::InitHashMapArgs1() {
 	NativeMapAdd((NativeHash)HASH::MUSIC_ENABLE, EnableMusic, native_map1, native_map1_list1);
 	NativeMapAdd((NativeHash)HASH::MUSIC_DISABLE, DisableMusic, native_map1, native_map1_list1);
 	NativeMapAdd((NativeHash)HASH::CUTSCENE_DELETE, CutsceneDelete, native_map1, native_map1_list1);
-	NativeMapAdd((NativeHash)HASH::STATUS_MESSAGE_DELETE, StatusMsgDelete, native_map1, native_map1_list1);
+	NativeMapAdd((NativeHash)HASH::STATUS_MESSAGE_CLEAR, StatusMsgDelete, native_map1, native_map1_list1);
 	NativeMapAdd((NativeHash)HASH::MUSIC_UPDATE_VOLUME, VolumeUpdate, native_map1, native_map1_list1);
 	NativeMapAdd((NativeHash)HASH::GRAPHICS_RESET, GraphicsReset, native_map1, native_map1_list1);
 	NativeMapAdd((NativeHash)HASH::QSC_COMPILE, QscCompile, native_map1, native_map1_list1);
@@ -103,6 +105,13 @@ void NativeCaller::InitHashMapArgs3() {
 }
 
 void NativeCaller::InitHashMapArgs4() {
+	std::map<int, std::function<int(int,LPCSTR, LPCSTR, LPCSTR)>> native_map1;
+
+	//Declaring Function for Native hashes. 
+	std::function<int(int, LPCSTR, LPCSTR, LPCSTR)> StatusMessageShow{ (int(__cdecl*)(int,LPCSTR, LPCSTR, LPCSTR))HASH::STATUS_MESSAGE_SHOW };
+
+	//Adding Native methods with Args2 to HashMap. 
+	NativeMapAdd((NativeHash)HASH::STATUS_MESSAGE_SHOW, StatusMessageShow, native_map1, native_map4_list1);
 }
 
 void NativeCaller::InitHashMaps() {

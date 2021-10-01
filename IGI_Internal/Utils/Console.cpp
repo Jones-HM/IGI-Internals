@@ -2,7 +2,13 @@
 
 namespace Utility {
 
-	static Console g__console;
+	Console::Console() {
+		g_Console = this;
+	}
+
+	Console::~Console() {
+		g_Console = nullptr;
+	}
 
 	void Console::Allocate() {
 
@@ -11,7 +17,6 @@ namespace Utility {
 		}
 
 		AllocConsole();
-		SetConsoleTitle("IGI Internals");
 
 		freopen("CONOUT$", "w", stdout);
 		freopen("CONOUT$", "w", stderr);
@@ -60,7 +65,6 @@ namespace Utility {
 	}
 
 	void Console::Clear() {
-
 		system("cls");
 	}
 
@@ -91,10 +95,5 @@ namespace Utility {
 		attributes |= color;
 
 		SetConsoleTextAttribute(output_handle, attributes);
-	}
-
-	Console* GetConsole() {
-
-		return &g__console;
 	}
 }

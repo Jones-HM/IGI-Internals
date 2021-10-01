@@ -2,24 +2,23 @@
 #define __LOGGER_H__ 
 
 #include "Common.hpp" 
-#define LOG_INFO( fmt, ...) g_Log->Write(true,true, ELOG_TYPE::LOG_TYPE_PRINT, fmt, ##__VA_ARGS__ )
-#define LOG_DEBUG( fmt, ...) g_Log->Write(true,true,  ELOG_TYPE::LOG_TYPE_DEBUG, fmt, ##__VA_ARGS__ )
-#define LOG_WARNING( fmt, ...) g_Log->Write(true,true,  ELOG_TYPE::LOG_TYPE_WARNING, fmt, ##__VA_ARGS__ )
-#define LOG_ERROR( fmt, ...) g_Log->Write(true,true,  ELOG_TYPE::LOG_TYPE_ERROR, fmt, ##__VA_ARGS__ )
-#define LOG_CONSOLE( fmt, ...) g_Log->Write(true,false,  ELOG_TYPE::LOG_TYPE_PRINT, fmt, ##__VA_ARGS__ )
-#define LOG_FILE( fmt, ...) g_Log->Write(false,true,  ELOG_TYPE::LOG_TYPE_PRINT, fmt, ##__VA_ARGS__ )
+#define LOG_INFO( fmt, ...) g_Log->WriteA(true,true, ELOG_TYPE::TYPE_PRINT, fmt, ##__VA_ARGS__ )
+#define LOG_DEBUG( fmt, ...) g_Log->WriteA(true,true,  ELOG_TYPE::TYPE_DEBUG, fmt, ##__VA_ARGS__ )
+#define LOG_WARNING( fmt, ...) g_Log->WriteA(true,true,  ELOG_TYPE::TYPE_WARNING, fmt, ##__VA_ARGS__ )
+#define LOG_ERROR( fmt, ...) g_Log->WriteA(true,true,  ELOG_TYPE::TYPE_ERROR, fmt, ##__VA_ARGS__ )
+#define LOG_CONSOLE( fmt, ...) g_Log->WriteA(true,false,  ELOG_TYPE::TYPE_PRINT, fmt, ##__VA_ARGS__ )
+#define LOG_FILE( fmt, ...) g_Log->WriteA(false,true,  ELOG_TYPE::TYPE_PRINT, fmt, ##__VA_ARGS__ )
+#define LOG_RAW(raw_str) g_Log->WriteW(false,true,ELOG_TYPE::TYPE_PRINT,raw_str)
+#define LOG_RAW_CONSOLE(raw_str) g_Log->WriteW(true,false,ELOG_TYPE::TYPE_PRINT,raw_str)
 
 namespace Utility {
 
 	enum ELOG_TYPE {
-		LOG_TYPE_PRINT,
-		LOG_TYPE_DEBUG,
-		LOG_TYPE_WARNING,
-		LOG_TYPE_ERROR,
+		TYPE_PRINT,
+		TYPE_DEBUG,
+		TYPE_WARNING,
+		TYPE_ERROR,
 	};
-
-	typedef std::map<int32_t, int32_t> int_int_map;
-	typedef std::map<int32_t, string> int_string_map;
 
 	class Log {
 	public:
@@ -27,17 +26,18 @@ namespace Utility {
 		Log();
 		~Log();
 
-		void    Write(bool, bool, ELOG_TYPE log_type, const char* fmt, ...);
+		void    WriteA(bool, bool, ELOG_TYPE log_type, const char* fmt, ...);
+		void    WriteW(bool, bool, ELOG_TYPE log_type, const wchar_t* buff);
 
 	private:
 
-		void    LogToFile(const char* buff);
-
+		void    LogFileA(const char* buff);
+		void	LogFileW(const wchar_t* buff);
 		const string GetTimeFormatted() const;
 
 
-		int_int_map   log_color_map;
-		int_string_map  log_format_map;
+		std::map <int32_t, int32_t> g_Log_Color;
+		std::map <int32_t, string>  g_Log_Format;
 		bool    first_entry = true;
 	};
 

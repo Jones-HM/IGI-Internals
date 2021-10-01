@@ -49,6 +49,8 @@ namespace Utility {
 
 	class Console {
 	public:
+		Console();
+		~Console();
 
 		void    Allocate();
 		void    DeAllocate();
@@ -69,7 +71,7 @@ namespace Utility {
 		HANDLE   output_handle = INVALID_HANDLE_VALUE;
 	};
 
-	Console* GetConsole();
+	inline Console* g_Console{};
 }
 
 #endif // __CONSOLE_H__

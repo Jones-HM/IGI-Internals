@@ -21,7 +21,9 @@ namespace Utility {
 	const string GetModuleNameWithoutExtension(const HMODULE);
 	string ReadFile(string);
 	void WriteFile(string, string);
+	bool WriteMemory(LPVOID, std::vector<byte>&);
 	bool StrCaseCompare(const string&, const string&);
+	bool IsAsciiStr(const std::string&);
 }
 
 #endif // __UTILITY_H__

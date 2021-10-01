@@ -28,9 +28,13 @@
 using std::string;
 using std::vector;
 using namespace std::chrono_literals;
+inline HMODULE g_Hmodule{};
+inline HANDLE g_Main_Thread{};
+inline DWORD g_Main_Thread_Id{};
 
-#define LOG_FILE_NAME "IGI-Internals.log"
+#define LOG_FILE_NAME std::string(PROJECT_NAME) + ".log"
 #define NATIVES_FILE_NAME "IGI-Natives.json"
 
 #define HEX_ADDR_FMT(addr) std::setw(8) << std::setfill('0') << std::uppercase << std::hex << addr 
 #define HEX_ADDR_STR(addr) (static_cast<std::stringstream const&>(std::stringstream() << HEX_ADDR_FMT(addr))).str()
+

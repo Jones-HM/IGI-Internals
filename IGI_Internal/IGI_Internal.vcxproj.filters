@@ -23,6 +23,12 @@
     <ClCompile Include="Memory\Memory.cpp">
       <Filter>Memory</Filter>
     </ClCompile>
+    <ClCompile Include="Hook\Hook.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="Utils\DbgHelper.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
@@ -42,7 +48,7 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Libs\GTConsole.hpp">
-      <Filter>GTLib</Filter>
+      <Filter>Libs</Filter>
     </ClInclude>
     <ClInclude Include="Natives\NativeCaller.hpp">
       <Filter>Natives</Filter>
@@ -51,7 +57,7 @@
       <Filter>Utils</Filter>
     </ClInclude>
     <ClInclude Include="Libs\GTLibc.hpp">
-      <Filter>GTLib</Filter>
+      <Filter>Libs</Filter>
     </ClInclude>
     <ClInclude Include="Utils\Fibers.hpp">
       <Filter>Utils</Filter>
@@ -68,6 +74,16 @@
     <ClInclude Include="Memory\Memory.hpp">
       <Filter>Memory</Filter>
     </ClInclude>
+    <ClInclude Include="Libs\json.hpp">
+      <Filter>Libs</Filter>
+    </ClInclude>
+    <ClInclude Include="Hook\MinHook.hpp">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="Hook\Hook.hpp">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="HookDetours.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Natives">
@@ -76,14 +92,14 @@
     <Filter Include="Utils">
       <UniqueIdentifier>{047b8ece-52aa-4dca-804e-9fc173941b10}</UniqueIdentifier>
     </Filter>
-    <Filter Include="GTLib">
-      <UniqueIdentifier>{9c4d3362-be65-4f5a-9be0-6ede398c7f11}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Memory">
       <UniqueIdentifier>{204da0d2-3e73-47e7-8a5a-81c307f83fd0}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
+    <Filter Include="Libs">
+      <UniqueIdentifier>{9c4d3362-be65-4f5a-9be0-6ede398c7f11}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hook">
+      <UniqueIdentifier>{e6c4f622-def7-44e6-bf54-037752f6cf69}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

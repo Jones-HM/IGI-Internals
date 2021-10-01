@@ -2,7 +2,7 @@
 #include "Common.hpp" 
 #include "Logger.hpp" 
 #include "NativeConst.hpp" 
-#include "nlohmann/json.hpp"
+#include "json.hpp"
 using json = nlohmann::json;
 
 typedef uint32_t NativeHash;
@@ -49,7 +49,7 @@ namespace IGI {
 		RESOURCE_UNLOAD = 0x4B6380,
 		SCRIPT_INIT = 0x4F0E50,
 		SCRIPT_SETSYMBOL_CXT = 0x4B8930,
-		STATUS_MESSAGE_DELETE = 0x485AD0,
+		STATUS_MESSAGE_CLEAR = 0x485AD0,
 		STATUS_MESSAGE_SHOW = 0x485970,
 		SYMBOL_REMOVE = 0x4C0460,
 		SYMBOL_CHECK = 0x4C0560,
@@ -57,16 +57,21 @@ namespace IGI {
 		WARNING_SHOW = 0x4AF810,
 		WEAPON_CONFIG_READ = 0x4071E0,
 		WEAPON_TYPE_OPEN = 0x413B70,
+		WEAPON_TOTAL_COUNT = 0x413BB0,
+		GAME_DATA_SYMBOL_LOAD = 0x4A53B3,//Unimplemented Hash.
+		GAME_DATA_SYMBOL_SAVE = 0x4B80A0,//Unimplemented Hash.
+		LOADING_SCREEN_SHOW = 0x48A440,//Unimplemented Hash.
+		QTASK_HASH_TABLE_SET = 0x004BAAC0,//Unimplemented Hash.
 	};
 
 	class Natives {
 	private:
 		//Structure to hold Native info. 
 		struct NativeSig {
-			uint32_t address;//Address of native. 
+			uint32_t address;//Address (Hash) of native. 
 			string name; //Name (Symbol) of native. 
 			string signature; //Signature of native. 
-			string note; //Note comment for method.
+			string note; //Note (Comment) for method.
 		};
 		//Natives sig list.
 		std::vector<NativeSig> native_sig;

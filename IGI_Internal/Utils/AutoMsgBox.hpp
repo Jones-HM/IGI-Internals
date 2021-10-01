@@ -2,24 +2,41 @@
 	Written by HaseeB Mir.
 	*/
 #pragma once 
-#ifndef AUTO_MSG_BOX 
-#define AUTO_MSG_BOX 
 #undef UNICODE 
 #include <windows.h> 
 #include <string> 
 using std::string;
 
 //Pointer to Hook functions. 
-typedef intptr_t(*HookProc)(int n_code, intptr_t w_param, intptr_t l_param);
-typedef void(*TimerProc)(intptr_t h_wnd, uint32_t u_msg, uintptr_t n_i_d_event, uint32_t dw_time);
+typedef intptr_t(*HookProc)(int, intptr_t, intptr_t);
+typedef void(*TimerProc)(intptr_t, uint32_t, uintptr_t, uint32_t);
 
 //Global vars. 
-extern int timer_i_d;
-extern HookProc hook_proc;
-extern TimerProc hook_timer;
-extern uint32_t hook_timeout;
-extern string hook_caption;
-extern HHOOK h_hook;
-extern int caption_len;
+inline int timer_id;
+inline HookProc hook_proc;
+inline TimerProc hook_timer;
+inline uint32_t hook_timeout;
+inline string hook_caption;
+inline HHOOK h_hook;
+inline int caption_len;
 
-#endif // AUTO_MSG_BOX
+namespace IGI {
+	class AutoMsgBox {
+
+	private:
+		static void MessageBoxAInit();
+		static void MessageBoxAHook(string, uint32_t);
+		static intptr_t MessageBoxAHookProc(int, intptr_t, intptr_t);
+		static void MessageBoxATimerProc(HWND, uint32_t, uintptr_t, uint32_t);
+
+	public:
+		AutoMsgBox();
+		~AutoMsgBox();
+		int Show();
+		int Show(string message);
+		int Show(string message, uint32_t u_timeout);
+		int Show(string message, string caption, uint32_t u_timeout);
+		int Show(string message, string caption, uint32_t u_timeout, uint32_t icon_type);
+	};
+	inline AutoMsgBox* g_AutoMsgBox{};
+}

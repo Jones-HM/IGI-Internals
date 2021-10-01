@@ -46,7 +46,7 @@ namespace IGI {
 
 Natives::Natives() {
 	g_Natives = this;
-	Natives::InitNativesSignatures();
+	InitNativesSignatures();
 }
 
 Natives::~Natives() {
@@ -61,12 +61,11 @@ void Natives::InitNativesSignatures() {
 	if (!nativesLoaded) {
 
 		string err_str = ("Method: " + std::string(FUNC_NAME) + "()\nReason: " + std::string("Natives definition couldn't be loaded from ") + std::string(NATIVES_FILE_NAME));
-		LOG_ERROR("%s",err_str.c_str());
-		GT_ShowError(err_str.c_str());
+		LOG_ERROR("%s(): %s",FUNC_NAME,err_str.c_str());
 		throw std::exception(err_str.c_str());
 	}
 	else
-		LOG_DEBUG("%s(): Natives definition loaded from '%s'",FUNC_NAME, NATIVES_FILE_NAME);
+		LOG_FILE("%s(): Natives definition loaded from '%s'",FUNC_NAME, NATIVES_FILE_NAME);
 }
 
 string Natives::FindNativeName(uint32_t native_address) {

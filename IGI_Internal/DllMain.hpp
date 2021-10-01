@@ -16,14 +16,16 @@
 #include "Memory.hpp"
 
 #ifdef USE_MINHOOK_LIB 
-#include "MinHook.hpp" 
+#include "Hook.hpp" 
 #endif 
 
 #ifdef USE_GTLIBC_LIB 
 #include "GTLibc.hpp" 
 #endif 
 
-#ifdef USE_STACKTRACE_LIB 
+#if defined(USE_STACKTRACE_LIB) && defined(RLS_x86)
+#error Stacktrace only works for optimised code. Change your build settings to Debug.
+#elif defined(USE_STACKTRACE_LIB) && defined(DBG_x86)
 #include "DbgHelper.hpp" 
 #endif 
 

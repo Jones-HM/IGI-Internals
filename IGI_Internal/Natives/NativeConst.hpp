@@ -10,10 +10,12 @@ namespace IGI {
 #endif 
 
 //Defining Helper for Pointers. 
+//Defining Helper for Pointers. 
 #define READ_PTR(addr) *(PINT)addr 
 #define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
 #define READ_PTR_OFF2(addr,off1,off2) *(PINT)(READ_PTR_OFF(addr,off1) + off2)
 #define READ_PTR_OFF3(addr,off1,off2,off3) *(PINT)(READ_PTR_OFF2(addr,off1,off2) + off3)
+#define READ_STATIC_PTR_OFF2(addr,off1,off2) READ_PTR_OFF(READ_PTR(addr),off1) + (DWORD)off2 
 #define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3 
 
 #define TYPEID(x) typeid(x).name()
@@ -36,10 +38,18 @@ namespace IGI {
 #define GAME_LEVEL_MAX READ_PTR(0x5C89FC)
 
 //Common Native constants. 
-	static const char* NATIVE_CONST_CONFIG_FILE = "LOCAL:config.qsc";
-	static const char* NATIVE_CONST_MAINMENU_FILE = "LOCAL:menusystem\\mainmenu.qsc";
-	static const char* NATIVE_CONST_INMENU_FILE = "LOCAL:menusystem\\ingame.qsc";
-	static const char* NATIVE_CONST_WEAPON_CONFIG_FILE = "LOCAL:weapons/weaponconfig.qsc";
+#define  NATIVE_CONST_CONFIG_FILE (LPCSTR)"LOCAL:config.qsc"
+#define  NATIVE_CONST_MAINMENU_FILE (LPCSTR) "LOCAL:menusystem\\mainmenu.qsc"
+#define  NATIVE_CONST_INMENU_FILE (LPCSTR) "LOCAL:menusystem\\ingame.qsc"
+#define  NATIVE_CONST_WEAPON_CONFIG_FILE (LPCSTR) "LOCAL:weapons/weaponconfig.qsc"
+#define STATUSSCREEN_AMMO (LPCSTR)"STATUSSCREEN:ammo.spr"
+#define STATUSSCREEN_GUN (LPCSTR)"STATUSSCREEN:a_gun.spr"
+#define STATUSSCREEN_WEAPON (LPCSTR)"STATUSSCREEN:weapon.spr"
+#define STATUSSCREEN_NOTE (LPCSTR)"STATUSSCREEN:note.spr"
+#define GUN_AMMO_PICKUP_PTR READ_PTR(READ_STATIC_PTR_OFF2(0x005BDC6C, 0x1B0, 0xCB4))
+
 	static char local_buf[0x1E] = { NULL }; // Local buffer to store value from different methods. 
 	const float MUSIC_CONST = 10.0f;
+	const LPVOID status_byte = (LPVOID)0x567C74;
+
 }
