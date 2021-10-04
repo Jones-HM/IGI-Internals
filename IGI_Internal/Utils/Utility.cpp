@@ -103,9 +103,9 @@ const string Utility::GetModuleNameWithoutExtension(const HMODULE module) {
 	return file_nameWithExtension.substr(0, lastIndex);
 }
 
-string Utility::ReadFile(string file_name) {
+string Utility::ReadFile(const string& file_name,bool is_binary) {
 	try {
-		std::ifstream ifs(file_name);
+		std::ifstream ifs(file_name, (is_binary) ? std::ios_base::binary : std::ios_base::in);
 		std::string file_data(std::istreambuf_iterator<char>{ifs}, {});
 		return file_data;
 	}
@@ -115,10 +115,23 @@ string Utility::ReadFile(string file_name) {
 	return {};
 }
 
-void Utility::WriteFile(string file_name, string file_data) {
-	std::ofstream fout(file_name);
-	fout << file_data << std::endl;
-	fout.close();
+void Utility::WriteFile(const string& file_name, string file_data,bool is_binary) {
+	std::ofstream ofs(file_name,(is_binary) ? std::ios_base::binary : std::ios_base::out);
+	ofs << file_data << std::endl;
+	ofs.close();
+}
+
+bool Utility::RemoveFile(const string& file_name) {
+	bool status = false;
+	try {
+		if (std::filesystem::remove(file_name))
+			status = true;
+	}
+	catch (const std::filesystem::filesystem_error& err) {
+		string err_msg = "Delete file exception: " + std::string(err.what());
+		GT_ShowError(err_msg.c_str());
+	}
+	return status;
 }
 
 bool Utility::WriteMemory(LPVOID address, std::vector<byte>& v_bytes)

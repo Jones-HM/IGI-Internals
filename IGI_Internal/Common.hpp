@@ -24,6 +24,7 @@
 #include <iomanip> 
 #include <array> 
 #include <chrono> 
+#include <regex>
 
 using std::string;
 using std::vector;

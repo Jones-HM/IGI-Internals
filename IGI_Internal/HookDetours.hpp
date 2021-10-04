@@ -5,6 +5,7 @@
 #include "GTLibc.hpp"
 #include "DbgHelper.hpp"
 #include "Natives/NativeConst.hpp"
+
 using namespace IGI;
 using namespace Utility;
 
@@ -84,6 +85,151 @@ decltype(ShowError) ShowErrorOut;
 auto ShowWarning = (void(__cdecl*)(LPCSTR))0x4AF810;
 decltype(ShowWarning) ShowWarningOut;
 
+auto GetPlayerXPHit = (uint32_t(__cdecl*)(void))0x00416d80;
+decltype(GetPlayerXPHit) GetPlayerXPHitOut;
+
+auto HumanViewCam = (uint32_t(__cdecl*)(int, int))0x00463760;
+decltype(HumanViewCam) HumanViewCamOut;
+
+auto SFXItems = (int* (__cdecl*)(int, char*))0x004E6B00;
+decltype(SFXItems) SFXItemsOut;
+
+auto HumanXPHit = (void(__cdecl*)(int, char*, int))0x004637C0;
+decltype(HumanXPHit) HumanXPHitOut;
+
+auto HumanXPDead = (void(__cdecl*)(int, char*, int))0x004638a0;
+decltype(HumanXPDead) HumanXPDeadOut;
+
+auto WeaponDrop = (void(__cdecl*)(int**))0x0046cea0;
+decltype(WeaponDrop) WeaponDropOut;
+
+struct HUMAN_SOLDIER {
+	string model_id;
+	int ai_id;
+	int graph_id;
+	string weapon;
+	bool is_dead;
+	int e_team;
+};
+
+inline std::list<HUMAN_SOLDIER> human_soldiers;
+
+HUMAN_SOLDIER AddHumanSoldierData(string file_name) {
+	HUMAN_SOLDIER soldier = {};
+
+	auto file_data = Utility::ReadFile(file_name,true);
+
+	if (!file_data.empty()) {
+		std::regex data_regex(R"(\w{0,}_\w{0,})");
+		auto words_begin = std::sregex_iterator(file_data.begin(), file_data.end(), data_regex);
+		auto words_end = std::sregex_iterator();
+
+		const string soldier_tag = "HumanSoldier_", weapon_id_tag = "WEAPON_ID";
+
+		auto find_ai_id = [](string s)-> int {
+			string id; for (const auto& c : s) if (::isdigit(c)) id += c;
+			return std::stoi(id);
+		};
+
+		for (auto index = words_begin; index != words_end; ++index) {
+
+			auto match = *index;
+			string match_str = match.str();
+
+			if (match_str.find(soldier_tag) != std::string::npos)
+				soldier.ai_id = find_ai_id(match_str);
+			else if (match_str.find(weapon_id_tag) != std::string::npos)
+				soldier.weapon = match_str;
+		}
+		soldier.model_id = file_data.substr(0,8);
+
+		human_soldiers.push_back(soldier);
+	}
+	else LOG_ERROR("%s Human soldier data cannot be empty.",FUNC_NAME);
+	return soldier;
+}
+
+void WeaponDropDetour(int** param_1) {
+
+	int entity_dead = 0;
+	//__asm {
+	//	fld[esi + 0x100]
+	//	fcomp[esi + 0x118]
+	//	fnstsw ax
+	//	test ah, 0x01
+	//	je MY_LBL
+	//	MY_LBL :
+	//	mov entity_dead, 1
+	//}
+
+	if (*(double*)(param_1 + 0x40) < *(double*)(param_1 + 0x46)) entity_dead = 1;
+
+	if (entity_dead)
+	{
+		LOG_CONSOLE("%s param_1: %p", "WeaponDrop", param_1);
+		LOG_CONSOLE("%s p_100: %f p_118: %f p_120 : %f", "WeaponDrop", *(double*)(param_1 + 0x100), *(double*)(param_1 + 0x118), *(double*)(param_1 + 0x120));
+	}
+	WeaponDropOut(param_1);
+}
+
+
+void HumanXPHitDetour(int param_1, char* param_2, int param_3) {
+	LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "PlayerHit", param_1, param_2, param_3);
+	LOG_CONSOLE("%s AI_Id: '%s'", "PlayerHit", (char*)(param_1 + 0x100));
+	HumanXPHitOut(param_1, param_2, param_3);
+}
+
+void HumanXPDeadDetour(int param_1, char* param_2, int param_3) {
+	LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "PlayerDead", param_1, param_2, param_3);
+
+	const int AI_BUF_SIZE = 8000;
+	string ai_data(AI_BUF_SIZE, '\0');
+	void* ai_type_addr = (void*)(param_1 + 0x100);
+	LOG_CONSOLE("%s AiType %p", "PlayerDead", ai_type_addr);
+
+	std::memcpy(ai_data.data(), ai_type_addr, AI_BUF_SIZE);
+	const string ai_file = Utility::GetModuleFolder() + "\\" + "ai_data.dat";
+	Utility::WriteFile(ai_file, ai_data, true);
+
+	//Print soldier data information.
+	auto soldier = AddHumanSoldierData(ai_file);
+
+	LOG_CONSOLE("Soldier Model: '%s'",soldier.model_id.c_str());
+	LOG_CONSOLE("Soldier Id: %d",soldier.ai_id);
+	LOG_CONSOLE("Soldier Weapon: '%s'",soldier.weapon.c_str());
+
+	soldier.is_dead = true;
+	human_soldiers.push_back(soldier);
+
+	//std::filesystem::rename(ai_file,Utility::GetModuleFolder() + "\\" + soldier.model_id + ".dat");
+	if (!Utility::RemoveFile(ai_file)) LOG_ERROR("%s File '%s' cannot be removed", FUNC_NAME, ai_file);
+
+	HumanXPDeadOut(param_1, param_2, param_3);
+}
+
+int* __cdecl SFXItemsDetour(int param_1, char* sfx_item) {
+	auto ret_val = SFXItemsOut(param_1, sfx_item);
+	LOG_FILE("%s param_1: %p ret_val : %p sfx_item: %s", "SFXItems", param_1, ret_val, sfx_item);
+	//const string log_file = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+	//auto file_data = Utility::ReadFile(log_file);
+
+	//if (file_data.find(sfx_item) == std::string::npos)
+	//	LOG_FILE("\"%s\",", sfx_item);
+
+	return ret_val;
+}
+
+void HumanViewCamDetour(int param_1, int param_2) {
+	LOG_INFO("%s param_1: %p param_2: %d", "HumanViewCam", param_1, param_2);
+	HumanViewCamOut(param_1, param_2);
+}
+
+uint32_t GetPlayerXPHitDetour(void) {
+	uint32_t xp_hit = GetPlayerXPHitOut();
+	LOG_INFO("%s xp_hit: %p", "GetPlayerXPHit", xp_hit);
+	return xp_hit;
+}
+
 void ShowWarningDetour(LPCSTR warn_msg) {
 	LOG_FILE("%s warn_msg: %s", "ShowWarning", warn_msg);
 	ShowWarningOut(warn_msg);
@@ -130,14 +276,6 @@ void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param
 void __cdecl GamePrintTextDetour(int** param_1, byte* param_2) {
 	LOG_FILE("%s param_1 : %p *param_1 : %p **param_1 : '%s' param_2 : '%s'", "GamePrintText", param_1, *param_1, READ_PTR(param_1 + 0x180), param_2);
 
-	//for (int i = 0; i < 4; i++) {
-	//	LOG_FILE("%s param_1[%d]: %p",FUNC_NAME,i,param_1[i]);
-	//}
-
-	////for (int i = 0; i < 1; i++) {
-	//	LOG_FILE("%s *param_1[0]: %p", FUNC_NAME,*param_1[0]);
-	////}
-
 	Sleep(100);
 	g_DbgHelper->StackTrace(true);
 	GameTextPrintOut(param_1, param_2);
@@ -168,7 +306,7 @@ void ReadWholeFile(LPCSTR file_name, LPCSTR file_mode = "rb") {
 		}
 	}
 	catch (std::exception const& ex) {
-		std::cout << "Exception: " << ex.what() << std::endl;
+		LOG_ERROR("Exception: ",ex.what() );
 	}
 }
 
@@ -255,7 +393,7 @@ int* __cdecl LoadResourceDetour(char* param1, char** param2) {
 
 	int* res_addr = LoadResourceOut(param1, param2);
 	LOG_FILE("%s File '%s'\t Address %p", "LoadResource", param1, (int)res_addr);
-	g_DbgHelper->StackTrace(true, false, true);
+	//g_DbgHelper->StackTrace(true, false, true);
 	return res_addr;
 }
 
@@ -269,10 +407,10 @@ void __cdecl CompileQVMDetour(char* file_name) {
 }
 
 int* __cdecl LoadQVMDetour(LPCSTR file_name) {
-	LOG_FILE("%s file_name : %s", "LoadQVM", file_name);
+	LOG_CONSOLE("%s file_name : %s", "LoadQVM", file_name);
 
-	auto CompileQVM = (int(__cdecl*)(int))0x4B85B0;
-	auto CompileCleanUp = (int(__cdecl*)(int*))0x4B83D0;
+	//auto CompileQVM = (int(__cdecl*)(int))0x4B85B0;
+	//auto CompileCleanUp = (int(__cdecl*)(int*))0x4B83D0;
 	auto qvm_file = LoadQVMOut(file_name);
 
 	//ReadWholeFile(file_name); 
@@ -281,10 +419,10 @@ int* __cdecl LoadQVMDetour(LPCSTR file_name) {
 
 FILE* __cdecl GameOpenFileDetour(char* file_name, char* file_mode) {
 	//if (string(file_mode) == "wb")
-	LOG_FILE("%s File : '%s' Mode : '%s'", "OpenFile", file_name, file_mode);
+	LOG_CONSOLE("%s File : '%s' Mode : '%s'", "OpenFile", file_name, file_mode);
 
 	//ReadWholeFile(file_name, file_mode); 
-	g_DbgHelper->StackTrace(true, false, true);
+	//g_DbgHelper->StackTrace(true, false, true);
 
 	Sleep(100);
 	return GameOpenFileOut(file_name, file_mode);

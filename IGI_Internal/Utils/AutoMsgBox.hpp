@@ -1,4 +1,6 @@
 /* AutoCloseMessageBox - C++ Implementation of original code of C# from CodeProject https://www.codeproject.com/Articles/7968/MessageBox-with-a-timeout-for-NET
+	Auto Close message box is Message box which automatically closes on timer out.
+	This is good for Freezing Main thread and do Task on different thread for methods which require to executed on different thread.
 	Written by HaseeB Mir.
 	*/
 #pragma once 

@@ -19,8 +19,9 @@ namespace Utility {
 	string   GetLastErrorAsString();
 	const string GetModuleName(const HMODULE);
 	const string GetModuleNameWithoutExtension(const HMODULE);
-	string ReadFile(string);
-	void WriteFile(string, string);
+	string ReadFile(const string&, bool = false);
+	void WriteFile(const string&, string, bool=false);
+	bool RemoveFile(const string&);
 	bool WriteMemory(LPVOID, std::vector<byte>&);
 	bool StrCaseCompare(const string&, const string&);
 	bool IsAsciiStr(const std::string&);

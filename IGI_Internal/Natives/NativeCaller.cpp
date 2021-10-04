@@ -12,7 +12,7 @@ NativeCaller::~NativeCaller() {
 	g_NativeCaller = nullptr;
 }
 
-//Init Hashes with only 0 Arguments. 
+//Init Hashes with 0 Arguments. 
 void NativeCaller::InitHashMapArgs0() {
 	//Map to store Hashes and Handlers. 
 	std::map<int, std::function<int(void)>> nativeMap0;
@@ -24,20 +24,22 @@ void NativeCaller::InitHashMapArgs0() {
 	std::function<int(void)> QTaskUpdate{ (int(__cdecl*)(void))HASH::QTASK_UPDATE };
 	std::function<int(void)> LevelRestart{ (int(__cdecl*)(void))HASH::LEVEL_RESTART };
 	std::function<int(void)> WeaponTypeOpen{ (int(__cdecl*)(void))HASH::WEAPON_TYPE_OPEN };
-	std::function<int(void)> WeaponTotalGet{ (int(__cdecl*)(void))HASH::WEAPON_TOTAL_COUNT };
+	std::function<int(void)> WeaponTotalCount{ (int(__cdecl*)(void))HASH::WEAPON_TOTAL_COUNT };
+	std::function<int(void)> HumanHitDamageGet{ (int(__cdecl*)(void))HASH::HUMAN_HIT_DAMAGE_GET };
 
 	//Adding Native methods with Args0 to HashMap. 
-	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, HumanPlayerLoad, nativeMap0, nativeMap0List0);
-	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, GameMaterialLoad, nativeMap0, nativeMap0List0);
-	NativeMapAdd((NativeHash)HASH::QHASH_RESET, QHashReset, nativeMap0, nativeMap0List0);
-	NativeMapAdd((NativeHash)HASH::QTASK_UPDATE, QTaskUpdate, nativeMap0, nativeMap0List0);
-	NativeMapAdd((NativeHash)HASH::LEVEL_RESTART, LevelRestart, nativeMap0, nativeMap0List0);
-	NativeMapAdd((NativeHash)HASH::WEAPON_TYPE_OPEN, WeaponTypeOpen, nativeMap0, nativeMap0List0);
-	NativeMapAdd((NativeHash)HASH::WEAPON_TOTAL_COUNT, WeaponTotalGet, nativeMap0, nativeMap0List0);
+	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, HumanPlayerLoad, nativeMap0, native_map0_list0);
+	NativeMapAdd((NativeHash)HASH::HUMANPLAYER_LOAD, GameMaterialLoad, nativeMap0, native_map0_list0);
+	NativeMapAdd((NativeHash)HASH::QHASH_RESET, QHashReset, nativeMap0, native_map0_list0);
+	NativeMapAdd((NativeHash)HASH::QTASK_UPDATE, QTaskUpdate, nativeMap0, native_map0_list0);
+	NativeMapAdd((NativeHash)HASH::LEVEL_RESTART, LevelRestart, nativeMap0, native_map0_list0);
+	NativeMapAdd((NativeHash)HASH::WEAPON_TYPE_OPEN, WeaponTypeOpen, nativeMap0, native_map0_list0);
+	NativeMapAdd((NativeHash)HASH::WEAPON_TOTAL_COUNT, WeaponTotalCount, nativeMap0, native_map0_list0);
+	NativeMapAdd((NativeHash)HASH::HUMAN_HIT_DAMAGE_GET, HumanHitDamageGet, nativeMap0, native_map0_list0);
 
 }
 
-//Init Hashes with only 1 Arguments. 
+//Init Hashes with 1 Arguments. 
 void NativeCaller::InitHashMapArgs1() {
 
 	//Map to store Hashes and Handlers. 
@@ -86,31 +88,43 @@ void NativeCaller::InitHashMapArgs1() {
 
 }
 
+//Init Hashes with 2 Arguments. 
 void NativeCaller::InitHashMapArgs2() {
 
 	//Map to store Hashes and Handlers. 
-	std::map<int, std::function<int(int, const char*)>> native_map2;
-	std::map<int, std::function<int(float, float)>> native_map3;
+	std::map<int, std::function<int(int, const char*)>> native_map1;
+	std::map<int, std::function<int(float, float)>> native_map2;
+	std::map<int, std::function<int(int, int*)>> native_map3;
+	std::map<int, std::function<int(int, int)>> native_map4;
 
 	//Declaring Function for Native hashes. 
 	std::function<int(int, const char*)> WeaponConfigRead{ (int(__cdecl*)(int,const char*))HASH::WEAPON_CONFIG_READ };
 	std::function<int(float, float)> MusicSetVolume{ (int(__cdecl*)(float,float))HASH::MUSIC_SET_VOLUME };
+	std::function<int(int, int*)> WeaponGunPickup{ (int(__cdecl*)(int, int*))HASH::WEAPON_GUN_PICKUP };
+	std::function<int(int, int*)> WeaponAmmoPickup{ (int(__cdecl*)(int, int*))HASH::WEAPON_AMMO_PICKUP };
+	std::function<int(int, int)> HumanViewCam{ (int(__cdecl*)(int, int))HASH::HUMAN_VIEW_CAM };
 
 	//Adding Native methods with Args2 to HashMap. 
-	NativeMapAdd((NativeHash)HASH::WEAPON_CONFIG_READ, WeaponConfigRead, native_map2, native_map2_list2);
-	NativeMapAdd((NativeHash)HASH::MUSIC_SET_VOLUME, MusicSetVolume, native_map3, native_map2_list3);
+	NativeMapAdd((NativeHash)HASH::WEAPON_CONFIG_READ, WeaponConfigRead, native_map1, native_map2_list2);
+	NativeMapAdd((NativeHash)HASH::MUSIC_SET_VOLUME, MusicSetVolume, native_map2, native_map2_list3);
+	NativeMapAdd((NativeHash)HASH::WEAPON_GUN_PICKUP, WeaponGunPickup, native_map3, native_map2_list4);
+	NativeMapAdd((NativeHash)HASH::WEAPON_AMMO_PICKUP, WeaponAmmoPickup, native_map3, native_map2_list4);
+	NativeMapAdd((NativeHash)HASH::HUMAN_VIEW_CAM, HumanViewCam, native_map4, native_map2_list5);
 }
 
+//Init Hashes with 3 Arguments. 
 void NativeCaller::InitHashMapArgs3() {
+	//TL:DR
 }
 
+//Init Hashes with 4 Arguments. 
 void NativeCaller::InitHashMapArgs4() {
 	std::map<int, std::function<int(int,LPCSTR, LPCSTR, LPCSTR)>> native_map1;
 
 	//Declaring Function for Native hashes. 
 	std::function<int(int, LPCSTR, LPCSTR, LPCSTR)> StatusMessageShow{ (int(__cdecl*)(int,LPCSTR, LPCSTR, LPCSTR))HASH::STATUS_MESSAGE_SHOW };
 
-	//Adding Native methods with Args2 to HashMap. 
+	//Adding Native methods with Args4 to HashMap. 
 	NativeMapAdd((NativeHash)HASH::STATUS_MESSAGE_SHOW, StatusMessageShow, native_map1, native_map4_list1);
 }
 

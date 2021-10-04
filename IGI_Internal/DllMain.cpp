@@ -137,13 +137,13 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 void DllMainLoop() {
 
 	if (GT_IsKeyToggled(VK_F1)) {
-		CONFIG::CONFIG_READ(NATIVE_CONST_CONFIG_FILE);
-		MISC::STATUS_MESSAGE_SHOW("CONFIG_READ", STATUSSCREEN_WEAPON);
+		CONFIG::WEAPON_CONFIG_READ();
+		MISC::STATUS_MESSAGE_SHOW("CONFIG_READ", NATIVE_CONST_STATUSSCREEN_WEAPON);
 	}
 
 	else if (GT_IsKeyToggled(VK_F2)) {
-		CONFIG::CONFIG_WRITE(NATIVE_CONST_CONFIG_FILE);
-		MISC::STATUS_MESSAGE_SHOW("CONFIG_WRITE", STATUSSCREEN_GUN);
+		CONFIG::WRITE();
+		MISC::STATUS_MESSAGE_SHOW("CONFIG_WRITE");
 	}
 
 	else if (GT_IsKeyToggled(VK_KANJI)) {
@@ -170,32 +170,22 @@ void DllMainLoop() {
 
 		//char* msg = (char*)"This is text for printing.";
 		//auto GameTextPrint = (void(__cdecl*)(int**, char*))0x4B6E90;
-		//GameTextPrint((int**)0x11EA19DC, (char*)"DISTANCE: 154M");
+		//GameTextPrint((int**)0x11EA19DC, (char*)"DISTANCE: 154M");sssss
 		//GameTextPrint((int**)0x11EA8034, (char*)"ANYA: Very easily!.");
 		//LOG_INFO("GameTextPrint run");
 
-		MISC::WARNINGS_DISABLE();
-		auto GunPickup = (void(__cdecl*)(int param_1, int* param_2))0x45FFC0;
-		auto AmmoPickup = (void(__cdecl*)(int param_1, int* param_2))0x45FF80;
+		//for (uint32_t weapon_id = WEAPON_ID_DESERTEAGLE; weapon_id <= WEAPON_ID_COLT; ++weapon_id) {
+		//	if (weapon_id == 17) continue;
+		//	g_AutoMsgBox->Show("", 350);
+		//	WEAPON::WEAPON_PICKUP(weapon_id);
+		//}
+		WEAPON::WEAPON_PICKUP(WEAPON_ID_M16A2);
+		WEAPON::AMMO_PICKUP(AMMO_ID_M203);
+		WEAPON::WEAPON_PICKUP(WEAPON_ID_JACKHAMMER);
+		WEAPON::WEAPON_PICKUP(WEAPON_ID_DESERTEAGLE);
 
-		uint32_t gun_ammo_pickup_ptr = READ_STATIC_PTR_OFF2(0x005BDC6C, 0x1B0, 0xCB4);
-
-		//M16A2.
-		g_AutoMsgBox->Show("", 10);
-		*(PINT)0x19F720 = 4; GunPickup(READ_PTR(gun_ammo_pickup_ptr), (int*)0x19F720);
-		g_AutoMsgBox->Show("", 10);
-		*(PINT)0x19F820 = 8; AmmoPickup(READ_PTR(gun_ammo_pickup_ptr), (int*)0x19F820);
-		g_AutoMsgBox->Show("", 10);
-		*(PINT)0x19F820 = 2; AmmoPickup(READ_PTR(gun_ammo_pickup_ptr), (int*)0x19F820);
-
-		//JackHammer.
-		g_AutoMsgBox->Show("", 10);
-		*(PINT)0x19F720 = 9; GunPickup(READ_PTR(gun_ammo_pickup_ptr), (int*)0x19F720);
-		g_AutoMsgBox->Show("", 10);
-		*(PINT)0x19F820 = 0; AmmoPickup(READ_PTR(gun_ammo_pickup_ptr), (int*)0x19F820);
-
-		LOG_INFO("GunPickup Run : Count %d\n",WEAPON::WEAPONS_COUNT());
-		SFX::MUSIC_SET_VOLUME(5);
+		LOG_INFO("WeaponPickup Run : Count %d", WEAPON::TOTAL_COUNT());
+		//SFX::MUSIC_SET_VOLUME(5);
 
 		//GFX::GRAPHICS_RESET();
 		//MISC::STATUS_MESSAGE_SHOW("GRAPHICS_RESET");
@@ -222,9 +212,8 @@ void DllMainLoop() {
 		//MISC::ERRORS_DISABLE(); 
 		//MISC::WARNINGS_DISABLE(); 
 
-		auto StsMsg = (int(__cdecl*)())0x00485a40;
-		StsMsg();
-		LOG_INFO("StsMsg Run");
+		PLAYER::ACTIVE_MISSION_SET(14);
+		PLAYER::ACTIVE_NAME_SET("haseeb_heaven");
 		// 
 		//auto CompileQVM = (int(__cdecl*)(const char*))0x4B85B0;
 		//CompileQVM("LOCAL:config.qvm");
@@ -271,12 +260,6 @@ void DllMainLoop() {
 		LOG_DEBUG("ForceUpdateWindow called");
 	}
 
-	else if (GT_IsKeyToggled(VK_HOME)) {
-		StartLevelMain(4);
-	}
-
-	else if (GT_IsKeyToggled(VK_PRIOR)) {
-	}
 
 	else if (GT_IsKeyToggled(VK_F12)) {
 
@@ -297,10 +280,17 @@ void DllMainLoop() {
 	}
 
 	else if (GT_IsKeyToggled(VK_HOME)) {
+	StartLevelMain(4);
+	}
 
+	else if (GT_IsKeyToggled(VK_PRIOR)) {
+	static int hcam_val = 0;
+	HUMAN::VIEW_CAM(hcam_val);
+	hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
 	}
 
 	else if (GT_IsKeyToggled(VK_SNAPSHOT)) {
+	g_Console->Clear();
 	}
 }
 
@@ -316,10 +306,10 @@ void StartLevelMain(int level, bool disable_warn, bool disable_err, int hash_val
 
 	QTASK::HASH_INIT(1);
 	QTASK::UPDATE();
-	
+
 	//auto StartLevel = (int(__cdecl*)(int, int, int, int))0x415B30;
 	//StartLevel(*(PINT)0x57BABC,00000000, * (PINT)0xC28C5C, * (PINT)(*(PINT)0x57BABC));
-	
+
 	auto StartLevelCaller = (int(__cdecl*)(int))0x416900;
 	StartLevelCaller(*(PINT)0x00567C8C);
 

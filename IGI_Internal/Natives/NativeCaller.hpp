@@ -15,7 +15,7 @@ namespace IGI {
 	private:
 		int native_argc = 0;
 		bool m_hash_found = false;
-		std::list<std::map<int, std::function<int(void)>>> nativeMap0List0;
+		std::list<std::map<int, std::function<int(void)>>> native_map0_list0;
 		std::list<std::map<int, std::function<int(const char*)>>> native_map1_list1;
 		std::list<std::map<int, std::function<int(int)>>> native_map1_list2;
 		std::list<std::map<int, std::function<int(float)>>> native_map1_list3;
@@ -23,7 +23,9 @@ namespace IGI {
 		std::list<std::map<int, std::function<int(const char*, int)>>> native_map2_list1;
 		std::list<std::map<int, std::function<int(int, const char*)>>> native_map2_list2;
 		std::list<std::map<int, std::function<int(float, float)>>> native_map2_list3;
-		std::list<std::map<int, std::function<int(int, LPCSTR, LPCSTR, LPCSTR)>>> native_map4_list1;
+		std::list<std::map<int, std::function<int(int, int*)>>> native_map2_list4;
+		std::list<std::map<int, std::function<int(int, int)>>> native_map2_list5;
+		std::list<std::map<int, std::function<int(int, const char*, const char*, const char*)>>> native_map4_list1;
 
 		template<typename NF, typename NM>
 		void NativeMapInsert(NativeHash native_hash, NF native_func, NM& native_map) {
@@ -100,7 +102,7 @@ namespace IGI {
 
 			if (native_argc == 0) {
 				LOG_FILE("%s() NativeArg count 0", FUNC_NAME);
-				auto ret_val = NativeInvokeT<RT>(native_hash, nativeMap0List0);
+				auto ret_val = NativeInvokeT<RT>(native_hash, native_map0_list0);
 				if (m_hash_found)
 					return ret_val;
 			}
@@ -108,35 +110,34 @@ namespace IGI {
 			else if (native_argc == 1)
 			{
 #ifdef _DEBUG 
-				if (IS_SAME_T1(LPCSTR))
-					LOG_FILE("%s() NativeArg count 1 param1: %s type : %s", FUNC_NAME, (LPCSTR)param1, TYPEID(param1));
-				else if (IS_SAME_T1(INT))
-					LOG_FILE("%s() NativeArg count 1 param1 : %d type : %s", FUNC_NAME, (INT)param1, TYPEID(param1));
+				if (IS_SAME_T1(const char*))
+					LOG_FILE("%s() NativeArg count 1 param1: %s type : %s", FUNC_NAME, (const char*)param1, TYPEID(param1));
+				else if (IS_SAME_T1(int))
+					LOG_FILE("%s() NativeArg count 1 param1 : %d type : %s", FUNC_NAME, (int)param1, TYPEID(param1));
 #endif 
 				auto ret_val = NativeInvokeT<RT>(native_hash, native_map1_list1, param1);
-				if (!m_hash_found)
-					ret_val = NativeInvokeT<RT>(native_hash, native_map1_list2, param1);
-				if (!m_hash_found)
-					ret_val = NativeInvokeT<RT>(native_hash, native_map1_list3, param1);
-				if (!m_hash_found)
-					ret_val = NativeInvokeT<RT>(native_hash, native_map1_list4, param1);
+				if (!m_hash_found) ret_val = NativeInvokeT<RT>(native_hash, native_map1_list2, param1);
+				if (!m_hash_found) ret_val = NativeInvokeT<RT>(native_hash, native_map1_list3, param1);
+				if (!m_hash_found) ret_val = NativeInvokeT<RT>(native_hash, native_map1_list4, param1);
 				return ret_val;
 			}
 			else if (native_argc == 2)
 			{
 #ifdef _DEBUG 
-				if (IS_SAME_T2(INT, LPCSTR))
-					LOG_FILE("%s() native_argc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (LPCSTR)param2, TYPEID(param2));
-				else if (IS_SAME_T2(LPCSTR, INT))
-					LOG_FILE("%s() native_argc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (LPCSTR)param1, TYPEID(param1), (int)param2, TYPEID(param2));
-				else if (IS_SAME_T2(INT, INT))
-					LOG_FILE("%s() native_argc2 param1: %d type : %s param2: %d type : %s", FUNC_NAME, (INT)param1, TYPEID(param1), (INT)param2, TYPEID(param2));
+				if (IS_SAME_T2(int, const char*))
+					LOG_FILE("%s() native_argc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (const char*)param2, TYPEID(param2));
+				else if (IS_SAME_T2(const char*, int))
+					LOG_FILE("%s() native_argc2 param1: %p type : %s param2: %s type : %s", FUNC_NAME, (const char*)param1, TYPEID(param1), (int)param2, TYPEID(param2));
+				else if (IS_SAME_T2(int, int))
+					LOG_FILE("%s() native_argc2 param1: %d type : %s param2: %d type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (int)param2, TYPEID(param2));
+				else if (IS_SAME_T2(int, int*))
+					LOG_FILE("%s() native_argc2 param1: %d type : %s param2: %d type : %s", FUNC_NAME, (int)param1, TYPEID(param1), *(int*)param2, TYPEID(param2));
 #endif 
 				auto ret_val = NativeInvokeT<RT>(native_hash, native_map2_list1, param1, param2);
-				if (!m_hash_found)
-					ret_val = NativeInvokeT<RT>(native_hash, native_map2_list2, param1, param2);
-				if (!m_hash_found)
-					ret_val = NativeInvokeT<RT>(native_hash, native_map2_list3, param1, param2);
+				if (!m_hash_found) ret_val = NativeInvokeT<RT>(native_hash, native_map2_list2, param1, param2);
+				if (!m_hash_found) ret_val = NativeInvokeT<RT>(native_hash, native_map2_list3, param1, param2);
+				if (!m_hash_found) ret_val = NativeInvokeT<RT>(native_hash, native_map2_list4, param1, param2);
+				if (!m_hash_found) ret_val = NativeInvokeT<RT>(native_hash, native_map2_list5, param1, param2);
 				return ret_val;
 			}
 
@@ -150,8 +151,8 @@ namespace IGI {
 			else if (native_argc == 4)
 			{
 #ifdef _DEBUG 
-				if (IS_SAME_T4(INT, LPCSTR, LPCSTR, LPCSTR))
-					LOG_FILE("%s() native_argc2 param1: %p type : %s param2: %s type : %s param3: %s type : %s param4: %s type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (LPCSTR)param2, TYPEID(param2), (LPCSTR)param3, TYPEID(param3), (LPCSTR)param4, TYPEID(param4));
+				if (IS_SAME_T4(int, const char*, const char*, const char*))
+					LOG_FILE("%s() native_argc2 param1: %p type : %s param2: %s type : %s param3: %s type : %s param4: %s type : %s", FUNC_NAME, (int)param1, TYPEID(param1), (const char*)param2, TYPEID(param2), (const char*)param3, TYPEID(param3), (const char*)param4, TYPEID(param4));
 #endif
 				auto ret_val = NativeInvokeT<RT>(native_hash, native_map4_list1, param1, param2, param3, param4);
 				if (m_hash_found)
@@ -160,7 +161,7 @@ namespace IGI {
 		}
 
 
-		//Gneral Invoke hashes method with N Args. 
+		//Gneral Invoke method with N Args. 
 		template <typename RT = Void, typename T1 = Void, typename T2 = Void, typename T3 = Void, typename T4 = Void, typename ML>
 		RT NativeInvokeT(NativeHash native_hash, ML native_map_list_arg = nullptr, T1 param1 = nullptr, T2 param2 = nullptr, T3 param3 = nullptr, T4 param4 = nullptr) {
 			LOG_FILE("%s() Hash : 0x%X param1: %p type : %s param2: %p type : %s param3: %p type : %s param4: %p type : %s native_argc: %d", FUNC_NAME, native_hash, param1, TYPEID(param1), param2, TYPEID(param2), param3, TYPEID(param3), param4, TYPEID(param4), native_argc);
@@ -183,7 +184,7 @@ namespace IGI {
 					if (native_map.first == native_hash) {
 
 						//NativeInvoker0
-						if constexpr (IS_SAME_MAP(nativeMap0List0)) {
+						if constexpr (IS_SAME_MAP(native_map0_list0)) {
 							m_hash_found = true;
 							LOG_FILE("Found handler for Hash 0x%X\tSymbol : %s\n", native_hash, g_Natives->FindNativeName(native_hash).c_str());
 							auto ret_val = std::invoke(native_map.second);
@@ -191,13 +192,13 @@ namespace IGI {
 						}
 
 						//NativeInvoker1
-						if constexpr ((IS_SAME_MAP(native_map1_list1) && IS_SAME_T1(LPCSTR))
-							|| (IS_SAME_MAP(native_map1_list2) && IS_SAME_T1(INT))
-							|| (IS_SAME_MAP(native_map1_list3) && IS_SAME_T1(INT))
+						if constexpr ((IS_SAME_MAP(native_map1_list1) && IS_SAME_T1(const char*))
+							|| (IS_SAME_MAP(native_map1_list2) && IS_SAME_T1(int))
+							|| (IS_SAME_MAP(native_map1_list3) && IS_SAME_T1(int))
 							) {
 							m_hash_found = true;
 							LOG_FILE("Found handler for Hash 0x%X\tSymbol : %s\n", native_hash, g_Natives->FindNativeName(native_hash).c_str());
-							if constexpr (IS_SAME_MAP(native_map1_list3) && IS_SAME_T1(INT)) {
+							if constexpr (IS_SAME_MAP(native_map1_list3) && IS_SAME_T1(int)) {
 								auto ret_val = std::invoke(native_map.second, (float)((float)param1 / MUSIC_CONST));
 								if constexpr (!std::is_same_v<RT, Void>) return ret_val; else return reinterpret_cast<RT>(nullptr);
 							}
@@ -208,13 +209,15 @@ namespace IGI {
 						}
 
 						//NativeInvoker2
-						if constexpr ((IS_SAME_MAP(native_map2_list1) && IS_SAME_T2(LPCSTR, INT))
-							|| (IS_SAME_MAP(native_map2_list2) && IS_SAME_T2(INT, LPCSTR))
-							|| (IS_SAME_MAP(native_map2_list3) && IS_SAME_T2(INT, INT))
+						if constexpr ((IS_SAME_MAP(native_map2_list1) && IS_SAME_T2(const char*, int))
+							|| (IS_SAME_MAP(native_map2_list2) && IS_SAME_T2(int, const char*))
+							|| (IS_SAME_MAP(native_map2_list3) && IS_SAME_T2(int, int))
+							|| (IS_SAME_MAP(native_map2_list4) && IS_SAME_T2(int, int*))
+							|| (IS_SAME_MAP(native_map2_list5) && IS_SAME_T2(int, int))
 							) {
 							m_hash_found = true;
 							LOG_FILE("Found handler for Hash 0x%X\tSymbol : %s\n", native_hash, g_Natives->FindNativeName(native_hash).c_str());
-							if constexpr (IS_SAME_MAP(native_map2_list3) && IS_SAME_T2(INT, INT)) {
+							if constexpr (IS_SAME_MAP(native_map2_list3) && IS_SAME_T2(int, int)) {
 								auto ret_val = std::invoke(native_map.second, (float)((float)param1 / MUSIC_CONST), (float)((float)param2 / MUSIC_CONST));
 								if constexpr (!std::is_same_v<RT, Void>) return ret_val; else return reinterpret_cast<RT>(nullptr);
 							}
@@ -225,7 +228,7 @@ namespace IGI {
 						}
 
 						//NativeInvoker4
-						if constexpr ((IS_SAME_MAP(native_map4_list1) && IS_SAME_T4(int, LPCSTR, LPCSTR, LPCSTR))
+						if constexpr ((IS_SAME_MAP(native_map4_list1) && IS_SAME_T4(int, const char*, const char*, const char*))
 							) {
 							m_hash_found = true;
 							LOG_FILE("Found handler for Hash 0x%X\tSymbol : %s\n", native_hash, g_Natives->FindNativeName(native_hash).c_str());

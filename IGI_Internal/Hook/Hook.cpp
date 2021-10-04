@@ -49,11 +49,14 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(CreateConfig, &CreateConfigDetour, &CreateConfigOut);
 	if (mh_status != MH_OK)LOG_ERROR("CreateConfig Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(StatusMsg, &StatusMsgDetour, &StatusMsgOut);
+	mh_status = MH_OK;//CreateHook(StatusMsg, &StatusMsgDetour, &StatusMsgOut);
 	if (mh_status != MH_OK)LOG_ERROR("StatusMsg Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(GenericPickup, &GenericPickupDetour, &GenericPickupOut);
+	mh_status = MH_OK;//CreateHook(GenericPickup, &GenericPickupDetour, &GenericPickupOut);
 	if (mh_status != MH_OK)LOG_ERROR("GenericPickup Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_OK;//CreateHook(WeaponDrop, &WeaponDropDetour, &WeaponDropOut);
+	if (mh_status != MH_OK)LOG_ERROR("WeaponDrop Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(GunPickup, &GunPickupDetour, &GunPickupOut);
 	if (mh_status != MH_OK)LOG_ERROR("GunPickup Hooking error : %s", MH_StatusToString(mh_status));
@@ -67,6 +70,17 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = CreateHook(ShowWarning, &ShowWarningDetour, &ShowWarningOut);
 	if (mh_status != MH_OK) LOG_ERROR("ShowWarning Hooking error : %s", MH_StatusToString(mh_status));
 
+	mh_status = MH_OK;//CreateHook(GetPlayerXPHit, &GetPlayerXPHitDetour, &GetPlayerXPHitOut);
+	if (mh_status != MH_OK)LOG_ERROR("GetPlayerXPHit Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(HumanViewCam, &HumanViewCamDetour, &HumanViewCamOut);
+	if (mh_status != MH_OK)LOG_ERROR("HumanViewCam Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_OK;//CreateHook(HumanXPHit, &HumanXPHitDetour, &HumanXPHitOut);
+	if (mh_status != MH_OK)LOG_ERROR("HumanXPHit Hooking error : %s", MH_StatusToString(mh_status));
+	
+	mh_status = CreateHook(HumanXPDead, &HumanXPDeadDetour, &HumanXPDeadOut);
+	if (mh_status != MH_OK)LOG_ERROR("HumanXPDead Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(StatusMessageShow, &StatusMessageShowDetour, &StatusMessageShowOut);
 	if (mh_status != MH_OK)LOG_ERROR("StatusMessageShow Hooking error : %s", MH_StatusToString(mh_status));
@@ -101,9 +115,11 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(LoadQVM, &LoadQVMDetour, &LoadQVMOut);
 	if (mh_status != MH_OK)LOG_ERROR("LoadQVM Createhook error : %s", MH_StatusToString(mh_status));
 
-	//mh_status = CreateHook(CompileQVM, &CompileQVMDetour, &CompileQVMOut); 
-	//if (mh_status != MH_OK)
-	// LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status)); 
+	mh_status = MH_OK;//CreateHook(SFXItems, &SFXItemsDetour, &SFXItemsOut);
+	if (mh_status != MH_OK)LOG_ERROR("SFXItems Createhook error : %s", MH_StatusToString(mh_status));
+	
+	mh_status = MH_OK;//CreateHook(CompileQVM, &CompileQVMDetour, &CompileQVMOut); 
+	if (mh_status != MH_OK) LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status)); 
 
 	mh_status = CreateHook(AssembleQAS, &AssembleQASDetour, &AssembleQASOut);
 	if (mh_status != MH_OK)LOG_ERROR("AssembleQAS Createhook error : %s", MH_StatusToString(mh_status));

@@ -558,7 +558,7 @@
 				"note": "Show menu loading screen before loading level."
 			}
 		},
-    {
+		{
 			"Native": {
 				"hash": "004BAAC0",
 				"address": 4958912,
@@ -567,13 +567,49 @@
 				"note": "Main Hash Table for QTasks types for Objects(Guns,Ammo,Scripts,Variables etc) in whole game. HashTable is 70bytes long for each QTask."
 			}
 		},
-    {
+		{
 			"Native": {
 				"hash": "00413BB0",
 				"address": 4275120,
 				"name": "WeaponsCountGet",
 				"signature": "int WeaponsCountGet()",
 				"note": "Get total number of Weapons in game."
+			}
+		},
+		{
+			"Native": {
+				"hash": "0045FFC0",
+				"address": 4587456,
+				"name": "WeaponGunPickup",
+				"signature": "void WeaponGunPickup(int param_ptr, int* type_ptr)",
+				"note": "Weapon pickup from ground, Param: param_ptr is in defined in Constants as 'gun_pickup_ptr', set Weapon Id in type_ptr like *(0x19F720) = 5"
+			}
+		},
+		{
+			"Native": {
+				"hash": "0045FF80",
+				"address": 4587392,
+				"name": "WeaponAmmoPickup",
+				"signature": "void WeaponAmmoPickup(int param_ptr, int* type_ptr)",
+				"note": "Ammo pickup from ground, Param: param_ptr is in defined in Constants as 'gun_pickup_ptr', set Ammo Id in type_ptr like *(0x19F820) = 3"
+			}
+		},
+		{
+			"Native": {
+				"hash": "00416D80",
+				"address": 4287872,
+				"name": "PlayerXPHit",
+				"signature": "uint PlayerXPHit()",
+				"note": "Get Player XP Hit damage for current health."
+			}
+		},
+    {
+			"Native": {
+				"hash": "00463760",
+				"address": 4601696,
+				"name": "HumanViewCam",
+				"signature": "void HumanViewCam(int cam_ptr,int cam_type)",
+				"note": "Camera view for Humanplayer , Param: cam_ptr is in defined in Constants as 'cam_ptr' and cam_type is [1-6]"
 			}
 		}
 	]

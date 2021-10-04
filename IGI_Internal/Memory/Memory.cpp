@@ -1,6 +1,6 @@
 #include "Memory.hpp"
 #include "GTLibc.hpp"
-
+using namespace Utility;
 using namespace IGI;
 
 Memory::Memory() {
