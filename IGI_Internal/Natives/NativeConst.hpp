@@ -17,8 +17,10 @@ namespace IGI {
 #define READ_STATIC_PTR_OFF2(addr,off1,off2) READ_PTR_OFF(READ_PTR(addr),off1) + (DWORD)off2 
 #define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3 
 
-#define TYPEID(x) typeid(x).name()
 #define TYPE(x) string(typeid(x).name())
+#define TYPEID(x) typeid(x).name()
+#define TYPEID_S(x) (TYPE(x).length() < 2 || TYPE(x).empty()) ? "UnknownType" : TYPEID(x)
+
 #define CHECK_TYPE(x,y) TYPE(x) == string(y)
 #define LINE_DEBUG LOG_FILE("[%s] LINE : %d", FUNC_NAME, LINE_NO); 
 
@@ -33,7 +35,8 @@ namespace IGI {
 #define PLAYER_ACTIVE_ADDR PLAYER_INDEX_ADDR(PLAYER_ACTIVE_INDEX)
 
 //Native constants. 
-#define NATIVE_INVOKE g_NativeCaller->NativeInvoker 
+#define NATIVE_INVOKE g_NativeCaller.Invoke
+//#define NATIVE_INVOKE g_ThreadInvoker.Invoke
 #define GAME_LEVEL_MAX READ_PTR(0x5C89FC)
 
 //Directory Constants.
@@ -56,12 +59,25 @@ namespace IGI {
 #define GUN_PICKUP_SET(gun_id) *GUN_PICKUP_PTR = gun_id
 #define AMMO_PICKUP_SET(ammo_id) *AMMO_PICKUP_PTR = ammo_id
 #define WEAPON_ID_COUNT 45
+#define AI_BUF_SIZE 8000
 
 	inline char local_buf[0x1E] = { NULL }; // Local buffer to store value from different methods. 
 	inline float MUSIC_CONST = 10.0f;
 	inline LPVOID status_byte = (LPVOID)0x567C74;
 	inline int gun_pickup_ptr = READ_STATIC_PTR_OFF2(0x005BDC6C, 0x1B0, 0xCB4);
-	inline int cam_ptr = READ_STATIC_PTR_OFF2(0x0056E210, 0x40, 0x24);
+	inline int humanplayer_ptr = READ_STATIC_PTR_OFF2(0x0056E210, 0x40, 0x24);
+	
+	//Structure to hold Human soldier information.
+	struct HumanSoldier {
+		string model_id;//Model id of soldier - Like 001_01_1 -> Jones.
+		int ai_id; //A.I Id of soldier - Like Id '503' and AiFile = 'AI/503.qvm'
+		int graph_id; //Graph Id of sodlier.
+		string weapon; //Weapon currently holding.
+		bool is_dead; //Is Soldier dead ?
+		int e_team; //Soldier team type , 0 = Friendly, 1 = Enemy.
+	};
+
+	inline std::vector<HumanSoldier> soldiers;
 
 	//Constants for Weapon/Ammo.
 	enum NATIVE_AMMO {

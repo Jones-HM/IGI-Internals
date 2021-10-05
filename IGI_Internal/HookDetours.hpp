@@ -4,7 +4,8 @@
 #include "Utils/DbgHelper.hpp"
 #include "GTLibc.hpp"
 #include "DbgHelper.hpp"
-#include "Natives/NativeConst.hpp"
+#include "NativeConst.hpp"
+#include "Natives/NativeHelper.hpp"
 
 using namespace IGI;
 using namespace Utility;
@@ -103,25 +104,14 @@ decltype(HumanXPDead) HumanXPDeadOut;
 auto WeaponDrop = (void(__cdecl*)(int**))0x0046cea0;
 decltype(WeaponDrop) WeaponDropOut;
 
-struct HUMAN_SOLDIER {
-	string model_id;
-	int ai_id;
-	int graph_id;
-	string weapon;
-	bool is_dead;
-	int e_team;
-};
+HumanSoldier AddHumanSoldierData(string soldier_data) {
+	HumanSoldier soldier = {};
 
-inline std::list<HUMAN_SOLDIER> human_soldiers;
+	//auto file_data = Utility::ReadFile(file_name,true);
 
-HUMAN_SOLDIER AddHumanSoldierData(string file_name) {
-	HUMAN_SOLDIER soldier = {};
-
-	auto file_data = Utility::ReadFile(file_name,true);
-
-	if (!file_data.empty()) {
+	if (!soldier_data.empty()) {
 		std::regex data_regex(R"(\w{0,}_\w{0,})");
-		auto words_begin = std::sregex_iterator(file_data.begin(), file_data.end(), data_regex);
+		auto words_begin = std::sregex_iterator(soldier_data.begin(), soldier_data.end(), data_regex);
 		auto words_end = std::sregex_iterator();
 
 		const string soldier_tag = "HumanSoldier_", weapon_id_tag = "WEAPON_ID";
@@ -141,11 +131,13 @@ HUMAN_SOLDIER AddHumanSoldierData(string file_name) {
 			else if (match_str.find(weapon_id_tag) != std::string::npos)
 				soldier.weapon = match_str;
 		}
-		soldier.model_id = file_data.substr(0,8);
+		soldier.model_id = soldier_data.substr(0, 8);
 
-		human_soldiers.push_back(soldier);
+		//Dont allow duplicates.
+		auto it = std::find_if(soldiers.begin(), soldiers.end(), [&curr_soldier = soldier](HumanSoldier& human_soldier) -> bool { return curr_soldier.ai_id == human_soldier.ai_id; });
+		if (it == soldiers.end()) soldiers.push_back(soldier);
 	}
-	else LOG_ERROR("%s Human soldier data cannot be empty.",FUNC_NAME);
+	else LOG_ERROR("%s Human soldier data cannot be empty.", FUNC_NAME);
 	return soldier;
 }
 
@@ -180,30 +172,23 @@ void HumanXPHitDetour(int param_1, char* param_2, int param_3) {
 }
 
 void HumanXPDeadDetour(int param_1, char* param_2, int param_3) {
-	LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "PlayerDead", param_1, param_2, param_3);
+	//LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "PlayerDead", param_1, param_2, param_3);
 
-	const int AI_BUF_SIZE = 8000;
-	string ai_data(AI_BUF_SIZE, '\0');
-	void* ai_type_addr = (void*)(param_1 + 0x100);
-	LOG_CONSOLE("%s AiType %p", "PlayerDead", ai_type_addr);
 
-	std::memcpy(ai_data.data(), ai_type_addr, AI_BUF_SIZE);
-	const string ai_file = Utility::GetModuleFolder() + "\\" + "ai_data.dat";
-	Utility::WriteFile(ai_file, ai_data, true);
+	string ai_data(AI_BUF_SIZE, NULL);
+	void* ai_addr = (void*)(param_1 + 0x100);
 
-	//Print soldier data information.
-	auto soldier = AddHumanSoldierData(ai_file);
+	HumanSoldier soldier;
+	string ai_data_info;
 
-	LOG_CONSOLE("Soldier Model: '%s'",soldier.model_id.c_str());
-	LOG_CONSOLE("Soldier Id: %d",soldier.ai_id);
-	LOG_CONSOLE("Soldier Weapon: '%s'",soldier.weapon.c_str());
+	std::thread th{ [&]() {
+		std::memcpy(ai_data.data(), ai_addr, AI_BUF_SIZE);
+		//Add soldier data information.
+	soldier = AddHumanSoldierData(ai_data);
+		} };
+	th.join();
 
 	soldier.is_dead = true;
-	human_soldiers.push_back(soldier);
-
-	//std::filesystem::rename(ai_file,Utility::GetModuleFolder() + "\\" + soldier.model_id + ".dat");
-	if (!Utility::RemoveFile(ai_file)) LOG_ERROR("%s File '%s' cannot be removed", FUNC_NAME, ai_file);
-
 	HumanXPDeadOut(param_1, param_2, param_3);
 }
 
@@ -275,15 +260,12 @@ void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param
 
 void __cdecl GamePrintTextDetour(int** param_1, byte* param_2) {
 	LOG_FILE("%s param_1 : %p *param_1 : %p **param_1 : '%s' param_2 : '%s'", "GamePrintText", param_1, *param_1, READ_PTR(param_1 + 0x180), param_2);
-
-	Sleep(100);
 	g_DbgHelper->StackTrace(true);
 	GameTextPrintOut(param_1, param_2);
 }
 
 void __cdecl PrintTextDetour(int* param_1, byte* param_2, int param_3, int param_4) {
 	LOG_FILE("%s param_1 : %p param_2 : '%s' param_3 : %p param_4 : %p", "PrintText", param_1, param_2, param_3, param_4);
-	Sleep(100);
 	g_DbgHelper->StackTrace(true);
 	TextPrintOut(param_1, param_2, param_3, param_4);
 }
@@ -306,7 +288,7 @@ void ReadWholeFile(LPCSTR file_name, LPCSTR file_mode = "rb") {
 		}
 	}
 	catch (std::exception const& ex) {
-		LOG_ERROR("Exception: ",ex.what() );
+		LOG_ERROR("Exception: ", ex.what());
 	}
 }
 

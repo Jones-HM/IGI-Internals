@@ -11,9 +11,6 @@
     <ClCompile Include="Utils\AutoMsgBox.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
-    <ClCompile Include="Natives\NativeCaller.cpp">
-      <Filter>Natives</Filter>
-    </ClCompile>
     <ClCompile Include="Utils\Logger.cpp">
       <Filter>Utils</Filter>
     </ClCompile>

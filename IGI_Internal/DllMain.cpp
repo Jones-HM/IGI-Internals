@@ -5,6 +5,7 @@
 #define USE_GTLIBC_LIB 
 #include "DllMain.hpp" 
 #include <AutoMsgBox.hpp>
+#include "Utils/Fibers.hpp"
 
 //Include all static libraries for project. 
 #if defined(_M_IX86) 
@@ -31,6 +32,32 @@ void StartLevelMain(int = 1, bool = true, bool = true, int = 1);
 void QuitLevelMain();
 void DllMainLoop();
 
+int delay_ms = 1000;
+
+
+void ThreadCallerDelay(int delay) {
+	std::this_thread::sleep_for(std::chrono::microseconds(delay));
+}
+
+template<typename RT = Void, typename T1 = Void, typename T2 = Void, typename T3 = Void, typename T4 = Void>
+RT ThreadCallerExec(void* func_ptr, T1 param1 = nullptr, T2 param2 = nullptr, T3 param3 = nullptr, T4 param4 = nullptr) {
+
+	//std::thread th{ [&]() {
+	//	std::this_thread::sleep_for(std::chrono::microseconds(delay_ms));
+	//	} };
+
+	std::thread th(ThreadCallerDelay, delay_ms);
+
+	//g_AutoMsgBox->Show("",500);
+	auto ret_val = NATIVE_INVOKE<Void>(func_ptr, param1, param2, param3, param4);
+	th.join();
+
+	if constexpr (!std::is_same_v<RT, void>)
+		return ret_val;
+}
+
+//std::thread exec_delay_thread(DelayExecution, 1000);
+
 BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 {
 	if (reason == DLL_PROCESS_ATTACH)
@@ -38,6 +65,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 		DisableThreadLibraryCalls(hmod);
 		SetModuleHandle(hmod);
 		g_Hmodule = hmod;
+
 		g_Main_Thread = CreateThread(nullptr, 0, [](PVOID)->DWORD
 			{
 				auto console_instance = std::make_unique<Console>();
@@ -58,14 +86,11 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 ╚╝  ╚╝╚═╩═══╩══╩═══╩═══╝ ╚╝    ╚══╩═══╩══╝ 			   ▐▓▓▌
 )";
 
-					LOG_RAW(igi_font);
+					//LOG_RAW(igi_font);
 					LOG_WARNING("Logger initialized.");
 
 					auto native_instance = std::make_unique<Natives>();
 					LOG_WARNING("Natives initialized.");
-
-					auto native_caller_instance = std::make_unique<NativeCaller>();
-					LOG_WARNING("NativeCaller initialized.");
 
 					auto memory_instance = std::make_unique<Memory>(true);
 					LOG_WARNING("Memory initialized.");
@@ -90,11 +115,11 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 						std::this_thread::sleep_for(10ms);
 					}
 
+					//Fiber::fiber_handle = CreateFiber(NULL, Fiber::fiber_thread, nullptr);
+					//Fiber::fiber_thread(NULL);
+
 					native_instance.reset();
 					LOG_WARNING("Natives uninitialized.");
-
-					native_caller_instance.reset();
-					LOG_WARNING("NativeCaller uninitialized.");
 
 					memory_instance.reset();
 					LOG_WARNING("Memory uninitialized.");
@@ -137,13 +162,15 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 void DllMainLoop() {
 
 	if (GT_IsKeyToggled(VK_F1)) {
-		CONFIG::WEAPON_CONFIG_READ();
-		MISC::STATUS_MESSAGE_SHOW("CONFIG_READ", NATIVE_CONST_STATUSSCREEN_WEAPON);
+		//CONFIG::READ();
+		SFX::VOLUME_SET(0.5f);
+		MISC::STATUS_MESSAGE_SHOW("MUSIC_SET_VOLUME", NATIVE_CONST_STATUSSCREEN_WEAPON);
 	}
 
 	else if (GT_IsKeyToggled(VK_F2)) {
-		CONFIG::WRITE();
-		MISC::STATUS_MESSAGE_SHOW("CONFIG_WRITE");
+		//CONFIG::WRITE();
+		SFX::VOLUME_SFX_SET(0.8f);
+		MISC::STATUS_MESSAGE_SHOW("MUSIC_UPDATE_VOLUME");
 	}
 
 	else if (GT_IsKeyToggled(VK_KANJI)) {
@@ -168,29 +195,15 @@ void DllMainLoop() {
 
 	else if (GT_IsKeyToggled(VK_F3)) {
 
-		//char* msg = (char*)"This is text for printing.";
-		//auto GameTextPrint = (void(__cdecl*)(int**, char*))0x4B6E90;
-		//GameTextPrint((int**)0x11EA19DC, (char*)"DISTANCE: 154M");sssss
-		//GameTextPrint((int**)0x11EA8034, (char*)"ANYA: Very easily!.");
-		//LOG_INFO("GameTextPrint run");
+		char msg[] = "SNIP3RZ";
+		auto GameTextPrint = (void(__cdecl*)(int**, char*))0x4B6E90;
+		GameTextPrint((int**)0x0D2824EC, msg);
+		LOG_INFO("GameTextPrint run");
 
-		//for (uint32_t weapon_id = WEAPON_ID_DESERTEAGLE; weapon_id <= WEAPON_ID_COLT; ++weapon_id) {
-		//	if (weapon_id == 17) continue;
-		//	g_AutoMsgBox->Show("", 350);
-		//	WEAPON::WEAPON_PICKUP(weapon_id);
-		//}
-		WEAPON::WEAPON_PICKUP(WEAPON_ID_M16A2);
-		WEAPON::AMMO_PICKUP(AMMO_ID_M203);
-		WEAPON::WEAPON_PICKUP(WEAPON_ID_JACKHAMMER);
-		WEAPON::WEAPON_PICKUP(WEAPON_ID_DESERTEAGLE);
+		//ThreadCallerExec<Void>(WEAPON::WEAPON_PICKUP, WEAPON_ID_JACKHAMMER);
 
-		LOG_INFO("WeaponPickup Run : Count %d", WEAPON::TOTAL_COUNT());
-		//SFX::MUSIC_SET_VOLUME(5);
 
-		//GFX::GRAPHICS_RESET();
-		//MISC::STATUS_MESSAGE_SHOW("GRAPHICS_RESET");
-
-		//QuitLvl(*(PINT)0x57BABC, *(PINT)0xC28C5C, *(PINT)(*(PINT)0x57BABC), *(PINT)0x567C8C);
+		//LOG_INFO("WeaponPickup Run : Count %d", WEAPON::TOTAL_COUNT());
 	}
 	else if (GT_IsKeyToggled(VK_F4)) {
 		auto LoadGameData = (int(__cdecl*)(char*, const char*))0x4A53B3;
@@ -208,16 +221,9 @@ void DllMainLoop() {
 	}
 
 	else if (GT_IsKeyToggled(VK_F5)) {
-
-		//MISC::ERRORS_DISABLE(); 
-		//MISC::WARNINGS_DISABLE(); 
-
-		PLAYER::ACTIVE_MISSION_SET(14);
-		PLAYER::ACTIVE_NAME_SET("haseeb_heaven");
-		// 
-		//auto CompileQVM = (int(__cdecl*)(const char*))0x4B85B0;
-		//CompileQVM("LOCAL:config.qvm");
-		//LOG_INFO("CompileQVM Run");
+		//LEVEL::RESTART();
+		delay_ms = 5000;
+		ThreadCallerExec<Void>(LEVEL::RESTART);
 	}
 
 	else if (GT_IsKeyToggled(VK_F6)) {
@@ -249,48 +255,32 @@ void DllMainLoop() {
 	}
 
 	else if (GT_IsKeyToggled(VK_F10)) {
-		auto ForceUpdateWindow = (int(__cdecl*)(int*, int, int))0x417880;
-		auto update_wnd_addr = READ_STATIC_PTR_OFF3(0x568140, 0x14, 0x0, 0xA10);
-		LOG_INFO("%s base_update_wnd_addr : %p", FUNC_NAME, update_wnd_addr);
-
-		auto update_wnd_val = READ_PTR(update_wnd_addr);
-		LOG_INFO("%s base_update_wnd_val : %p", FUNC_NAME, update_wnd_val);
-
-		ForceUpdateWindow((int*)0x19F974, *(int*)0xA758A8, update_wnd_val);
-		LOG_DEBUG("ForceUpdateWindow called");
+		for (const auto& soldier : soldiers) {
+			if (soldier.ai_id != 0) {
+				string ai_data_info = "Model: " + soldier.model_id + " Id: " + std::to_string(soldier.ai_id) + " " + soldier.weapon;
+				MISC::STATUS_MESSAGE_SHOW(ai_data_info.c_str());
+				std::this_thread::sleep_for(3s);
+			}
+		}
+		soldiers.clear();
 	}
 
 
 	else if (GT_IsKeyToggled(VK_F12)) {
-
-		auto player_remove_profile = (int(__cdecl*)(char*, int, int))0x405400;
-		auto remove_wnd_addr1 = READ_STATIC_PTR_OFF3(0x568168, 0xC, 0x0, 0xE08);
-		auto remove_wnd_addr2 = READ_STATIC_PTR_OFF3(0x568140, 0xC, 0x0, 0xE40);
-
-		LOG_INFO("%s remove_wnd_addr1 : %p", FUNC_NAME, remove_wnd_addr1);
-		LOG_INFO("%s remove_wnd_addr2 : %p", FUNC_NAME, remove_wnd_addr2);
-
-		auto remove_wnd_val1 = READ_PTR(remove_wnd_addr1);
-		auto remove_wnd_val2 = READ_PTR(remove_wnd_addr2);
-		LOG_INFO("%s base_update_wnd_val1 : %p", FUNC_NAME, remove_wnd_val1);
-		LOG_INFO("%s base_update_wnd_val2 : %p", FUNC_NAME, remove_wnd_val2);
-
-		//playerRemoveProfile((char*)0x19F948,0x0, remove_wnd_val); 
-		LOG_DEBUG("playerRemoveProfile called");
 	}
 
 	else if (GT_IsKeyToggled(VK_HOME)) {
-	StartLevelMain(4);
+		StartLevelMain(4);
 	}
 
 	else if (GT_IsKeyToggled(VK_PRIOR)) {
-	static int hcam_val = 0;
-	HUMAN::VIEW_CAM(hcam_val);
-	hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
+		static int hcam_val = 0;
+		HUMAN::VIEW_CAM(hcam_val);
+		hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
 	}
 
 	else if (GT_IsKeyToggled(VK_SNAPSHOT)) {
-	g_Console->Clear();
+		g_Console->Clear();
 	}
 }
 

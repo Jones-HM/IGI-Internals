@@ -9,21 +9,19 @@
 #include <chrono> 
 #include <vector> 
 #include <functional> 
-#include <ostream> 
 #include <string> 
 #include <map> 
-#include <functional> 
 #include <list> 
 #include <memory> 
 #include <type_traits> 
 #include <filesystem> 
+#include <ostream> 
 #include <fstream> 
 #include <sstream> 
 #include <iterator> 
 #include <algorithm> 
 #include <iomanip> 
 #include <array> 
-#include <chrono> 
 #include <regex>
 
 using std::string;
@@ -33,6 +31,7 @@ inline HMODULE g_Hmodule{};
 inline HANDLE g_Main_Thread{};
 inline DWORD g_Main_Thread_Id{};
 
+inline std::vector<std::thread> threads;
 #define LOG_FILE_NAME std::string(PROJECT_NAME) + ".log"
 #define NATIVES_FILE_NAME "IGI-Natives.json"
 

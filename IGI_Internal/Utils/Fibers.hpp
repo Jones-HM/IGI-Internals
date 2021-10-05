@@ -1,7 +1,7 @@
 #pragma once 
 #include <windows.h> 
 #include "dllmain.hpp" 
-#include "..\Libs\GTLibc.hpp"
+#include "GTLibc.hpp"
 #pragma comment(lib, "winmm.lib")
 using namespace IGI;
 
@@ -23,7 +23,7 @@ namespace Fiber {
 		srand(GetTickCount64());
 		while (!GT_IsKeyPressed(VK_END)) {
 			DllMainLoop();
-			wait_for(10);
+			wait_for(1000);
 		}
 	}
 
