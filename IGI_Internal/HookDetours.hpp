@@ -86,35 +86,46 @@ decltype(ShowError) ShowErrorOut;
 auto ShowWarning = (void(__cdecl*)(LPCSTR))0x4AF810;
 decltype(ShowWarning) ShowWarningOut;
 
-auto GetPlayerXPHit = (uint32_t(__cdecl*)(void))0x00416d80;
-decltype(GetPlayerXPHit) GetPlayerXPHitOut;
+auto GetHumanHit = (uint32_t(__cdecl*)(void))0x00416d80;
+decltype(GetHumanHit) GetHumanHitOut;
 
-auto HumanViewCam = (uint32_t(__cdecl*)(int, int))0x00463760;
-decltype(HumanViewCam) HumanViewCamOut;
+auto SoldierViewCam = (uint32_t(__cdecl*)(int, int))0x00463760;
+decltype(SoldierViewCam) SoldierViewCamOut;
 
 auto SFXItems = (int* (__cdecl*)(int, char*))0x004E6B00;
 decltype(SFXItems) SFXItemsOut;
 
-auto HumanXPHit = (void(__cdecl*)(int, char*, int))0x004637C0;
-decltype(HumanXPHit) HumanXPHitOut;
+auto HumanSoldierHit = (void(__cdecl*)(int, char*, int))0x004637C0;
+decltype(HumanSoldierHit) HumanSoldierHitOut;
 
-auto HumanXPDead = (void(__cdecl*)(int, char*, int))0x004638a0;
-decltype(HumanXPDead) HumanXPDeadOut;
+auto HumanSoldierDead = (void(__cdecl*)(int, char*, int))0x004638a0;
+decltype(HumanSoldierDead) HumanSoldierDeadOut;
 
 auto WeaponDrop = (void(__cdecl*)(int**))0x0046cea0;
 decltype(WeaponDrop) WeaponDropOut;
 
-HumanSoldier AddHumanSoldierData(string soldier_data) {
-	HumanSoldier soldier = {};
+auto SoldierDead = (void(__cdecl*)(int, int))0x0045C440;
+decltype(SoldierDead) SoldierDeadOut;
 
-	//auto file_data = Utility::ReadFile(file_name,true);
+auto LevelFlowStart = (void(__cdecl*)(int, char*))0x00460c80;
+decltype(LevelFlowStart) LevelFlowStartOut;
+
+auto DbgPrint = (void(__cdecl*)(void))0x004e7840;
+decltype(DbgPrint) DbgAllocOut;
+
+void DbgAllocDetour(void) {
+	LOG_INFO("%s called", "DbgAlloc");
+}
+
+HumanSoldier AddHumanSoldierData(int32_t soldier_addr, string soldier_data) {
+	HumanSoldier soldier = {};
 
 	if (!soldier_data.empty()) {
 		std::regex data_regex(R"(\w{0,}_\w{0,})");
 		auto words_begin = std::sregex_iterator(soldier_data.begin(), soldier_data.end(), data_regex);
 		auto words_end = std::sregex_iterator();
 
-		const string soldier_tag = "HumanSoldier_", weapon_id_tag = "WEAPON_ID";
+		static string soldier_tag = "HumanSoldier_", weapon_id_tag = "WEAPON_ID";
 
 		auto find_ai_id = [](string s)-> int {
 			string id; for (const auto& c : s) if (::isdigit(c)) id += c;
@@ -126,12 +137,14 @@ HumanSoldier AddHumanSoldierData(string soldier_data) {
 			auto match = *index;
 			string match_str = match.str();
 
-			if (match_str.find(soldier_tag) != std::string::npos)
+			if (match_str.find(soldier_tag) != std::string::npos) {
 				soldier.ai_id = find_ai_id(match_str);
+			}
 			else if (match_str.find(weapon_id_tag) != std::string::npos)
 				soldier.weapon = match_str;
 		}
 		soldier.model_id = soldier_data.substr(0, 8);
+		soldier.address = soldier_addr;
 
 		//Dont allow duplicates.
 		auto it = std::find_if(soldiers.begin(), soldiers.end(), [&curr_soldier = soldier](HumanSoldier& human_soldier) -> bool { return curr_soldier.ai_id == human_soldier.ai_id; });
@@ -139,6 +152,37 @@ HumanSoldier AddHumanSoldierData(string soldier_data) {
 	}
 	else LOG_ERROR("%s Human soldier data cannot be empty.", FUNC_NAME);
 	return soldier;
+}
+
+int new_addr = 0;
+int ai_count = 0;
+
+void LevelFlowStartDetour(int soldier_addr, char* event_type) {
+	if (ai_count >= 30) return;
+
+	if (soldier_addr != new_addr) {
+		//LOG_FILE("%s soldier_addr: %p Expr: '%s' AiEvent: '%s'", "LevelFlowStart", soldier_addr, (char*)(soldier_addr + 0x2EC + 0x107C), event_type);
+		
+		string ai_data(AI_BUF_SIZE, NULL);
+		void* ai_addr = reinterpret_cast<void*>(soldier_addr + 0x100);
+
+		HumanSoldier soldier;
+		string ai_data_info;
+
+		std::memcpy(ai_data.data(), ai_addr, AI_BUF_SIZE);
+		//Add soldier data information.
+		AddHumanSoldierData(soldier_addr, ai_data);
+		//g_DbgHelper->StackTrace(true);
+		new_addr = soldier_addr;
+		ai_count++;
+		LevelFlowStart(soldier_addr, event_type);
+	}
+}
+
+void SoldierDeadDetour(int param_1, int param_2) {
+	LOG_FILE("%s-->> param_1: %p param_2: %p", "SoldierDead", param_1, param_2);
+	//g_DbgHelper->StackTrace(true);
+	SoldierDeadOut(param_1, param_2);
 }
 
 void WeaponDropDetour(int** param_1) {
@@ -165,18 +209,11 @@ void WeaponDropDetour(int** param_1) {
 }
 
 
-void HumanXPHitDetour(int param_1, char* param_2, int param_3) {
-	LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "PlayerHit", param_1, param_2, param_3);
-	LOG_CONSOLE("%s AI_Id: '%s'", "PlayerHit", (char*)(param_1 + 0x100));
-	HumanXPHitOut(param_1, param_2, param_3);
-}
-
-void HumanXPDeadDetour(int param_1, char* param_2, int param_3) {
-	//LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "PlayerDead", param_1, param_2, param_3);
-
+void HumanSoldierHitDetour(int soldier_addr, char* param_2, int param_3) {
+	LOG_CONSOLE("%s soldier_addr: %p param_2: '%s' param_3 : %d", "SoldierHit", soldier_addr, param_2, param_3);
 
 	string ai_data(AI_BUF_SIZE, NULL);
-	void* ai_addr = (void*)(param_1 + 0x100);
+	void* ai_addr = reinterpret_cast<void*>(soldier_addr + 0x100);
 
 	HumanSoldier soldier;
 	string ai_data_info;
@@ -184,12 +221,19 @@ void HumanXPDeadDetour(int param_1, char* param_2, int param_3) {
 	std::thread th{ [&]() {
 		std::memcpy(ai_data.data(), ai_addr, AI_BUF_SIZE);
 		//Add soldier data information.
-	soldier = AddHumanSoldierData(ai_data);
+	soldier = AddHumanSoldierData(soldier_addr,ai_data);
 		} };
 	th.join();
 
-	soldier.is_dead = true;
-	HumanXPDeadOut(param_1, param_2, param_3);
+	//soldier.is_dead = true;
+
+	HumanSoldierHitOut(soldier_addr, param_2, param_3);
+}
+
+void HumanSoldierDeadDetour(int param_1, char* param_2, int param_3) {
+	LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "SoldierDead", param_1, param_2, param_3);
+	//g_DbgHelper->StackTrace(true);
+	HumanSoldierDeadOut(param_1, param_2, param_3);
 }
 
 int* __cdecl SFXItemsDetour(int param_1, char* sfx_item) {
@@ -204,14 +248,14 @@ int* __cdecl SFXItemsDetour(int param_1, char* sfx_item) {
 	return ret_val;
 }
 
-void HumanViewCamDetour(int param_1, int param_2) {
-	LOG_INFO("%s param_1: %p param_2: %d", "HumanViewCam", param_1, param_2);
-	HumanViewCamOut(param_1, param_2);
+void SoldierViewCamDetour(int param_1, int param_2) {
+	LOG_INFO("%s param_1: %p param_2: %d", "SoldierViewCam", param_1, param_2);
+	SoldierViewCamOut(param_1, param_2);
 }
 
-uint32_t GetPlayerXPHitDetour(void) {
-	uint32_t xp_hit = GetPlayerXPHitOut();
-	LOG_INFO("%s xp_hit: %p", "GetPlayerXPHit", xp_hit);
+uint32_t GetHumanHitDetour(void) {
+	uint32_t xp_hit = GetHumanHitOut();
+	LOG_INFO("%s xp_hit: %p", "GetHumanHit", xp_hit);
 	return xp_hit;
 }
 

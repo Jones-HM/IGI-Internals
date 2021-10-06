@@ -86,7 +86,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 ╚╝  ╚╝╚═╩═══╩══╩═══╩═══╝ ╚╝    ╚══╩═══╩══╝ 			   ▐▓▓▌
 )";
 
-					//LOG_RAW(igi_font);
+					LOG_RAW(igi_font);
 					LOG_WARNING("Logger initialized.");
 
 					auto native_instance = std::make_unique<Natives>();
@@ -108,6 +108,10 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 					auto dbg_instance = std::make_unique<DbgHelper>(true);
 					LOG_WARNING("DbgHelper initialized.");
 #endif//USE_STACKTRACE_LIB 
+
+					//Invincible-Jones.
+					GT_WriteNOP((LPVOID)0x00416D85, 6);
+					WEAPON::UNLIMITED_AMMO_SET(true);
 
 					//Main loop of DLL. 
 					while (!GT_IsKeyPressed(VK_END)) {
@@ -161,16 +165,16 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 
 void DllMainLoop() {
 
-	if (GT_IsKeyToggled(VK_F1)) {
+	if (GT_IsKeyToggled(VK_KANA)) {
 		//CONFIG::READ();
 		SFX::VOLUME_SET(0.5f);
 		MISC::STATUS_MESSAGE_SHOW("MUSIC_SET_VOLUME", NATIVE_CONST_STATUSSCREEN_WEAPON);
 	}
 
 	else if (GT_IsKeyToggled(VK_F2)) {
-		//CONFIG::WRITE();
-		SFX::VOLUME_SFX_SET(0.8f);
-		MISC::STATUS_MESSAGE_SHOW("MUSIC_UPDATE_VOLUME");
+		CONFIG::WEAPON_CONFIG_READ();
+		//SFX::VOLUME_SFX_SET(0.8f);
+		MISC::STATUS_MESSAGE_SHOW("WEAPON_CONFIG_READ");
 	}
 
 	else if (GT_IsKeyToggled(VK_KANJI)) {
@@ -254,19 +258,54 @@ void DllMainLoop() {
 		LOG_INFO("WeaponType Run");
 	}
 
-	else if (GT_IsKeyToggled(VK_F10)) {
+	else if (GT_IsKeyToggled(VK_F1)) {
+		//for (const auto& soldier : soldiers) {
+		//	if (soldier.ai_id != 0) {
+		//		string ai_data_info = "Model: " + soldier.model_id + " Id: " + std::to_string(soldier.ai_id) + " " + soldier.weapon;
+		//		MISC::STATUS_MESSAGE_SHOW(ai_data_info.c_str());
+		//		std::this_thread::sleep_for(3s);
+		//	}
+		//}
+		//soldiers.clear();
+
+		auto SoldierDead = (void(__cdecl*)(int, int))0x0045C440;
+
 		for (const auto& soldier : soldiers) {
-			if (soldier.ai_id != 0) {
-				string ai_data_info = "Model: " + soldier.model_id + " Id: " + std::to_string(soldier.ai_id) + " " + soldier.weapon;
-				MISC::STATUS_MESSAGE_SHOW(ai_data_info.c_str());
-				std::this_thread::sleep_for(3s);
+			int soldier_addr = soldier.address;
+			if (soldier_addr != 0 && soldier.ai_id != -1) {
+				if (soldier.ai_id == 0) {
+					LOG_ERROR("HumanSoldier_%d cannot be Executed!", soldier.ai_id);
+					continue;
+				}
+
+				int soldier_ptr = (soldier_addr + 0x2EC);
+				char* dead_expr = (char*)(soldier_addr + 0x2EC + 0x107C);
+				if (strlen(dead_expr) > 3)
+					LOG_FILE("Expression %s", dead_expr);
+
+				SoldierDead(soldier_ptr, soldier.address);
+				LOG_FILE("HumanSoldier_%d Executed!", soldier.ai_id);
 			}
+			else
+				LOG_ERROR("Soldier address is invalid");
 		}
 		soldiers.clear();
 	}
 
 
 	else if (GT_IsKeyToggled(VK_F12)) {
+		auto DebugAlloc = (void(__cdecl*)(void))0x004E7840;
+		DebugAlloc();
+
+		auto dbg_alloc = (void*)malloc(100);
+		if (dbg_alloc != NULL) {
+			std::memcpy((void*)0x00A5EA75, (void*)dbg_alloc, 100);
+			*(byte*)0x005BDC1C = true;
+			*(byte*)0x0056DF94 = true;
+			strcpy((char*)0x0054d958, "LOCAL:computer/font1.fnt");
+			LOG_CONSOLE("DbgMode Allocated success");
+		}
+		else LOG_CONSOLE("[ERROR] Allocation error");
 	}
 
 	else if (GT_IsKeyToggled(VK_HOME)) {

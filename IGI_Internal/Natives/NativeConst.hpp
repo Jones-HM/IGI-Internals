@@ -75,6 +75,7 @@ namespace IGI {
 		string weapon; //Weapon currently holding.
 		bool is_dead; //Is Soldier dead ?
 		int e_team; //Soldier team type , 0 = Friendly, 1 = Enemy.
+		int32_t address; //Address pointer of soldier.
 	};
 
 	inline std::vector<HumanSoldier> soldiers;

@@ -58,6 +58,12 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(WeaponDrop, &WeaponDropDetour, &WeaponDropOut);
 	if (mh_status != MH_OK)LOG_ERROR("WeaponDrop Hooking error : %s", MH_StatusToString(mh_status));
 
+	mh_status = MH_OK;//CreateHook(LevelFlowStart, &LevelFlowStartDetour, &LevelFlowStartOut);
+	if (mh_status != MH_OK)LOG_ERROR("LevelFlowStart Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(DbgPrint, &DbgAllocDetour, &DbgAllocOut);
+	if (mh_status != MH_OK)LOG_ERROR("DbgAlloc Hooking error : %s", MH_StatusToString(mh_status));
+
 	mh_status = CreateHook(GunPickup, &GunPickupDetour, &GunPickupOut);
 	if (mh_status != MH_OK)LOG_ERROR("GunPickup Hooking error : %s", MH_StatusToString(mh_status));
 
@@ -73,13 +79,16 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(GetPlayerXPHit, &GetPlayerXPHitDetour, &GetPlayerXPHitOut);
 	if (mh_status != MH_OK)LOG_ERROR("GetPlayerXPHit Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(HumanViewCam, &HumanViewCamDetour, &HumanViewCamOut);
+	mh_status = CreateHook(SoldierViewCam, &SoldierViewCamDetour, &SoldierViewCamOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanViewCam Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(HumanXPHit, &HumanXPHitDetour, &HumanXPHitOut);
-	if (mh_status != MH_OK)LOG_ERROR("HumanXPHit Hooking error : %s", MH_StatusToString(mh_status));
-	
-	mh_status = CreateHook(HumanXPDead, &HumanXPDeadDetour, &HumanXPDeadOut);
+	mh_status = CreateHook(SoldierDead, &SoldierDeadDetour, &SoldierDeadOut);
+	if (mh_status != MH_OK)LOG_ERROR("SoldierDead Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(HumanSoldierHit, &HumanSoldierHitDetour, &HumanSoldierHitOut);
+	if (mh_status != MH_OK)LOG_ERROR("HumanSoldierHit Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(HumanSoldierDead, &HumanSoldierDeadDetour, &HumanSoldierDeadOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanXPDead Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(StatusMessageShow, &StatusMessageShowDetour, &StatusMessageShowOut);

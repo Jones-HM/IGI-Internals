@@ -79,7 +79,7 @@ namespace IGI {
 		template<typename RT = Void, class... Args>
 		RT Invoke(Args... args)
 		{
-			native_argc = sizeof...(Args) - 1;//Not counting func_ptr as Arg. 
+			native_argc = sizeof...(Args) - 1;//Not counting native_hash as Arg. 
 			auto ret_val = NativeInvoke<RT>(args...);
 
 			if constexpr (!std::is_same_v<RT, void>)
