@@ -1,11 +1,11 @@
 #pragma once 
 #include "Common.hpp" 
 #include "Logger.hpp" 
-#include "NativeConst.hpp" 
+#include "CommonConst.hpp" 
 #include "Natives.hpp"
 
 using namespace IGI;
-using namespace Utility;
+using namespace IGI;
 
 namespace IGI {
 
@@ -15,6 +15,7 @@ namespace IGI {
 	class NativeCaller {
 		int native_argc = 0;
 		bool m_hash_found = false;
+
 		template <typename RT = Void>
 		RT NativeInvoke(void* func_ptr) {
 			return NativeInvokeT<RT>(func_ptr);

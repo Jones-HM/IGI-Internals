@@ -1,6 +1,6 @@
 #include "Console.hpp" 
 
-namespace Utility {
+namespace IGI {
 
 	Console::Console() {
 		g_Console = this;

@@ -11,7 +11,7 @@
 #define LOG_RAW(raw_str) g_Log->WriteW(false,true,ELOG_TYPE::TYPE_PRINT,raw_str)
 #define LOG_RAW_CONSOLE(raw_str) g_Log->WriteW(true,false,ELOG_TYPE::TYPE_PRINT,raw_str)
 
-namespace Utility {
+namespace IGI {
 
 	enum ELOG_TYPE {
 		TYPE_PRINT,

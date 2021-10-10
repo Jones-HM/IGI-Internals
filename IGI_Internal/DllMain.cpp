@@ -3,6 +3,7 @@
 #define USE_STACKTRACE_LIB 
 #define USE_MINHOOK_LIB 
 #define USE_GTLIBC_LIB 
+
 #include "DllMain.hpp" 
 #include <AutoMsgBox.hpp>
 #include "Utils/Fibers.hpp"
@@ -31,6 +32,7 @@
 void StartLevelMain(int = 1, bool = true, bool = true, int = 1);
 void QuitLevelMain();
 void DllMainLoop();
+void SaveMesh_MEF(string);
 
 int delay_ms = 1000;
 
@@ -63,7 +65,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 	if (reason == DLL_PROCESS_ATTACH)
 	{
 		DisableThreadLibraryCalls(hmod);
-		SetModuleHandle(hmod);
+		g_Utility.SetModuleHandle(hmod);
 		g_Hmodule = hmod;
 
 		g_Main_Thread = CreateThread(nullptr, 0, [](PVOID)->DWORD
@@ -74,7 +76,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 #ifdef _DEBUG 
 					g_Console->Allocate();
 					g_Console->Clear();
-					GT_InitTrainerWindow(PROJECT_NAME, 50, 50, 1200, 700);
+					GT_InitTrainerWindowEx(PROJECT_NAME, 50, 50, 1200, 700, BG_GREEN, FG_GRAY);
 #endif 
 
 					auto igi_font = LR"(
@@ -86,7 +88,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 ╚╝  ╚╝╚═╩═══╩══╩═══╩═══╝ ╚╝    ╚══╩═══╩══╝ 			   ▐▓▓▌
 )";
 
-					LOG_RAW(igi_font);
+					//LOG_RAW(igi_font);
 					LOG_WARNING("Logger initialized.");
 
 					auto native_instance = std::make_unique<Natives>();
@@ -163,12 +165,44 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 	return true;
 }
 
+bool g_Enabled = true;
 void DllMainLoop() {
 
-	if (GT_IsKeyToggled(VK_KANA)) {
-		//CONFIG::READ();
+	//string m_str(32, '\0');
+	//strcpy(m_str.data(), (char*)0x00A4EC6C);
+	//LOG_INFO("Model: %s", m_str.data());
+
+	g_menu_screen = READ_PTR(menu_screen_ptr);
+	g_game_level = LEVEL::GET();
+	if (g_curr_level != g_game_level) {
+		g_curr_level = g_game_level;
+		g_level_changed = true;
+	}
+
+	if (g_level_changed) {
+		g_level_changed ^= 1;
+	}
+
+	if (g_menu_screen == MENU_SCREEN_MAINMENU) {
+		g_Console->Clear();
+	}
+
+	else if (g_menu_screen == MENU_SCREEN_INGAME) {
+	}
+
+	else if (g_menu_screen == MENU_SCREEN_RESTART) {
+
+	}
+
+	auto GameTextPrint = (void(__cdecl*)(int**, char*))0x4B6E90;
+	char msg[] = "SNIP3RZ";
+
+	//if (g_Enabled) GameTextPrint((int**)0x12A37A9C, msg);
+
+	if (GT_IsKeyToggled(VK_F1)) {
+		CONFIG::READ();
 		SFX::VOLUME_SET(0.5f);
-		MISC::STATUS_MESSAGE_SHOW("MUSIC_SET_VOLUME", NATIVE_CONST_STATUSSCREEN_WEAPON);
+		MISC::STATUS_MESSAGE_SHOW("MUSIC_SET_VOLUME", IGI_CONST_STATUSSCREEN_WEAPON);
 	}
 
 	else if (GT_IsKeyToggled(VK_F2)) {
@@ -178,49 +212,18 @@ void DllMainLoop() {
 	}
 
 	else if (GT_IsKeyToggled(VK_KANJI)) {
-
-		const char* qsc_file = "LOCAL:hconfig.qsc";
-		auto AssembleQVM = (int(__cdecl*)(const char*, const char*))0x4BB270;
-		auto LoadResourceFunc = (char* (__cdecl*)(const char*, char**))0x4B5F00;
-		auto OpenFileFunc = (char* (__cdecl*)(const char*, const char*))0x4A5350;
-
-		string qas_file = string(qsc_file);
-		size_t lastindex = qas_file.find_last_of(".");
-		auto qvm_file = qas_file.substr(0, lastindex).append(".qvm");
-		qas_file = qas_file.substr(0, lastindex).append(".qas");
-
-		LoadResourceFunc(qsc_file, NULL);
-		OpenFileFunc(qas_file.c_str(), "wb");
-		auto assemble_ret = AssembleQVM(qvm_file.c_str(), qas_file.c_str());
-		(assemble_ret == 0) ? LOG_INFO("AssembleQVM Success") : LOG_ERROR("AssembleQVM Error");
-		//auto MainRestart = (int(__cdecl*)(int, int, int, int))0x416FE0; 
-		//MainRestart(*(PINT)0x54F8E8, *(PINT)0xA972D4, *(PINT)0x54F8E0, *(PINT)0x54F8E4); 
 	}
 
 	else if (GT_IsKeyToggled(VK_F3)) {
 
-		char msg[] = "SNIP3RZ";
-		auto GameTextPrint = (void(__cdecl*)(int**, char*))0x4B6E90;
-		GameTextPrint((int**)0x0D2824EC, msg);
-		LOG_INFO("GameTextPrint run");
 
+		g_Enabled = !g_Enabled;
+
+		//LOG_INFO("GameTextPrint run");
 		//ThreadCallerExec<Void>(WEAPON::WEAPON_PICKUP, WEAPON_ID_JACKHAMMER);
-
-
 		//LOG_INFO("WeaponPickup Run : Count %d", WEAPON::TOTAL_COUNT());
 	}
 	else if (GT_IsKeyToggled(VK_F4)) {
-		auto LoadGameData = (int(__cdecl*)(char*, const char*))0x4A53B3;
-		char buff[1024] = { NULL };
-		//MISC::STATUS_MESSAGE_SHOW("LoadGameData run");
-		LoadGameData(buff, "%s.nActiveID");
-		LOG_INFO("local_buf '%s'", buff);
-
-		LoadGameData(buff, "menu_k0%.1d");
-		LOG_INFO("local_buf '%s'", buff);
-
-		LoadGameData(buff, "%s.isOn");
-		LOG_INFO("local_buf '%s'", buff);
 
 	}
 
@@ -258,54 +261,62 @@ void DllMainLoop() {
 		LOG_INFO("WeaponType Run");
 	}
 
-	else if (GT_IsKeyToggled(VK_F1)) {
+	else if (GT_IsKeyToggled(VK_RETURN)) {
+
+		//HumanSoldier::PrintSoldierDataList();
+		//soldier_t soldier_id = 2000;
+		//auto human = HumanSoldier::FindSoldier(soldier_id);
+		//human.PrintSoldierData();
+
 		//for (const auto& soldier : soldiers) {
-		//	if (soldier.ai_id != 0) {
-		//		string ai_data_info = "Model: " + soldier.model_id + " Id: " + std::to_string(soldier.ai_id) + " " + soldier.weapon;
+		//	if (soldier.soldier_id != 0) {
+		//		string ai_data_info = "Model: " + soldier.model_id + " Id: " + std::to_string(soldier.soldier_id) + " " + soldier.weapon;
 		//		MISC::STATUS_MESSAGE_SHOW(ai_data_info.c_str());
 		//		std::this_thread::sleep_for(3s);
 		//	}
 		//}
 		//soldiers.clear();
 
-		auto SoldierDead = (void(__cdecl*)(int, int))0x0045C440;
+		//auto SoldierDead = (void(__cdecl*)(int, int))0x0045C440;
 
-		for (const auto& soldier : soldiers) {
-			int soldier_addr = soldier.address;
-			if (soldier_addr != 0 && soldier.ai_id != -1) {
-				if (soldier.ai_id == 0) {
-					LOG_ERROR("HumanSoldier_%d cannot be Executed!", soldier.ai_id);
-					continue;
-				}
+		//for (auto& soldier : soldiers) {
+		//	int32_t soldier_addr = soldier.GetAddress();
+		//	int32_t soldier_id = soldier.GetSoldierId();
+		//	if (soldier_addr != 0 && soldier_id != -1) {
+		//		if (soldier_id == 0) {
+		//			LOG_ERROR("HumanSoldier_%d cannot be Executed!", soldier_id);
+		//			continue;
+		//		}
 
-				int soldier_ptr = (soldier_addr + 0x2EC);
-				char* dead_expr = (char*)(soldier_addr + 0x2EC + 0x107C);
-				if (strlen(dead_expr) > 3)
-					LOG_FILE("Expression %s", dead_expr);
+		//		int soldier_ptr = (soldier_addr + 0x2EC);
+		//		char* dead_expr = (char*)(soldier_addr + 0x2EC + 0x107C);
+		//		if (strlen(dead_expr) > 3)
+		//			LOG_FILE("Expression %s", dead_expr);
 
-				SoldierDead(soldier_ptr, soldier.address);
-				LOG_FILE("HumanSoldier_%d Executed!", soldier.ai_id);
-			}
-			else
-				LOG_ERROR("Soldier address is invalid");
-		}
+		//		SoldierDead(soldier_ptr, soldier.GetAddress());
+		//		LOG_FILE("HumanSoldier_%d Executed!", soldier_id);
+		//	}
+		//	else
+		//		LOG_ERROR("Soldier address is invalid");
+		//}
 		soldiers.clear();
 	}
 
 
-	else if (GT_IsKeyToggled(VK_F12)) {
-		auto DebugAlloc = (void(__cdecl*)(void))0x004E7840;
-		DebugAlloc();
+	else if (GT_IsKeyToggled(VK_F11)) {
+		DEBUG::TEXT_INIT(IGI_CONST_FONT_BIG);
+		DEBUG::TEXT_ENABLE(g_Enabled);
 
-		auto dbg_alloc = (void*)malloc(100);
-		if (dbg_alloc != NULL) {
-			std::memcpy((void*)0x00A5EA75, (void*)dbg_alloc, 100);
-			*(byte*)0x005BDC1C = true;
-			*(byte*)0x0056DF94 = true;
-			strcpy((char*)0x0054d958, "LOCAL:computer/font1.fnt");
-			LOG_CONSOLE("DbgMode Allocated success");
+		//Bypass Regular DebugPrint to Humanplayer.
+		std::vector<uint8_t> vec{ {0x75},{0x47} };
+		g_Memory->WriteMemory((LPVOID)0x00460C8F, vec);
+	}
+
+	else if (GT_IsKeyToggled(VK_F12)) {
+		for (const auto& model_id : mef_files) {
+			LOG_FILE("MEF: '%s'", model_id.c_str());
+			SaveMesh_MEF(model_id);
 		}
-		else LOG_CONSOLE("[ERROR] Allocation error");
 	}
 
 	else if (GT_IsKeyToggled(VK_HOME)) {
@@ -314,7 +325,7 @@ void DllMainLoop() {
 
 	else if (GT_IsKeyToggled(VK_PRIOR)) {
 		static int hcam_val = 0;
-		HUMAN::VIEW_CAM(hcam_val);
+		HUMAN::CAM_VIEW_SET(hcam_val);
 		hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
 	}
 
@@ -323,6 +334,28 @@ void DllMainLoop() {
 	}
 }
 
+
+void SaveMesh_MEF(string model_id) {
+	char sym_buf[0x64] = { NULL };
+	binary_t mef_buf(0x30D40, '\0');
+	auto LoadGameData = (int(__cdecl*)(char*, const char*, const char*))0x004A53B3;
+	auto ResourceLoad = (int* (__cdecl*)(const char*, char**))0x004B5F00;
+
+	//LoadGameData(sym_buf, "LOCAL:models/%s.mef", model_id.c_str());
+	//LOG_CONSOLE("Symbol: %s", sym_buf);
+	auto res_addr = ResourceLoad(model_id.data(), NULL);
+	LOG_CONSOLE("ResourceLoaded at address %p", (int)res_addr);
+
+	std::memcpy(mef_buf.data(), (void*)res_addr, mef_buf.capacity());
+	binary_t mef_end{ 'N', 'A', 'M', 'E' };
+	auto it = std::search(mef_buf.begin(), mef_buf.end(), mef_end.begin(), mef_end.end());
+	mef_buf.resize(it - mef_buf.begin());
+
+	model_id = model_id.substr(model_id.find_last_of("/"));
+	string mesh_file = g_Utility.GetModuleFolder() + "\\" + model_id + "_res.mef";
+	WriteFileType(mesh_file, mef_buf, BINARY_FILE);
+	LOG_CONSOLE("Mesh File %s saved successfully!", mesh_file.c_str());
+}
 
 void StartLevelMain(int level, bool disable_warn, bool disable_err, int hash_val) {
 

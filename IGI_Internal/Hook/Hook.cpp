@@ -1,7 +1,7 @@
 #include "Hook.hpp"
 #include <HookDetours.hpp>
 using namespace IGI;
-using namespace Utility;
+using namespace IGI;
 
 Hook::Hook() {
 	g_Hook = this;
@@ -58,8 +58,11 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(WeaponDrop, &WeaponDropDetour, &WeaponDropOut);
 	if (mh_status != MH_OK)LOG_ERROR("WeaponDrop Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(LevelFlowStart, &LevelFlowStartDetour, &LevelFlowStartOut);
-	if (mh_status != MH_OK)LOG_ERROR("LevelFlowStart Hooking error : %s", MH_StatusToString(mh_status));
+	mh_status = MH_OK;//CreateHook(DebugPlayerData, &DebugPlayerDataDetour, &DebugPlayerDataOut);
+	if (mh_status != MH_OK)LOG_ERROR("DebugPlayerData Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_OK;//CreateHook(DebugSoldierData, &DebugSoldierDataDetour2, &DebugSoldierDataOut);
+	if (mh_status != MH_OK)LOG_ERROR("DebugSoldierData Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(DbgPrint, &DbgAllocDetour, &DbgAllocOut);
 	if (mh_status != MH_OK)LOG_ERROR("DbgAlloc Hooking error : %s", MH_StatusToString(mh_status));
@@ -79,7 +82,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(GetPlayerXPHit, &GetPlayerXPHitDetour, &GetPlayerXPHitOut);
 	if (mh_status != MH_OK)LOG_ERROR("GetPlayerXPHit Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(SoldierViewCam, &SoldierViewCamDetour, &SoldierViewCamOut);
+	mh_status = MH_OK;//CreateHook(SoldierViewCam, &SoldierViewCamDetour, &SoldierViewCamOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanViewCam Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(SoldierDead, &SoldierDeadDetour, &SoldierDeadOut);
@@ -88,7 +91,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = CreateHook(HumanSoldierHit, &HumanSoldierHitDetour, &HumanSoldierHitOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanSoldierHit Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(HumanSoldierDead, &HumanSoldierDeadDetour, &HumanSoldierDeadOut);
+	mh_status = MH_OK;//CreateHook(HumanSoldierDead, &HumanSoldierDeadDetour, &HumanSoldierDeadOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanXPDead Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(StatusMessageShow, &StatusMessageShowDetour, &StatusMessageShowOut);
@@ -97,11 +100,11 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(SetGameDataSymbol, &SetGameDataSymbolDetour, &SetGameDataSymbolOut);
 	if (mh_status != MH_OK)LOG_ERROR("SetGameDataSymbol Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(TextPrint, &PrintTextDetour, &TextPrintOut);
-	if (mh_status != MH_OK)LOG_ERROR("TypeWriteBox Hooking error : %s", MH_StatusToString(mh_status));
+	mh_status =  MH_OK;//CreateHook(TextPrint, &TextPrintDetour, &TextPrintOut);
+	if (mh_status != MH_OK)LOG_ERROR("TextPrint Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(GameTextPrint, &GamePrintTextDetour, &GameTextPrintOut);
-	if (mh_status != MH_OK)LOG_ERROR("TypeWriteBoxEx Hooking error : %s", MH_StatusToString(mh_status));
+	if (mh_status != MH_OK)LOG_ERROR("GameTextPrint Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(ParseWeaponConfig, &ParseWeaponConfigDetour, &ParseWeaponConfigOut); 
 	if (mh_status != MH_OK) LOG_ERROR("ParseWeaponConfig Hooking error : %s", MH_StatusToString(mh_status));
@@ -112,8 +115,11 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(QuitLvl, &QuitLvlDetour, &QuitLvlOut); 
 	if (mh_status != MH_OK)LOG_ERROR("QuitLvl Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(LoadResourceFile, &LoadResourceDetour, &LoadResourceOut);
+	mh_status = CreateHook(LoadResourceFile, &LoadResourceDetour, &LoadResourceOut);
 	if (mh_status != MH_OK)LOG_ERROR("LoadResourceFile Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_OK;//CreateHook(LoadGameData, &LoadGameDataDetour, &LoadGameDataOut);
+	if (mh_status != MH_OK)LOG_ERROR("LoadGameData Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(LevelLoad, &LevelLoadDetour, &LevelLoadOut);
 	if (mh_status != MH_OK)LOG_ERROR("LevelLoad Createhook error : %s", MH_StatusToString(mh_status));
@@ -154,10 +160,12 @@ MH_STATUS Hook::EnableHook(LPVOID p_target) {
 }
 
 MH_STATUS Hook::DisableHook(LPVOID p_target) {
-	if (MH_DisableHook(p_target) != MH_OK)
+	auto mh_status = MH_DisableHook(p_target);
+	if (mh_status != MH_OK)
 		LOG_ERROR("Error disabling hook.");
 	else
 		LOG_INFO("Hook disabled.");
+	return mh_status;
 }
 
 MH_STATUS Hook::EnableHooks() {

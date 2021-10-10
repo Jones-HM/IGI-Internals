@@ -45,7 +45,7 @@ namespace ConsoleBackground {
 	};
 }
 
-namespace Utility {
+namespace IGI {
 
 	class Console {
 	public:

@@ -14,6 +14,7 @@
 #include "NativeHelper.hpp" 
 #include "Natives.hpp" 
 #include "Memory.hpp"
+#include "HumanSoldier.hpp"
 
 #ifdef USE_MINHOOK_LIB 
 #include "Hook.hpp" 
@@ -29,7 +30,7 @@
 #include "DbgHelper.hpp" 
 #endif 
 
-using namespace Utility;
+using namespace IGI;
 using namespace IGI;
 
 BOOL __stdcall DllMain(HINSTANCE, DWORD, LPVOID);

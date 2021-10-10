@@ -1,14 +1,16 @@
 #pragma once
+#define SOLDIER_DATA_ALL
 #include "Common.hpp"
 #include "Logger.hpp"
 #include "Utils/DbgHelper.hpp"
 #include "GTLibc.hpp"
 #include "DbgHelper.hpp"
-#include "NativeConst.hpp"
+#include "CommonConst.hpp"
 #include "Natives/NativeHelper.hpp"
+#include "HumanSoldier.hpp"
+#include "Utils/Utility.hpp"
 
 using namespace IGI;
-using namespace Utility;
 
 auto ParseConfig = (int(__cdecl*)(char* q_file))0x405850;
 auto ParseWeaponConfig = (int(__cdecl*)(int index, char* cfg_file))0x4071E0;
@@ -29,6 +31,7 @@ auto StatusMsg = (int(__cdecl*)(int send_status, const char* buffer, const char*
 auto TaskTypeSet = (int(__cdecl*)(int* task_name, int task_param))0x4B8810;
 auto UnLoadResource = (int(__cdecl*)(char* res_file))0x4B6380;
 auto UpdateQTaskList = (int(__cdecl*)(int a1))0x401B20;
+auto ResourceLoad = (int* (__cdecl*)(const char*, char**))0x004B5F00;
 
 decltype(ParseConfig) ParseConfigOut;
 decltype(ParseWeaponConfig) ParseWeaponConfigOut;
@@ -58,16 +61,16 @@ decltype(AmmoTypeOpen) AmmoTypeOpenOut;
 auto WeaponTypeOpen = (void(__cdecl*)(int))0x413A90;
 decltype(WeaponTypeOpen) WeaponTypeOpenOut;
 
-auto LoadGameData = (int(__cdecl*)(char*, char*))0x4A53B3;
+auto LoadGameData = (int(__cdecl*)(char*, const char*, const char*, int))0x4A53B3;
 decltype(LoadGameData) LoadGameDataOut;
 
 auto SetGameDataSymbol = (int(__cdecl*)(char*))0x4B80A0;
 decltype(SetGameDataSymbol) SetGameDataSymbolOut;
 
-auto TextPrint = (void(__cdecl*)(int*, byte*, int, int))0x4B77F0;
+auto TextPrint = (void(__cdecl*)(int*, char*, int, int))0x004B77F0;
 decltype(TextPrint) TextPrintOut;
 
-auto GameTextPrint = (void(__cdecl*)(int**, byte*))0x4B6E90;
+auto GameTextPrint = (void(__cdecl*)(int**, char*))0x4B6E90;
 decltype(GameTextPrint) GameTextPrintOut;
 
 auto StatusMessageShow = (int(__cdecl*)(int, int**, int*, int, int, int))0x485DB0;
@@ -98,85 +101,133 @@ decltype(SFXItems) SFXItemsOut;
 auto HumanSoldierHit = (void(__cdecl*)(int, char*, int))0x004637C0;
 decltype(HumanSoldierHit) HumanSoldierHitOut;
 
-auto HumanSoldierDead = (void(__cdecl*)(int, char*, int))0x004638a0;
+auto HumanSoldierDead = (void(__cdecl*)(int, char*, int))0x004638A0;
 decltype(HumanSoldierDead) HumanSoldierDeadOut;
 
-auto WeaponDrop = (void(__cdecl*)(int**))0x0046cea0;
+auto WeaponDrop = (void(__cdecl*)(int**))0x0046CEA0;
 decltype(WeaponDrop) WeaponDropOut;
 
 auto SoldierDead = (void(__cdecl*)(int, int))0x0045C440;
 decltype(SoldierDead) SoldierDeadOut;
 
-auto LevelFlowStart = (void(__cdecl*)(int, char*))0x00460c80;
-decltype(LevelFlowStart) LevelFlowStartOut;
+auto DebugPlayerData = (void(__cdecl*)(int, char*))0x004E7BD0;
+decltype(DebugPlayerData) DebugPlayerDataOut;
 
-auto DbgPrint = (void(__cdecl*)(void))0x004e7840;
+auto DebugSoldierData = (void(__cdecl*)(int, char*))0x00460C80;
+decltype(DebugSoldierData) DebugSoldierDataOut;
+
+auto DbgPrint = (void(__cdecl*)(void))0x004E7840;
 decltype(DbgPrint) DbgAllocOut;
+
+void ReadWholeFile(LPCSTR file_name, LPCSTR file_mode = "rb") {
+	LOG_WARNING("%s File : %s Mode : %s", FUNC_NAME, file_name, file_mode);
+	try {
+		if (string(file_mode) == "rb") {
+			auto file_string = string(file_name);
+			std::ifstream ifs(file_name, std::ios::binary);
+			if (ifs.good()) {
+				std::ofstream ofs(file_string.insert(file_string.length() - 4, "_open"), std::ios::binary);
+				std::vector<byte> buffer(std::istreambuf_iterator<char>(ifs), {});
+				std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<char>(ofs, ""));
+			}
+			else
+			{
+				LOG_WARNING("%s File : %s doesn't exist", FUNC_NAME, file_name);
+			}
+		}
+	}
+	catch (const std::exception& ex) {
+		std::cout << "Exception: " << ex.what() << std::endl;
+	}
+}
+
+
 
 void DbgAllocDetour(void) {
 	LOG_INFO("%s called", "DbgAlloc");
 }
 
-HumanSoldier AddHumanSoldierData(int32_t soldier_addr, string soldier_data) {
-	HumanSoldier soldier = {};
+void DebugPlayerDataDetour(int soldier_addr, char* event_type) {
 
-	if (!soldier_data.empty()) {
-		std::regex data_regex(R"(\w{0,}_\w{0,})");
-		auto words_begin = std::sregex_iterator(soldier_data.begin(), soldier_data.end(), data_regex);
-		auto words_end = std::sregex_iterator();
-
-		static string soldier_tag = "HumanSoldier_", weapon_id_tag = "WEAPON_ID";
-
-		auto find_ai_id = [](string s)-> int {
-			string id; for (const auto& c : s) if (::isdigit(c)) id += c;
-			return std::stoi(id);
-		};
-
-		for (auto index = words_begin; index != words_end; ++index) {
-
-			auto match = *index;
-			string match_str = match.str();
-
-			if (match_str.find(soldier_tag) != std::string::npos) {
-				soldier.ai_id = find_ai_id(match_str);
-			}
-			else if (match_str.find(weapon_id_tag) != std::string::npos)
-				soldier.weapon = match_str;
-		}
-		soldier.model_id = soldier_data.substr(0, 8);
-		soldier.address = soldier_addr;
-
-		//Dont allow duplicates.
-		auto it = std::find_if(soldiers.begin(), soldiers.end(), [&curr_soldier = soldier](HumanSoldier& human_soldier) -> bool { return curr_soldier.ai_id == human_soldier.ai_id; });
-		if (it == soldiers.end()) soldiers.push_back(soldier);
-	}
-	else LOG_ERROR("%s Human soldier data cannot be empty.", FUNC_NAME);
-	return soldier;
 }
 
-int new_addr = 0;
-int ai_count = 0;
+int new_addr = 0, ai_count = 0, new_level = 1;
 
-void LevelFlowStartDetour(int soldier_addr, char* event_type) {
-	if (ai_count >= 30) return;
+void __cdecl DebugSoldierDataDetour2(int soldier_addr, char* event_type) {
 
-	if (soldier_addr != new_addr) {
-		//LOG_FILE("%s soldier_addr: %p Expr: '%s' AiEvent: '%s'", "LevelFlowStart", soldier_addr, (char*)(soldier_addr + 0x2EC + 0x107C), event_type);
-		
-		string ai_data(AI_BUF_SIZE, NULL);
+	if (soldiers.size() > 0) {
+		for (auto& soldier : soldiers) {
+			//auto soldier = soldiers.at(0);
+			if (soldier_addr == soldier.GetAddress()) {
+				//soldier.PrintSoldierData();
+				//LOG_CONSOLE("%s Addr: %p Expr: '%s' Event: '%s'", "", soldier_addr, (char*)(soldier_addr + 0x2EC + 0x107C), event_type);
+				return DebugSoldierDataOut(soldier_addr, event_type);
+			}
+		}
+	}
+
+	//void* ai_addr = reinterpret_cast<void*>(soldier_addr + 0x100);
+	//string ai_model_str(8, NULL);
+	//std::memcpy(ai_model_str.data(), ai_addr, 8);
+
+	//if (ai_model_str == "003_01_1") {
+	//	soldier_t id = 2004;
+	//	
+	//	string ai_expr(20,'\0');
+	//	void* addr = (void*)(soldier_addr + 0x100 + 0x1308);
+
+	//	std::strcpy(ai_expr.data(),(char*)addr);
+	//	//LOG_FILE("ai_expr %s\n", ai_expr.c_str());
+	//	
+	//	auto find_human_ai_id = [](string s)-> uint32_t {
+	//		string id; for (const auto& c : s) if (::isdigit(c)) id += c;
+	//		return std::stoi(id);
+	//	};
+
+	//	if (ai_expr.find("HumanSoldier_") != string::npos) {
+	//		auto ai_id = find_human_ai_id(ai_expr);
+	//		if (ai_id == id) {
+	//			DebugSoldierDataOut(soldier_addr, event_type);
+	//		}
+	//	}
+	//}
+}
+
+void DebugSoldierDataDetour(int soldier_addr, char* event_type) {
+
+	//Vector to hold AI data.
+	std::vector<uint8_t> ai_data(AI_BUF_SIZE_HALF, '\0');
+
+
+#ifdef SOLDIER_DATA_ALL
+	ai_data.resize(AI_BUF_SIZE_FULL);
+#endif
+
+	if (g_level_changed) {
+		new_addr = ai_count = 0;
+		soldiers.clear();
+	}
+
+	if (ai_count == AI_COUNT_MAX) {
+		LOG_CONSOLE("Total A.I count: %d for Level: %d", soldiers.size(), new_level);
+		ai_count++;
+		return;
+	}
+
+	if (soldier_addr != new_addr && ai_count <= AI_COUNT_MAX) {
+		//LOG_FILE("%s soldier_addr: %p Expr: '%s' AiEvent: '%s'", "DebugSoldierData", soldier_addr, (char*)(soldier_addr + 0x2EC + 0x107C), event_type);
+
 		void* ai_addr = reinterpret_cast<void*>(soldier_addr + 0x100);
 
 		HumanSoldier soldier;
-		string ai_data_info;
-
-		std::memcpy(ai_data.data(), ai_addr, AI_BUF_SIZE);
+		std::memcpy(ai_data.data(), ai_addr, ai_data.capacity());
 		//Add soldier data information.
-		AddHumanSoldierData(soldier_addr, ai_data);
-		//g_DbgHelper->StackTrace(true);
+		soldier.AddSoldierData(soldier_addr, ai_data);
 		new_addr = soldier_addr;
 		ai_count++;
-		LevelFlowStart(soldier_addr, event_type);
+		DebugSoldierDataOut(soldier_addr, event_type);
 	}
+	new_level = g_curr_level;
 }
 
 void SoldierDeadDetour(int param_1, int param_2) {
@@ -209,25 +260,33 @@ void WeaponDropDetour(int** param_1) {
 }
 
 
-void HumanSoldierHitDetour(int soldier_addr, char* param_2, int param_3) {
-	LOG_CONSOLE("%s soldier_addr: %p param_2: '%s' param_3 : %d", "SoldierHit", soldier_addr, param_2, param_3);
+void HumanSoldierHitDetour(int address, char* param_2, int param_3) {
+	//LOG_CONSOLE("%s address: %p param_2: '%s' param_3 : %d", "SoldierHit", address, param_2, param_3);
+	//soldiers.clear();
 
-	string ai_data(AI_BUF_SIZE, NULL);
-	void* ai_addr = reinterpret_cast<void*>(soldier_addr + 0x100);
+#define SOLDIER_DATA_ALL
+	//Vector to hold AI data.
+	std::vector<uint8_t> ai_data(AI_BUF_SIZE_HALF, '\0');
 
+#ifdef SOLDIER_DATA_ALL
+	ai_data.resize(AI_BUF_SIZE_FULL);
+#endif
+
+	void* ai_address = reinterpret_cast<void*>(address + 0x100);
 	HumanSoldier soldier;
 	string ai_data_info;
 
 	std::thread th{ [&]() {
-		std::memcpy(ai_data.data(), ai_addr, AI_BUF_SIZE);
+		std::memcpy(ai_data.data(), ai_address, ai_data.capacity());
+		std::string soldier_data(ai_data.begin(), ai_data.end());
+		//WriteFileType(std::string(g_Utility.GetModuleFolder() + "\\" + "ai_data.dat"), soldier_data, BINARY_FILE);
 		//Add soldier data information.
-	soldier = AddHumanSoldierData(soldier_addr,ai_data);
+	soldier.AddSoldierData(address,ai_data);
+	soldier.PrintSoldierData();
 		} };
 	th.join();
 
-	//soldier.is_dead = true;
-
-	HumanSoldierHitOut(soldier_addr, param_2, param_3);
+	HumanSoldierHitOut(address, param_2, param_3);
 }
 
 void HumanSoldierDeadDetour(int param_1, char* param_2, int param_3) {
@@ -240,7 +299,7 @@ int* __cdecl SFXItemsDetour(int param_1, char* sfx_item) {
 	auto ret_val = SFXItemsOut(param_1, sfx_item);
 	LOG_FILE("%s param_1: %p ret_val : %p sfx_item: %s", "SFXItems", param_1, ret_val, sfx_item);
 	//const string log_file = GetModuleFolder() + "\\" + LOG_FILE_NAME;
-	//auto file_data = Utility::ReadFile(log_file);
+	//auto file_data =g_Utility.ReadFile(log_file);
 
 	//if (file_data.find(sfx_item) == std::string::npos)
 	//	LOG_FILE("\"%s\",", sfx_item);
@@ -302,38 +361,17 @@ void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param
 	StatusMessageShowOut(param_1, param_2, param_3, param_4, param_5, param_6);
 }
 
-void __cdecl GamePrintTextDetour(int** param_1, byte* param_2) {
-	LOG_FILE("%s param_1 : %p *param_1 : %p **param_1 : '%s' param_2 : '%s'", "GamePrintText", param_1, *param_1, READ_PTR(param_1 + 0x180), param_2);
-	g_DbgHelper->StackTrace(true);
+void __cdecl GamePrintTextDetour(int** param_1, char* param_2) {
+	LOG_CONSOLE("%s p1 : %p *p1 : %p **p1 : '%s' p2: '%s'", "Print", param_1, *param_1, READ_PTR(param_1 + 0x180), param_2);
+	//g_DbgHelper->StackTrace(true);
 	GameTextPrintOut(param_1, param_2);
 }
 
-void __cdecl PrintTextDetour(int* param_1, byte* param_2, int param_3, int param_4) {
-	LOG_FILE("%s param_1 : %p param_2 : '%s' param_3 : %p param_4 : %p", "PrintText", param_1, param_2, param_3, param_4);
-	g_DbgHelper->StackTrace(true);
+void __cdecl TextPrintDetour(int* param_1, char* param_2, int param_3, int param_4) {
+	//LOG_FILE("%s called...", __FUNCTION__);
+	LOG_CONSOLE("%s param_1 : %p param_2 : '%s' param_3 : %p param_4 : %p", "TextPrint", param_1, param_2 == NULL ? "" : param_2, param_3, param_4);
+	//g_DbgHelper->StackTrace(true);
 	TextPrintOut(param_1, param_2, param_3, param_4);
-}
-
-void ReadWholeFile(LPCSTR file_name, LPCSTR file_mode = "rb") {
-	LOG_FILE("%s File : %s Mode : %s", FUNC_NAME, file_name, file_mode);
-	try {
-		if (string(file_mode) == "rb") {
-			auto file_string = string(file_name);
-			std::ifstream ifs(file_name, std::ios::binary);
-			if (ifs.good()) {
-				std::ofstream ofs(file_string.insert(file_string.length() - 4, "_open"), std::ios::binary);
-				std::vector<byte> buffer(std::istreambuf_iterator<char>(ifs), {});
-				std::copy(buffer.begin(), buffer.end(), std::ostream_iterator<char>(ofs, ""));
-			}
-			else
-			{
-				LOG_FILE("%s File : %s doesn't exist", FUNC_NAME, file_name);
-			}
-		}
-	}
-	catch (std::exception const& ex) {
-		LOG_ERROR("Exception: ", ex.what());
-	}
 }
 
 int __cdecl SetGameDataSymbolDetour(char* symbol_file) {
@@ -344,11 +382,22 @@ int __cdecl SetGameDataSymbolDetour(char* symbol_file) {
 	return ret_val;
 }
 
-int __cdecl LoadGameDataDetour(char* res_buf, char* res_path) {
-	LOG_FILE("%s res_buf: '%p' res_path: '%s'", "LoadGameData", res_buf, res_path);
-	Sleep(100);
-	g_DbgHelper->StackTrace(true);
-	return LoadGameDataOut(res_buf, res_path);
+int __cdecl LoadGameDataDetour(char* res_buf, const char* res_path, const char* res_name, int res_ptr) {
+	//LOG_FILE("%s res_buf: '%s' res_path: '%s' res_name: '%s' res_ptr: %p", "LoadGameData", res_buf, res_path, res_name, res_ptr);
+	//ReadWholeFile(res_buf);
+	//if (std::string(res_buf).find(".mef") != std::string::npos)
+	//	mef_files.push_back(res_name);
+	return LoadGameDataOut(res_buf, res_path, res_name, res_ptr);
+}
+
+int* __cdecl LoadResourceDetour(char* file_name, char** param2) {
+	int* res_addr = LoadResourceOut(file_name, param2);
+	//LOG_FILE("%s File '%s'\t Address %p", "LoadResource", file_name, (int)res_addr);
+	//ReadWholeFile(file_name);
+	if (std::string(file_name).find(".mef") != std::string::npos)
+		mef_files.push_back(file_name);
+
+	return res_addr;
 }
 
 int __cdecl  StatusMsgDetour(int send_status, const char* buffer, const char* msg_sprite, const char* status_byte) {
@@ -413,14 +462,6 @@ int __cdecl AssembleQASDetour(char* file_out, char* file_in) {
 	int qas_ret = AssembleQASOut(file_out, file_in);
 	LOG_INFO("%s file_in : %s file_out : %s  Status : %d", "AssembleQAS", file_in, file_out, qas_ret);
 	return qas_ret;
-}
-
-int* __cdecl LoadResourceDetour(char* param1, char** param2) {
-
-	int* res_addr = LoadResourceOut(param1, param2);
-	LOG_FILE("%s File '%s'\t Address %p", "LoadResource", param1, (int)res_addr);
-	//g_DbgHelper->StackTrace(true, false, true);
-	return res_addr;
 }
 
 void __cdecl CompileQVMDetour(char* file_name) {

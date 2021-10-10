@@ -4,8 +4,6 @@
 #include <DbgHelper.hpp>
 
 using namespace IGI;
-using namespace Utility;
-
 
 //Friend methods - Outside class.
 namespace IGI {
@@ -54,7 +52,7 @@ Natives::~Natives() {
 }
 
 void Natives::InitNativesSignatures() {
-	const string natives_file = GetModuleFolder() + "\\" + NATIVES_FILE_NAME;
+	const string natives_file = g_Utility.GetModuleFolder() + "\\" + NATIVES_FILE_NAME;
 
 	bool nativesLoaded = LoadNativesFile(natives_file);
 
@@ -81,7 +79,7 @@ uint32_t Natives::FindNativeAddress(string native_name) {
 
 	for (const auto& native : native_sig) {
 
-		if (Utility::StrCaseCompare(native.name, native_name)) {
+		if (g_Utility.StrCaseCompare(native.name, native_name)) {
 			return native.address;
 		}
 	}
@@ -102,7 +100,7 @@ string Natives::FindNativeSignature(string native_name) {
 
 	for (const auto& native : native_sig) {
 
-		if (Utility::StrCaseCompare(native.name, native_name)) {
+		if (g_Utility.StrCaseCompare(native.name, native_name)) {
 			return native.signature;
 		}
 	}
@@ -114,7 +112,7 @@ string Natives::FindNativeNote(string native_name) {
 
 	for (const auto& native : native_sig) {
 
-		if (Utility::StrCaseCompare(native.name, native_name)) {
+		if (g_Utility.StrCaseCompare(native.name, native_name)) {
 			return native.note;
 		}
 	}
@@ -170,5 +168,5 @@ void Natives::GenerateNativesFile(string natives_file) {
 		natives_json += "\n\t\t\t\"note\": \"" + native_sig.note + "\"}\n\t\t\t\t},";
 	}
 	natives_json += "]\n}";
-	Utility::WriteFile(natives_file, natives_json);
+	WriteFileType(natives_file,binary_t(natives_json.begin(),natives_json.end()),ASCII_FILE);
 }

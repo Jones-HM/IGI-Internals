@@ -1,8 +1,11 @@
 #include "Utility.hpp" 
-#include <GTLibc.hpp>
+#include "GTLibc.hpp"
+#include "Logger.hpp"
 
 inline HMODULE g_Module;
 inline HANDLE g_Handle;
+using namespace IGI;
+
 
 const string Utility::GetRunningExecutableFolder() {
 
@@ -103,22 +106,117 @@ const string Utility::GetModuleNameWithoutExtension(const HMODULE module) {
 	return file_nameWithExtension.substr(0, lastIndex);
 }
 
-string Utility::ReadFile(const string& file_name,bool is_binary) {
+std::tuple<std::vector<uint8_t>, string, string> Utility::ReadFile(string file_name, int file_type)
+{
+	std::ifstream in_stream(file_name, (file_type == ASCII_FILE) ? std::ios::in : (file_type == BINARY_FILE || file_type == HEX_FILE) ? std::ios::binary : std::ios::in);
+
+	/*Buffers to store output data from file.*/
+	string str_buf, hex_buf;
+	std::vector<uint8_t> vec_buf;
+
 	try {
-		std::ifstream ifs(file_name, (is_binary) ? std::ios_base::binary : std::ios_base::in);
-		std::string file_data(std::istreambuf_iterator<char>{ifs}, {});
-		return file_data;
+		if (file_type == BINARY_FILE) {
+
+			/*Open the stream in binary mode.*/
+
+			if (in_stream.good()) {
+				/*Read Binary data using streambuffer iterators.*/
+				std::vector<uint8_t> v_buf((std::istreambuf_iterator<char>(in_stream)), (std::istreambuf_iterator<char>()));
+				vec_buf = v_buf;
+				in_stream.close();
+			}
+
+			else {
+				throw std::exception();
+			}
+
+		}
+
+		else if (file_type == ASCII_FILE) {
+
+			/*Open the stream in default mode.*/
+			string ascii_data;
+
+			if (in_stream.good()) {
+				/*Read ASCII data using getline*/
+				while (getline(in_stream, ascii_data))
+					str_buf += ascii_data + "\n";
+
+				in_stream.close();
+			}
+			else {
+				throw std::exception();
+			}
+		}
+
+		else if (file_type == HEX_FILE) {
+
+			/*Open the stream in default mode.*/
+
+			if (in_stream.good()) {
+				/*Read Hex data using streambuffer iterators.*/
+				std::vector<char> h_buf((std::istreambuf_iterator<char>(in_stream)), (std::istreambuf_iterator<char>()));
+				string hex_str_buf(h_buf.begin(), h_buf.end());
+				hex_buf = hex_str_buf;
+
+				in_stream.close();
+			}
+			else {
+				throw std::exception();
+			}
+		}
+
 	}
-	catch (std::exception& e) {
-		std::cerr << "Exception : " << e.what() << std::endl;
+
+	catch (...) {
+		string ex_str = "Error: " + file_name + ": No such file or directory";
+		throw std::exception(ex_str.c_str());
 	}
-	return {};
+
+	auto tuple_data = make_tuple(vec_buf, str_buf, hex_buf);
+	return tuple_data;
 }
 
-void Utility::WriteFile(const string& file_name, string file_data,bool is_binary) {
-	std::ofstream ofs(file_name,(is_binary) ? std::ios_base::binary : std::ios_base::out);
-	ofs << file_data << std::endl;
-	ofs.close();
+bool Utility::WriteFile(string file_name, binary_t file_data, int file_type)
+{
+	bool write_status = false;
+	try {
+		std::fstream out_stream(file_name, (file_type == ASCII_FILE) ? std::ios::out : (file_type == BINARY_FILE || file_type == HEX_FILE) ? (std::ios::out | std::ios::binary) : std::ios::out);
+
+		if (out_stream.is_open()) {
+			if (file_type == ASCII_FILE) {
+				out_stream << file_data.data();
+				write_status = true;
+			}
+
+			else if (file_type == BINARY_FILE) {
+				out_stream.write((char*)file_data.data(), file_data.capacity());
+				write_status = true;
+			}
+
+			else if (file_type == HEX_FILE) {
+				int bin_data;
+				std::stringstream ss;
+				ss << std::hex << file_data.data();
+
+				while (ss >> bin_data)
+					out_stream.write(reinterpret_cast<const char*>(&bin_data), sizeof(char));
+
+				write_status = true;
+			}
+			out_stream.close();
+		}
+		else {
+			string ex_str = "Error: couldn't open " + file_name + " for output";
+			throw std::exception(ex_str.c_str());
+		}
+	}
+	catch (const std::exception& ex) {
+		string ex_str = "Error: " + file_name + ": No such file or directory";
+		LOG_ERROR("%s Exception: %s", FUNC_NAME, ex.what());
+		GT_ShowError(ex.what());
+	}
+	return write_status;
 }
 
 bool Utility::RemoveFile(const string& file_name) {
@@ -134,7 +232,7 @@ bool Utility::RemoveFile(const string& file_name) {
 	return status;
 }
 
-bool Utility::WriteMemory(LPVOID address, std::vector<byte>& v_bytes)
+bool Utility::WriteMemory(LPVOID address,binary_t& v_bytes)
 {
 	if (address == NULL || v_bytes.size() == 0) {
 		GT_ShowError("Error occurred while writing data to memory.");

@@ -1,7 +1,7 @@
 #pragma once 
 #include "Common.hpp"
 #include "Logger.hpp"
-using namespace Utility;
+using namespace IGI;
 
 namespace IGI {
 	class Memory {

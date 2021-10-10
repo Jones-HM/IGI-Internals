@@ -13,7 +13,7 @@
 #define O_U16TEXT     0x20000 // file mode is UTF16 no BOM (translated)
 #define O_U8TEXT      0x40000 // file mode is UTF8  no BOM (translated)
 
-namespace Utility {
+namespace IGI {
 
 	Log::Log() {
 		g_Log = this;
@@ -102,7 +102,7 @@ namespace Utility {
 
 	void Log::LogFileA(const char* buff) {
 
-		const string file_name = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+		const string file_name = g_Utility.GetModuleFolder() + "\\" + LOG_FILE_NAME;
 
 		std::ofstream fout;
 		fout.open(file_name, std::ios_base::app);
@@ -117,7 +117,7 @@ namespace Utility {
 	void Log::LogFileW(const wchar_t* buff) {
 		int result = setmode(fileno(stdout), O_U16TEXT);
 
-		const string file_name = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+		const string file_name =g_Utility.GetModuleFolder() + "\\" + LOG_FILE_NAME;
 		const std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t>());
 		if (result != -1) {
 			std::wofstream wf(file_name, std::ios_base::app);

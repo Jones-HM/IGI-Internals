@@ -14,6 +14,7 @@ namespace IGI {
 #define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
 #define READ_PTR_OFF2(addr,off1,off2) *(PINT)(READ_PTR_OFF(addr,off1) + off2)
 #define READ_PTR_OFF3(addr,off1,off2,off3) *(PINT)(READ_PTR_OFF2(addr,off1,off2) + off3)
+#define READ_STATIC_PTR_OFF(addr,off) (READ_PTR(addr) + (DWORD)off)
 #define READ_STATIC_PTR_OFF2(addr,off1,off2) READ_PTR_OFF(READ_PTR(addr),off1) + (DWORD)off2 
 #define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3 
 
@@ -36,52 +37,62 @@ namespace IGI {
 
 //Native constants. 
 #define NATIVE_INVOKE g_NativeCaller.Invoke
-//#define NATIVE_INVOKE g_ThreadInvoker.Invoke
+//#define IGI_INVOKE g_ThreadInvoker.Invoke
 #define GAME_LEVEL_MAX READ_PTR(0x5C89FC)
 
 //Directory Constants.
-#define NATIVE_LOCAL_DIR (LPCSTR)"LOCAL:"
-#define NATIVE_MISSION_DIR (LPCSTR)"MISSION:"
-#define NATIVE_WEAPONS_DIR (LPCSTR)"WEAPONS:"
+#define IGI_LOCAL_DIR (const char*)R"(LOCAL:)"
+#define IGI_MISSION_DIR (const char*)R"(MISSION:)"
+#define IGI_WEAPONS_DIR (const char*)R"(WEAPONS:)"
 
-//Common Native constants. 
-#define NATIVE_CONST_CONFIG_FILE (LPCSTR)"LOCAL:config.qsc"
-#define NATIVE_CONST_MAINMENU_FILE (LPCSTR) "LOCAL:menusystem\\mainmenu.qsc"
-#define NATIVE_CONST_INGAMEMENU_FILE (LPCSTR) "LOCAL:menusystem\\ingame.qsc"
-#define NATIVE_CONST_WEAPON_CONFIG_FILE (LPCSTR) "LOCAL:weapons/weaponconfig.qsc"
-#define NATIVE_CONST_STATUSSCREEN_AMMO (LPCSTR)"STATUSSCREEN:ammo.spr"
-#define NATIVE_CONST_STATUSSCREEN_GUN (LPCSTR)"STATUSSCREEN:a_gun.spr"
-#define NATIVE_CONST_STATUSSCREEN_WEAPON (LPCSTR)"STATUSSCREEN:weapon.spr"
-#define NATIVE_CONST_STATUSSCREEN_NOTE (LPCSTR)"STATUSSCREEN:note.spr"
+//Common constants. 
+#define IGI_CONST_CONFIG_FILE (const char*)R"(LOCAL:config.qsc)"
+#define IGI_CONST_MAINMENU_FILE (const char*)R"(LOCAL:menusystem\mainmenu.qsc)"
+#define IGI_CONST_INGAMEMENU_FILE (const char*)R"(LOCAL:menusystem\ingame.qsc)"
+#define IGI_CONST_WEAPON_CONFIG_FILE (const char*)R"(LOCAL:weapons/weaponconfig.qsc)"
+#define IGI_CONST_STATUSSCREEN_AMMO (const char*)R"(STATUSSCREEN:ammo.spr)"
+#define IGI_CONST_STATUSSCREEN_GUN (const char*)R"(STATUSSCREEN:a_gun.spr)"
+#define IGI_CONST_STATUSSCREEN_WEAPON (const char*)R"(STATUSSCREEN:weapon.spr)"
+#define IGI_CONST_STATUSSCREEN_NOTE (const char*)R"(STATUSSCREEN:note.spr)"
+#define IGI_CONST_FONT_BIG (const char*)R"(LOCAL:computer/font1.fnt)"
+#define IGI_CONST_FONT_MEDIUM (const char*)R"(LOCAL:computer/font3.fnt)"
+#define IGI_CONST_FONT_SMALL (const char*)R"(LOCAL:computer/font4.fnt)"
+#define IGI_CONST_FONT_DEBUG (const char*)R"(LOCAL:debug.fnt)"
 
 #define GUN_PICKUP_PTR (int*)0x19F720
 #define AMMO_PICKUP_PTR (int*)0x19F820
 #define GUN_PICKUP_SET(gun_id) *GUN_PICKUP_PTR = gun_id
 #define AMMO_PICKUP_SET(ammo_id) *AMMO_PICKUP_PTR = ammo_id
 #define WEAPON_ID_COUNT 45
-#define AI_BUF_SIZE 8000
+#define AI_BUF_SIZE_HALF 0x1F40
+#define AI_BUF_SIZE_FULL 0x7000
+#define AI_COUNT_MAX 50
+#define AI_ID_MAX 5000
+#define AI_ID_INVALID -1
+
+//Datatypes for Human Soldier/Players.
+typedef uint16_t soldier_t;
+typedef int16_t ai_t;
+typedef int32_t graph_t;
+typedef uint32_t address_t;
+typedef std::vector<uint8_t> binary_t;
 
 	inline char local_buf[0x1E] = { NULL }; // Local buffer to store value from different methods. 
-	inline float MUSIC_CONST = 10.0f;
 	inline LPVOID status_byte = (LPVOID)0x567C74;
 	inline int gun_pickup_ptr = READ_STATIC_PTR_OFF2(0x005BDC6C, 0x1B0, 0xCB4);
 	inline int humanplayer_ptr = READ_STATIC_PTR_OFF2(0x0056E210, 0x40, 0x24);
-	
-	//Structure to hold Human soldier information.
-	struct HumanSoldier {
-		string model_id;//Model id of soldier - Like 001_01_1 -> Jones.
-		int ai_id; //A.I Id of soldier - Like Id '503' and AiFile = 'AI/503.qvm'
-		int graph_id; //Graph Id of sodlier.
-		string weapon; //Weapon currently holding.
-		bool is_dead; //Is Soldier dead ?
-		int e_team; //Soldier team type , 0 = Friendly, 1 = Enemy.
-		int32_t address; //Address pointer of soldier.
+	inline int menu_screen_ptr = READ_STATIC_PTR_OFF(0x00567C8C, 0x28);
+	inline int g_game_level = 1,g_curr_level = 1,g_menu_screen = 0;
+	inline bool	g_level_changed = false;
+
+	enum MENU_SCREEN {
+		MENU_SCREEN_MAINMENU = 3,
+		MENU_SCREEN_INGAME = 4,
+		MENU_SCREEN_RESTART = 5,
 	};
 
-	inline std::vector<HumanSoldier> soldiers;
-
 	//Constants for Weapon/Ammo.
-	enum NATIVE_AMMO {
+	enum IGI_AMMO {
 		AMMO_ID_12,//Ammo type 12-Gauge, Type: Shotguns, Weapons: SPAS12/JACKHAMMER
 		AMMO_ID_357,//Ammo type .357 Magnum, Type: Revolver , Weapons: Desert Eagle/Colt Anaconda. 
 		AMMO_ID_556,//Ammo type 5.56x45mm, Type: AR/Heavy/LMG, Weapons: M16A2/MINIMI/APC/T80
@@ -99,7 +110,7 @@ namespace IGI {
 		AMMO_ID_NONE = -1 //Internally used. For Knife,Binoculars etc
 	};
 
-	enum NATIVE_WEAPON {
+	enum IGI_WEAPON {
 		WEAPON_ID_GLOCK = 1, //Weapon Type: Pistol.
 		WEAPON_ID_DESERTEAGLE = 3,//Weapon Type: Pistol.
 		WEAPON_ID_M16A2 = 4,//Weapon Type: Rifle.
@@ -126,52 +137,51 @@ namespace IGI {
 		WEAPON_ID_SENTRY = 44//Weapon Type: HMG (Machine Gun).
 	};
 
-
-	inline std::array<NATIVE_AMMO, WEAPON_ID_COUNT> weapons_ammo_list = {
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_919, //GLOCK
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_357, //Desert Eagle
-	NATIVE_AMMO::AMMO_ID_556, //M16A2
-	NATIVE_AMMO::AMMO_ID_762, //AK47
-	NATIVE_AMMO::AMMO_ID_919, //UZI
-	NATIVE_AMMO::AMMO_ID_919, //MP5SD 
-	NATIVE_AMMO::AMMO_ID_12, //SPAS12
-	NATIVE_AMMO::AMMO_ID_12, //JACKHAMMER 
-	NATIVE_AMMO::AMMO_ID_556, //MINIMI
-	NATIVE_AMMO::AMMO_ID_DRAGUNOV, //DRAGUNOV
-	NATIVE_AMMO::AMMO_ID_1000, //RPG18
-	NATIVE_AMMO::AMMO_ID_919, //UZIX2 
-	NATIVE_AMMO::AMMO_ID_GRENADE, //GRENADE
-	NATIVE_AMMO::AMMO_ID_FLASHBANG, //FLASHBANG
-	NATIVE_AMMO::AMMO_ID_PROXIMITYMINE, //PROXIMITYMINE
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //BINOCULARS
-	NATIVE_AMMO::AMMO_ID_MEDIPACK, //MEDIPACK
-	NATIVE_AMMO::AMMO_ID_NONE, //KNIFE
-	NATIVE_AMMO::AMMO_ID_357, //COLT
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_NONE, //Empty Slot
-	NATIVE_AMMO::AMMO_ID_556, //APC
-	NATIVE_AMMO::AMMO_ID_127, //MIL
-	NATIVE_AMMO::AMMO_ID_127, //M2HB
-	NATIVE_AMMO::AMMO_ID_556, //T80
-	NATIVE_AMMO::AMMO_ID_127, //SENTRY
+	inline std::array<IGI_AMMO, WEAPON_ID_COUNT> weapons_ammo_list = {
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_919, //GLOCK
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_357, //Desert Eagle
+	IGI_AMMO::AMMO_ID_556, //M16A2
+	IGI_AMMO::AMMO_ID_762, //AK47
+	IGI_AMMO::AMMO_ID_919, //UZI
+	IGI_AMMO::AMMO_ID_919, //MP5SD 
+	IGI_AMMO::AMMO_ID_12, //SPAS12
+	IGI_AMMO::AMMO_ID_12, //JACKHAMMER 
+	IGI_AMMO::AMMO_ID_556, //MINIMI
+	IGI_AMMO::AMMO_ID_DRAGUNOV, //DRAGUNOV
+	IGI_AMMO::AMMO_ID_1000, //RPG18
+	IGI_AMMO::AMMO_ID_919, //UZIX2 
+	IGI_AMMO::AMMO_ID_GRENADE, //GRENADE
+	IGI_AMMO::AMMO_ID_FLASHBANG, //FLASHBANG
+	IGI_AMMO::AMMO_ID_PROXIMITYMINE, //PROXIMITYMINE
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //BINOCULARS
+	IGI_AMMO::AMMO_ID_MEDIPACK, //MEDIPACK
+	IGI_AMMO::AMMO_ID_NONE, //KNIFE
+	IGI_AMMO::AMMO_ID_357, //COLT
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_NONE, //Empty Slot
+	IGI_AMMO::AMMO_ID_556, //APC
+	IGI_AMMO::AMMO_ID_127, //MIL
+	IGI_AMMO::AMMO_ID_127, //M2HB
+	IGI_AMMO::AMMO_ID_556, //T80
+	IGI_AMMO::AMMO_ID_127, //SENTRY
 	};
 }

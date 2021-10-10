@@ -1,7 +1,7 @@
 #include "DbgHelper.hpp"
 
 using namespace IGI;
-using namespace Utility;
+using namespace IGI;
 
 DbgHelper::DbgHelper() {
 	g_DbgHelper = this;
@@ -84,7 +84,7 @@ std::vector<DbgHelper::StackFrame> DbgHelper::StackTraceWalk(bool file_info, boo
 #else 
 	DWORD machine = IMAGE_FILE_MACHINE_I386;
 #endif 
-	auto process = Utility::GetHandle();
+	auto process = g_Utility.GetHandle();
 	auto thread = GetCurrentThread();
 
 	CONTEXT context = {};
@@ -219,7 +219,7 @@ std::vector<DbgHelper::StackFrame> DbgHelper::StackTraceWalk(bool file_info, boo
 HANDLE DbgHelper::InitStackTrace() {
 	SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_ANYTHING || SYMOPT_UNDNAME);
 	m_Handle = GT_GetGameHandle4mHWND(GetForegroundWindow());
-	Utility::SetHandle(m_Handle);
+	g_Utility.SetHandle(m_Handle);
 
 	if (!SymInitialize(m_Handle, NULL, TRUE))
 	{
@@ -252,14 +252,14 @@ void DbgHelper::StackTrace(bool file_info, bool capture_cxt, bool full_stack) {
 */
 
 void DbgHelper::StackTracePrint(std::vector<StackFrame> stack_trace, bool file_info, bool capture_cxt) {
-	const string file_name = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+	const string file_name = g_Utility.GetModuleFolder() + "\\" + LOG_FILE_NAME;
 	std::ofstream fout(file_name, std::ios_base::app);
 
 	fout << "\nStackTrace Info: " << std::endl;
 
 	for (const auto& st : stack_trace) {
 		fout << "#" << std::dec << st.frame_no << "\t";
-		if (!st.symbol_name.empty() && Utility::IsAsciiStr(st.symbol_name))
+		if (!st.symbol_name.empty() && g_Utility.IsAsciiStr(st.symbol_name))
 			fout << "Name: " << st.symbol_name << "\t";
 
 		if (st.symbol_address != 0)
@@ -273,7 +273,7 @@ void DbgHelper::StackTracePrint(std::vector<StackFrame> stack_trace, bool file_i
 		fout << "]\t";
 
 		if (file_info) {
-			if (!st.module_name.empty() && Utility::IsAsciiStr(st.module_name))
+			if (!st.module_name.empty() && g_Utility.IsAsciiStr(st.module_name))
 				fout << "Module: " << st.module_name;
 			if (!st.file_name.empty())
 				fout << "\nFile: " << st.file_name;

@@ -23,6 +23,7 @@
 #include <iomanip> 
 #include <array> 
 #include <regex>
+#include <tuple>
 
 using std::string;
 using std::vector;
@@ -32,6 +33,7 @@ inline HANDLE g_Main_Thread{};
 inline DWORD g_Main_Thread_Id{};
 
 inline std::vector<std::thread> threads;
+inline std::list<string> mef_files;
 #define LOG_FILE_NAME std::string(PROJECT_NAME) + ".log"
 #define NATIVES_FILE_NAME "IGI-Natives.json"
 

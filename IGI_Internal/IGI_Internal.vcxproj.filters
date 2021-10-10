@@ -26,6 +26,9 @@
     <ClCompile Include="Utils\DbgHelper.cpp">
       <Filter>Utils</Filter>
     </ClCompile>
+    <ClCompile Include="Player\HumanSoldier.cpp">
+      <Filter>Player</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
@@ -59,9 +62,6 @@
     <ClInclude Include="Utils\Fibers.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Natives\NativeConst.hpp">
-      <Filter>Natives</Filter>
-    </ClInclude>
     <ClInclude Include="Utils\DbgHelper.hpp">
       <Filter>Utils</Filter>
     </ClInclude>
@@ -81,6 +81,10 @@
       <Filter>Hook</Filter>
     </ClInclude>
     <ClInclude Include="HookDetours.hpp" />
+    <ClInclude Include="Player\HumanSoldier.hpp">
+      <Filter>Player</Filter>
+    </ClInclude>
+    <ClInclude Include="CommonConst.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Natives">
@@ -98,8 +102,8 @@
     <Filter Include="Hook">
       <UniqueIdentifier>{e6c4f622-def7-44e6-bf54-037752f6cf69}</UniqueIdentifier>
     </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
+    <Filter Include="Player">
+      <UniqueIdentifier>{f1171834-1e8f-4815-bd3b-b4fa3cff02a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -75,13 +75,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
@@ -193,6 +193,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Common.hpp" />
+    <ClInclude Include="CommonConst.hpp" />
     <ClInclude Include="HookDetours.hpp" />
     <ClInclude Include="Hook\Hook.hpp" />
     <ClInclude Include="Hook\MinHook.hpp" />
@@ -200,7 +201,7 @@
     <ClInclude Include="Libs\GTLibc.hpp" />
     <ClInclude Include="Libs\json.hpp" />
     <ClInclude Include="Memory\Memory.hpp" />
-    <ClInclude Include="Natives\NativeConst.hpp" />
+    <ClInclude Include="Player\HumanSoldier.hpp" />
     <ClInclude Include="Utils\AutoMsgBox.hpp" />
     <ClInclude Include="Utils\Console.hpp" />
     <ClInclude Include="DllMain.hpp" />
@@ -220,6 +221,7 @@
     <ClCompile Include="Hook\Hook.cpp" />
     <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Natives\Natives.cpp" />
+    <ClCompile Include="Player\HumanSoldier.cpp" />
     <ClCompile Include="Utils\AutoMsgBox.cpp" />
     <ClCompile Include="Utils\Console.cpp" />
     <ClInclude Include="Utils\Fibers.hpp">
@@ -231,9 +233,6 @@
     <ClCompile Include="Utils\DbgHelper.cpp" />
     <ClCompile Include="Utils\Logger.cpp" />
     <ClCompile Include="Utils\Utility.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
