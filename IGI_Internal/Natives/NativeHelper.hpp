@@ -1,6 +1,8 @@
 #pragma once 
 #include "Natives.hpp" 
 #include "NativeCaller.hpp" 
+#include "Camera.hpp"
+
 #define NATIVE_DECL __declspec(noinline) inline 
 
 namespace IGI {
@@ -43,16 +45,34 @@ namespace IGI {
 	namespace HUMAN {
 		NATIVE_DECL void HUMAN_PLAYER_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::HUMANPLAYER_LOAD); }
 		NATIVE_DECL uint32_t HIT_DAMAGE_GET() { return NATIVE_INVOKE<uint32_t>((Void)HASH::HUMAN_HIT_DAMAGE); }
-		NATIVE_DECL void VIEW_CAM_SET(int cam_type) { NATIVE_INVOKE<Void>((Void)HASH::HUMAN_CAM_VIEW, (int)READ_PTR(humanplayer_ptr), cam_type); }
+		NATIVE_DECL void CAM_VIEW_SET(int cam_type) { NATIVE_INVOKE<Void>((Void)HASH::HUMAN_CAM_VIEW, (int)READ_PTR(humanplayer_ptr), cam_type); }
 	}
 
 	namespace WEAPON {
-		NATIVE_DECL void UNLIMITED_AMMO_SET (bool enable) { *(PINT)0x56E214 = enable; }
+		NATIVE_DECL void UNLIMITED_AMMO_SET(bool enable) { *(PINT)0x56E214 = enable; }
 		NATIVE_DECL void TYPE_OPEN() { NATIVE_INVOKE<Void>((Void)HASH::WEAPON_TYPE_OPEN); }
 		NATIVE_DECL int TOTAL_COUNT() { return NATIVE_INVOKE<int>((Void)HASH::WEAPON_TOTAL); }
-		NATIVE_DECL void GUN_PICKUP(int weapon_id) {  GUN_PICKUP_SET(weapon_id); NATIVE_INVOKE<Void>((Void)HASH::WEAPON_GUN_PICKUP, READ_PTR(gun_pickup_ptr),GUN_PICKUP_PTR); }
+		NATIVE_DECL void GUN_PICKUP(int weapon_id) { GUN_PICKUP_SET(weapon_id); NATIVE_INVOKE<Void>((Void)HASH::WEAPON_GUN_PICKUP, READ_PTR(gun_pickup_ptr), GUN_PICKUP_PTR); }
 		NATIVE_DECL void AMMO_PICKUP(int ammo_id) { AMMO_PICKUP_SET(ammo_id); NATIVE_INVOKE<Void>((Void)HASH::WEAPON_AMMO_PICKUP, READ_PTR(gun_pickup_ptr), AMMO_PICKUP_PTR); }
-		NATIVE_DECL void WEAPON_PICKUP(int weapon_id) {int ammo_id = weapons_ammo_list.at(weapon_id); GUN_PICKUP(weapon_id); AMMO_PICKUP(ammo_id); }
+		NATIVE_DECL void WEAPON_PICKUP(int weapon_id) { int ammo_id = weapons_ammo_list.at(weapon_id); GUN_PICKUP(weapon_id); AMMO_PICKUP(ammo_id); }
+	}
+
+	namespace CAMERA {
+		NATIVE_DECL void ATTACH() { g_Camera.AttachCam(); }
+		NATIVE_DECL void DEATTACH() { g_Camera.DeattachCam(); }
+		NATIVE_DECL void CALIBRATE() { g_Camera.CalibrateView(); }
+		NATIVE_DECL void FREECAM_ENABLE(Camera::Controls& cam_controls) { g_Camera.EnableFreeCam(cam_controls); }
+		NATIVE_DECL void X_POS_UPDATE(double x) { g_Camera.WritePosition(x); }
+		NATIVE_DECL void Y_POS_UPDATE(double y) { g_Camera.WritePosition(y); }
+		NATIVE_DECL void Z_POS_UPDATE(double z) { g_Camera.WritePosition(z); }
+		NATIVE_DECL void POS_UPDATE(Camera::Position& pos) { g_Camera.WritePosition(pos); }
+		NATIVE_DECL void ANGLE_UPDATE(Camera::Angle& angle) { g_Camera.WriteAngle(angle); }
+		NATIVE_DECL void PITCH_UPDATE(float pitch) { g_Camera.WritePitch(pitch); }
+		NATIVE_DECL void ROLL_UPDATE(float roll) { g_Camera.WriteRoll(roll); }
+		NATIVE_DECL void YAW_UPDATE(float yaw) { g_Camera.WriteYaw(yaw); }
+		NATIVE_DECL void FOV_UPDATE(float fov) { g_Camera.WriteFov(fov); }
+		NATIVE_DECL Camera::Position POS_READ() { return g_Camera.ReadPosition(); }
+		NATIVE_DECL Camera::Angle ANGLE_READ() { return g_Camera.ReadAngle(); }
 	}
 
 	namespace QTASK {
@@ -66,7 +86,7 @@ namespace IGI {
 
 	namespace QFILE {
 		NATIVE_DECL void QSC_COMPILE(const char* qsc_file) { NATIVE_INVOKE<Void>((Void)HASH::QSC_COMPILE, qsc_file); }
-		NATIVE_DECL void OPEN(const char* file, char* mode) { NATIVE_INVOKE<Void>((Void)HASH::FILE_OPEN, file,mode); }
+		NATIVE_DECL void OPEN(const char* file, char* mode) { NATIVE_INVOKE<Void>((Void)HASH::FILE_OPEN, file, mode); }
 	}
 
 	namespace GFX {
@@ -82,12 +102,12 @@ namespace IGI {
 	}
 
 	namespace MEMORY {
-		NATIVE_DECL uint32_t ALLOC(int num, int size) {return NATIVE_INVOKE<uint32_t>((Void)HASH::MEMORY_ALLOC,num,size); }
+		NATIVE_DECL uint32_t ALLOC(int num, int size) { return NATIVE_INVOKE<uint32_t>((Void)HASH::MEMORY_ALLOC, num, size); }
 		NATIVE_DECL void DEALLOC() { NATIVE_INVOKE<Void>((Void)HASH::MEMORY_DEALLOC); }
 	}
 
 	namespace MISSION {
-		NATIVE_DECL void OPEN(char** ptr_mission) { NATIVE_INVOKE<Void>((Void)HASH::MISSION_OPEN,ptr_mission); }
+		NATIVE_DECL void OPEN(char** ptr_mission) { NATIVE_INVOKE<Void>((Void)HASH::MISSION_OPEN, ptr_mission); }
 	}
 
 	namespace MISC {
@@ -96,7 +116,7 @@ namespace IGI {
 		NATIVE_DECL void STATUS_MESSAGE_CLEAR() { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_CLEAR, (const char*)local_buf); }
 		NATIVE_DECL void GAMEMATERIAL_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::GAMEMATERIAL_LOAD); }
 		NATIVE_DECL void LOG_ADD(const char* log_msg) { NATIVE_INVOKE<Void>((Void)HASH::LOG_ADD, log_msg); }
-		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg, const char* status_sprite) { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, status_msg, status_sprite,&status_byte);}
+		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg, const char* status_sprite) { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, status_msg, status_sprite, &status_byte); }
 		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg) { STATUS_MESSAGE_SHOW(status_msg, GAME_CONST_STATUSSCREEN_NOTE); }
 		NATIVE_DECL void WARNINGS_DISABLE() { *(PINT)0x936274 = 0; }
 		NATIVE_DECL void ERRORS_DISABLE() { *(PINT)0x936268 = 0; }

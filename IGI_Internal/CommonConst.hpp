@@ -14,9 +14,11 @@ namespace IGI {
 #define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
 #define READ_PTR_OFF2(addr,off1,off2) *(PINT)(READ_PTR_OFF(addr,off1) + off2)
 #define READ_PTR_OFF3(addr,off1,off2,off3) *(PINT)(READ_PTR_OFF2(addr,off1,off2) + off3)
+#define READ_PTR_OFF4(addr,off1,off2,off3,off4) *(PINT)(READ_PTR_OFF3(addr,off1,off2,off3) + off4)
 #define READ_STATIC_PTR_OFF(addr,off) (READ_PTR(addr) + (DWORD)off)
 #define READ_STATIC_PTR_OFF2(addr,off1,off2) READ_PTR_OFF(READ_PTR(addr),off1) + (DWORD)off2 
 #define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3 
+#define READ_STATIC_PTR_OFF4(addr,off1,off2,off3,off4) READ_PTR_OFF3(READ_PTR(addr),off1,off2,off3) + (DWORD)off4
 
 #define TYPE(x) string(typeid(x).name())
 #define TYPEID(x) typeid(x).name()
@@ -34,6 +36,8 @@ namespace IGI {
 //Get player active or index address. 
 #define PLAYER_INDEX_ADDR(index) PLAYER_BASE_ADDR + ((index) * PLAYER_NEXT_OFF)
 #define PLAYER_ACTIVE_ADDR PLAYER_INDEX_ADDR(PLAYER_ACTIVE_INDEX)
+
+#define PLAYER_XPL_HIT_ADDR (LPVOID)0x00416D85
 
 //Native constants. 
 #define NATIVE_INVOKE g_NativeCaller.Invoke
@@ -69,15 +73,24 @@ namespace IGI {
 #define AI_ID_MAX 5000
 #define AI_ID_INVALID -1
 
-	//Base Address of Camera angle and position.
-	inline const int32_t angle_base = 0x00BCAAE0,pos_base = 0x00BCAB08;
+//Address of Camera/ViewPort.
+#define CAM_ANGLE_ADDR (void*)0x00BCAAE0
+#define	CAM_POS_ADDR (void*)0x00BCAB08
+#define	CAM_CTRL_ADDR 0x00684138
+#define	VIEWPORT_BASE_ADDR 0x00BCAAE0
+#define	VIEWPORT_TASK_ADDR (void*)0x00497E94
+#define	VIEWPORT_SIZE 9
+#define	VIEWPORT_OFF (float)5.5f
+#define FLOAT_SIZE 4
 
-	//Datatypes for Human Soldier/Players.
+	//Datatypes re-defined.
 	typedef uint16_t soldier_t;
 	typedef int16_t ai_t;
 	typedef int32_t graph_t;
 	typedef uint32_t address_t;
 	typedef std::vector<uint8_t> binary_t;
+	typedef int key_t;
+
 
 	enum MENU_SCREEN {
 		MENU_SCREEN_MAINMENU = 3,

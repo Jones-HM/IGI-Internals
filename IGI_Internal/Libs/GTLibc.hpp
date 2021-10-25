@@ -572,6 +572,13 @@ extern "C" {
 	DWORD GT_GetJmpBackAddress(LPVOID address, DWORD length, LPSTR jmp_back_buf);
 #endif 
 
+	/**
+	* INFO : Write NOP (No-Operation) code into the game.
+	* @description - Inject multiple assembly instruction NOP directly into target process.
+	* @param - Address where to inject,size of opcode present at that address, in bytes.
+	* @return - On success of writing NOP it returns TRUE otherwise returns FALSE.
+	*/
+
 	BOOL GT_WriteNOP(LPVOID lp_address, SIZE_T sz_opcode_len);
 
 	/**

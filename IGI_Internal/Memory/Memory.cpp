@@ -107,7 +107,7 @@ bool Memory::SignatureScan(std::string& sig_error_reason) {
 
 bool Memory::WriteMemory(LPVOID address, std::vector<byte>& v_bytes)
 {
-	if (address == NULL || v_bytes.size() == 0) {
+	if (address == nullptr || v_bytes.size() == 0) {
 		GT_ShowError("Error occurred while writing data to memory.");
 		return false;
 	}

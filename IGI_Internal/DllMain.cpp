@@ -42,7 +42,6 @@ template<typename RT = Void, typename T1 = Void, typename T2 = Void, typename T3
 RT ThreadCallerExec(void* func_ptr, T1 param1 = nullptr, T2 param2 = nullptr, T3 param3 = nullptr, T4 param4 = nullptr) {
 	std::thread th(ThreadCallerDelay, delay_ms);
 
-	//g_AutoMsgBox->Show("",500);
 	auto ret_val = NATIVE_INVOKE<RT>(func_ptr, param1, param2, param3, param4);
 	th.join();
 
@@ -104,7 +103,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 #endif//USE_STACKTRACE_LIB 
 
 					//Invincible-Jones.
-					GT_WriteNOP((LPVOID)0x00416D85, 6);
+					GT_WriteNOP(PLAYER_XPL_HIT_ADDR, 6);
 					WEAPON::UNLIMITED_AMMO_SET(true);
 
 					//Main loop of DLL. 
@@ -190,7 +189,7 @@ void DllMainLoop() {
 			g_Enabled = !g_Enabled;
 
 			//Bypass Regular DebugPrint to Humanplayer.
-			//std::vector<uint8_t> vec{ {0x75},{0x47} };
+			//binary_t vec{ {0x75},{0x47} };
 			//g_Memory->WriteMemory((LPVOID)0x00460C8F, vec);
 		}
 
@@ -261,7 +260,7 @@ void DllMainLoop() {
 
 		else if (GT_IsKeyToggled(VK_F9)) {
 			static int hcam_val = 0;
-			HUMAN::VIEW_CAM_SET(hcam_val);
+			HUMAN::CAM_VIEW_SET(hcam_val);
 			hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
 			status_byte = 1;
 			NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, "HumanViewCam changed!", NULL, (char*)&status_byte);
@@ -310,32 +309,44 @@ void DllMainLoop() {
 
 
 		else if (GT_IsKeyToggled(VK_F11)) {
-
 			//Bypass Regular DebugPrint to Humanplayer.
 			//std::vector<uint8_t> vec{ {0x75},{0x47} };
 			//g_Memory->WriteMemory((LPVOID)0x00460C8F, vec);
+
+			Camera::Controls ctrls;
+			ctrls.UP(VK_SPACE);
+			ctrls.DOWN(VK_MENU);
+			ctrls.LEFT(VK_LEFT);
+			ctrls.RIGHT(VK_RIGHT);
+			ctrls.FORWARD(VK_UP);
+			ctrls.BACKWARD(VK_DOWN);
+			ctrls.CALIBRATE(VK_BACK);
+			ctrls.QUIT(VK_F12);
+			ctrls.AXIS_OFF(VIEWPORT_OFF);
+
+			CAMERA::FREECAM_ENABLE(ctrls);
 		}
 
 		else if (GT_IsKeyToggled(VK_F12)) {
 
-			while (!GT_IsKeyToggled(VK_SNAPSHOT))
-			{
-				Camera camera;
-				auto position = camera.ReadPosition();
-				std::cout << "X: " << position.X() << std::endl;
-				std::cout << "Y: " << position.Y() << std::endl;
-				std::cout << "Z: " << position.Z() << std::endl;
+		//CAMERA::DEATTACH();
+		//	while (!GT_IsKeyToggled(VK_SNAPSHOT))
+		//	{
+		//		auto position = CAMERA::POS_READ();
+		//		std::cout << "X: " << position.X() << std::endl;
+		//		std::cout << "Y: " << position.Y() << std::endl;
+		//		std::cout << "Z: " << position.Z() << std::endl;
 
-				auto angle = camera.ReadAngle();
+		//		auto angle = CAMERA::ANGLE_READ();
 
-				std::cout << "Pitch: " << angle.Pitch() << std::endl;
-				std::cout << "Roll: " << angle.Roll() << std::endl;
-				std::cout << "Yaw: " << angle.Yaw() << std::endl;
-				std::cout << "Fov: " << angle.Fov() << std::endl;
-				Sleep(350);
-				GT_ClearConsole();
-			}
-
+		//		std::cout << "Pitch: " << angle.Pitch() << std::endl;
+		//		std::cout << "Roll: " << angle.Roll() << std::endl;
+		//		std::cout << "Yaw: " << angle.Yaw() << std::endl;
+		//		std::cout << "Fov: " << angle.Fov() << std::endl;
+		//		Sleep(350);
+		//		GT_ClearConsole();
+		//	}
+		//	CAMERA::ATTACH();
 		}
 
 		else if (GT_IsKeyToggled(VK_SNAPSHOT)) {

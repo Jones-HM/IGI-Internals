@@ -44,7 +44,7 @@ MH_STATUS Hook::CreateHooks() {
 	if (hook_status != MH_OK) return MH_ERROR_NOT_INITIALIZED;
 	MH_STATUS mh_status;
 
-	mh_status = CreateHook(CameraUpdate, &CameraUpdateDetour, &CameraUpdateOut);
+	mh_status = MH_OK;//CreateHook(CameraUpdate, &CameraUpdateDetour, &CameraUpdateOut);
 	if (mh_status != MH_OK)LOG_ERROR("CameraUpdate Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;// CreateHook(ParseConfig, &ParseConfigDetour, &ParseConfigOut);
