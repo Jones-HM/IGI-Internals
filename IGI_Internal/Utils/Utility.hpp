@@ -31,6 +31,7 @@ namespace IGI {
 		bool WriteMemory(LPVOID, binary_t&);
 		bool StrCaseCompare(const string&, const string&);
 		bool IsAsciiStr(const std::string&);
+		void Tokenize(string&,char,vector<string>&);
 	};
 	inline Utility g_Utility;
 }

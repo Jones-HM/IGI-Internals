@@ -261,3 +261,14 @@ bool Utility::IsAsciiStr(const std::string& s)
         return c >= 0x20 && c <= 0x7F; 
     });
 }
+
+void Utility::Tokenize(string& str_in, char delim, vector<string>& vec_out) {
+	size_t start;
+	size_t end = 0;
+
+	while ((start = str_in.find_first_not_of(delim, end)) != string::npos)
+	{
+		end = str_in.find(delim, start);
+		vec_out.push_back(str_in.substr(start, end - start));
+	}
+}

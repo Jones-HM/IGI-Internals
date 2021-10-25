@@ -42,14 +42,18 @@ bool Hook::Initialize() {
 MH_STATUS Hook::CreateHooks() {
 
 	if (hook_status != MH_OK) return MH_ERROR_NOT_INITIALIZED;
+	MH_STATUS mh_status;
 
-	auto mh_status = MH_OK;// CreateHook(ParseConfig, &ParseConfigDetour, &ParseConfigOut);
+	mh_status = CreateHook(CameraUpdate, &CameraUpdateDetour, &CameraUpdateOut);
+	if (mh_status != MH_OK)LOG_ERROR("CameraUpdate Hooking error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_OK;// CreateHook(ParseConfig, &ParseConfigDetour, &ParseConfigOut);
 	if (mh_status != MH_OK)LOG_ERROR("ParseConfig Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(CreateConfig, &CreateConfigDetour, &CreateConfigOut);
 	if (mh_status != MH_OK)LOG_ERROR("CreateConfig Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(StatusMsg, &StatusMsgDetour, &StatusMsgOut);
+	mh_status = CreateHook(StatusMsg, &StatusMsgDetour, &StatusMsgOut);
 	if (mh_status != MH_OK)LOG_ERROR("StatusMsg Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(GenericPickup, &GenericPickupDetour, &GenericPickupOut);
@@ -61,7 +65,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(DebugPlayerData, &DebugPlayerDataDetour, &DebugPlayerDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("DebugPlayerData Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(DebugSoldierData, &DebugSoldierDataDetour2, &DebugSoldierDataOut);
+	mh_status = MH_OK;//CreateHook(DebugSoldierData, &DebugSoldierDataDetour, &DebugSoldierDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("DebugSoldierData Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(DbgPrint, &DbgAllocDetour, &DbgAllocOut);
@@ -88,7 +92,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = CreateHook(SoldierDead, &SoldierDeadDetour, &SoldierDeadOut);
 	if (mh_status != MH_OK)LOG_ERROR("SoldierDead Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(HumanSoldierHit, &HumanSoldierHitDetour, &HumanSoldierHitOut);
+	mh_status = CreateHook(SoldierHit, &SoldierHitDetour, &SoldierHitOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanSoldierHit Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(HumanSoldierDead, &HumanSoldierDeadDetour, &HumanSoldierDeadOut);

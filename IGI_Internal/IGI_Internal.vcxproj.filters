@@ -29,6 +29,9 @@
     <ClCompile Include="Player\HumanSoldier.cpp">
       <Filter>Player</Filter>
     </ClCompile>
+    <ClCompile Include="Camera\Camera.cpp">
+      <Filter>Camera</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
@@ -85,6 +88,9 @@
       <Filter>Player</Filter>
     </ClInclude>
     <ClInclude Include="CommonConst.hpp" />
+    <ClInclude Include="Camera\Camera.hpp">
+      <Filter>Camera</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Natives">
@@ -104,6 +110,9 @@
     </Filter>
     <Filter Include="Player">
       <UniqueIdentifier>{f1171834-1e8f-4815-bd3b-b4fa3cff02a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Camera">
+      <UniqueIdentifier>{8ff3d951-fd0f-4ea7-80d3-d36ef8fb9eb3}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

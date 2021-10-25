@@ -5,7 +5,6 @@
 #include "Natives.hpp"
 
 using namespace IGI;
-using namespace IGI;
 
 namespace IGI {
 

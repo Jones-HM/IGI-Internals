@@ -1,5 +1,5 @@
 #pragma once
-#define SOLDIER_DATA_ALL
+//#define SOLDIER_DATA_ALL
 #include "Common.hpp"
 #include "Logger.hpp"
 #include "Utils/DbgHelper.hpp"
@@ -27,7 +27,7 @@ auto ScriptInit = (char(__cdecl*)(int a1, char a2, int a3, char a4))0x4F0E50;
 auto Script_SetSymbolContext = (int(__cdecl*)(char symbol_name, int symbol_buf))0x4B8930;
 auto SetFramesVar = (void(__cdecl*)(int frame_count))0x402820;
 auto StartLevel = (int(__cdecl*)(int, int, int, int))0x415B30;
-auto StatusMsg = (int(__cdecl*)(int send_status, const char* buffer, const char* msg_sprite, const char* v6))0x485970;
+auto StatusMsg = (int(__cdecl*)(int send_status, const char* buffer, const char* msg_sprite, const char* status_byte_addr))0x00485970;
 auto TaskTypeSet = (int(__cdecl*)(int* task_name, int task_param))0x4B8810;
 auto UnLoadResource = (int(__cdecl*)(char* res_file))0x4B6380;
 auto UpdateQTaskList = (int(__cdecl*)(int a1))0x401B20;
@@ -98,8 +98,8 @@ decltype(SoldierViewCam) SoldierViewCamOut;
 auto SFXItems = (int* (__cdecl*)(int, char*))0x004E6B00;
 decltype(SFXItems) SFXItemsOut;
 
-auto HumanSoldierHit = (void(__cdecl*)(int, char*, int))0x004637C0;
-decltype(HumanSoldierHit) HumanSoldierHitOut;
+auto SoldierHit = (void(__cdecl*)(int, char*, int))0x004637C0;
+decltype(SoldierHit) SoldierHitOut;
 
 auto HumanSoldierDead = (void(__cdecl*)(int, char*, int))0x004638A0;
 decltype(HumanSoldierDead) HumanSoldierDeadOut;
@@ -118,6 +118,28 @@ decltype(DebugSoldierData) DebugSoldierDataOut;
 
 auto DbgPrint = (void(__cdecl*)(void))0x004E7840;
 decltype(DbgPrint) DbgAllocOut;
+
+auto CameraUpdate = (void(__cdecl*)(int*, int*, float*, float, float, float, int, int, float, float))0x004D9870;
+decltype(CameraUpdate) CameraUpdateOut;
+
+void CameraUpdateDetour(int* p_1, int* p_2, float* rotation, float zoom, float fov, float angle, int timer, int entity, float p_9, float p_10) {
+	//p_1 = (int*)0x08A727EC;
+	//p_2 = (int*)0x0E9C283C;
+	//*(float*)rotation = 0.5;
+	//zoom = 0.2443355;
+	//fov = 1.0f;
+	//angle = 300.0f;
+	//entity = humanplayer_ptr - 0x68;
+	//p_9 = 0.0530092f;p_10 = 0.0f;
+
+	std::stringstream ss;
+	ss << " p_1: " << HEX_ADDR_FMT(p_1) << " p_2: " << HEX_ADDR_FMT(p_2) << " rotation: " << HEX_ADDR_FMT(rotation) << " zoom: " << HEX_ADDR_FMT(zoom) <<
+		" fov: " << fov << " angle: " << angle << " timer: " << HEX_ADDR_FMT(timer) << " entity: " << HEX_ADDR_FMT(entity) <<
+		" p_9: " << HEX_ADDR_FMT(p_9) << " p_10: " << HEX_ADDR_FMT(p_10);
+	LOG_CONSOLE("%s(): %s", "Camera", ss.str().data());
+	//LOG_FILE("%s e: %p e+100: %p e+0x20: %p e+0x38: %p e+0x60: %p", "Camera", entity, *(int**)(entity + 100), (int*)(entity + 0x20), (float*)(entity + 0x38), *(float*)(entity + 0x60));
+	CameraUpdateOut(p_1, p_2, rotation, zoom, fov, angle, timer, entity, p_9, p_10);
+}
 
 void ReadWholeFile(LPCSTR file_name, LPCSTR file_mode = "rb") {
 	LOG_WARNING("%s File : %s Mode : %s", FUNC_NAME, file_name, file_mode);
@@ -231,7 +253,7 @@ void DebugSoldierDataDetour(int soldier_addr, char* event_type) {
 }
 
 void SoldierDeadDetour(int param_1, int param_2) {
-	LOG_FILE("%s-->> param_1: %p param_2: %p", "SoldierDead", param_1, param_2);
+	//LOG_FILE("%s-->> p_1: %p p_2: %p", "SoldierDead", p_1, p_2);
 	//g_DbgHelper->StackTrace(true);
 	SoldierDeadOut(param_1, param_2);
 }
@@ -260,8 +282,8 @@ void WeaponDropDetour(int** param_1) {
 }
 
 
-void HumanSoldierHitDetour(int address, char* param_2, int param_3) {
-	//LOG_CONSOLE("%s address: %p param_2: '%s' param_3 : %d", "SoldierHit", address, param_2, param_3);
+void SoldierHitDetour(int address, char* param_2, int param_3) {
+	//LOG_CONSOLE("%s address: %p p_2: '%s' rotation : %d", "SoldierHit", address, p_2, rotation);
 	//soldiers.clear();
 
 #define SOLDIER_DATA_ALL
@@ -286,7 +308,7 @@ void HumanSoldierHitDetour(int address, char* param_2, int param_3) {
 		} };
 	th.join();
 
-	HumanSoldierHitOut(address, param_2, param_3);
+	SoldierHitOut(address, param_2, param_3);
 }
 
 void HumanSoldierDeadDetour(int param_1, char* param_2, int param_3) {
@@ -346,7 +368,7 @@ void AmmoPickupDetour(int param_1, int* param_2) {
 
 void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param_4, int param_5, int param_6) {
 	LOG_FILE("%s param_1 : %p param_2 : %p param_3 : %p param_4 : %p param_5 : %p param_6 : %p", "StatusMessageShow", param_1, param_2, param_3, param_4, param_5, param_6);
-	Sleep(100);
+	//Sleep(100);
 	char* text = nullptr;
 
 	__asm {
@@ -356,8 +378,9 @@ void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param
 		lea edi, [esp + edx * 0x1 + 0x28]
 		mov text, edi
 	}
-	LOG_FILE("%s text: %s", "StatusMessageShow", text);
-	g_DbgHelper->StackTrace(true);
+
+	//LOG_CONSOLE("%s text: %s", "StatusMessageShow", text);
+	g_DbgHelper->StackTrace(true, false, true);
 	StatusMessageShowOut(param_1, param_2, param_3, param_4, param_5, param_6);
 }
 
@@ -383,27 +406,27 @@ int __cdecl SetGameDataSymbolDetour(char* symbol_file) {
 }
 
 int __cdecl LoadGameDataDetour(char* res_buf, const char* res_path, const char* res_name, int res_ptr) {
-	//LOG_FILE("%s res_buf: '%s' res_path: '%s' res_name: '%s' res_ptr: %p", "LoadGameData", res_buf, res_path, res_name, res_ptr);
+	auto ret_val = LoadGameDataOut(res_buf, res_path, res_name, res_ptr);
+	LOG_FILE("%s res_buf: '%s' res_path: '%s' res_name: '%s' res_ptr: %p, ret_val: %p", "LoadGameData", res_buf, res_path, res_name, res_ptr, ret_val);
 	//ReadWholeFile(res_buf);
-	//if (std::string(res_buf).find(".mef") != std::string::npos)
-	//	mef_files.push_back(res_name);
-	return LoadGameDataOut(res_buf, res_path, res_name, res_ptr);
+	return ret_val;
 }
 
-int* __cdecl LoadResourceDetour(char* file_name, char** param2) {
-	int* res_addr = LoadResourceOut(file_name, param2);
+int* __cdecl LoadResourceDetour(char* res_name, char** res_buf) {
+	int* res_addr = LoadResourceOut(res_name, res_buf);
 	//LOG_FILE("%s File '%s'\t Address %p", "LoadResource", file_name, (int)res_addr);
 	//ReadWholeFile(file_name);
-	if (std::string(file_name).find(".mef") != std::string::npos)
-		mef_files.push_back(file_name);
+
+	game_resources.insert(std::pair<address_t, string>((address_t)res_addr, std::string(res_name)));
+	//game_resources[(address_t)res_addr] = std::string(res_name);
 
 	return res_addr;
 }
 
-int __cdecl  StatusMsgDetour(int send_status, const char* buffer, const char* msg_sprite, const char* status_byte) {
-	LOG_FILE("%s send_status : %p buffer : '%s' msg_sprite : '%s' status_byte : %p", FUNC_NAME, send_status, buffer, msg_sprite, status_byte);
-	Sleep(100);
-	return StatusMsgOut(send_status, buffer, msg_sprite, status_byte);
+int __cdecl  StatusMsgDetour(int send_status, const char* buffer, const char* msg_sprite, const char* status_byte_addr) {
+	LOG_CONSOLE("%s send_status : %p buffer : '%s' msg_sprite : %p status_byte : %p", FUNC_NAME, send_status, buffer, msg_sprite, status_byte_addr);
+	g_DbgHelper->StackTrace(true, false, true);
+	return StatusMsgOut(send_status, buffer, msg_sprite, status_byte_addr);
 }
 
 int __cdecl ParseConfigDetour(char* q_file) {
@@ -436,8 +459,7 @@ void __cdecl SetFramesDetour(int frames) {
 }
 
 int __cdecl  StartLevelDetour(int param1, int param2, int param3, int param4) {
-	LOG_FILE("%s param1 : %p param2 : %p param3 : %p param4 : %p", FUNC_NAME, param1, param2, param3, param4);
-	Sleep(100);
+	//LOG_FILE("%s param1 : %p param2 : %p param3 : %p param4 : %p", FUNC_NAME, param1, param2, param3, param4);
 	g_DbgHelper->StackTrace(true, false, true);
 	return StartLevelOut(param1, param2, param3, param4);
 }

@@ -75,13 +75,13 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\;$(SolutionDir)$(SolutionName)\Camera\</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\;$(SolutionDir)$(SolutionName)\Camera\</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
     <GenerateManifest>false</GenerateManifest>
   </PropertyGroup>
@@ -192,6 +192,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Camera\Camera.hpp" />
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="CommonConst.hpp" />
     <ClInclude Include="HookDetours.hpp" />
@@ -218,6 +219,7 @@
     <ClInclude Include="Utils\Logger.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="Hook\Hook.cpp" />
     <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Natives\Natives.cpp" />

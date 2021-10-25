@@ -108,7 +108,7 @@ HumanSoldier HumanSoldier::FindSoldier(ai_t ai_id) {
 }
 
 HumanSoldier HumanSoldier::FindSoldier(graph_t graph_id) {
-	auto it = std::find_if(soldiers.begin(), soldiers.end(), [&](HumanSoldier& soldier) -> bool { return graph_id == soldier.GetGraphlId(); });
+	auto it = std::find_if(soldiers.begin(), soldiers.end(), [&](HumanSoldier& soldier) -> bool { return graph_id == soldier.GetGraphId(); });
 	if (it != soldiers.end()) return *it;
 	return {};
 }

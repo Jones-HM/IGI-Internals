@@ -240,8 +240,10 @@ HANDLE DbgHelper::InitStackTrace() {
 */
 
 void DbgHelper::StackTrace(bool file_info, bool capture_cxt, bool full_stack) {
+#if  defined(USE_STACKTRACE_LIB) && defined(DBG_x86)
 	auto stack_trace = StackTraceWalk(file_info, capture_cxt, full_stack);
 	StackTracePrint(stack_trace, file_info, capture_cxt);
+#endif
 }
 
 /**

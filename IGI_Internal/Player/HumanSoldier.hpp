@@ -38,7 +38,7 @@ namespace IGI {
 		string GetModelId() { return (!model_id.empty()) ? model_id : string(""); }
 		uint16_t GetSoldierId() { return (soldier_id > 0 && soldier_id <= AI_ID_MAX) ? soldier_id : (uint16_t)AI_ID_INVALID; }
 		int16_t GetAIId() { return (ai_id > 0 && ai_id <= AI_ID_MAX) ? ai_id : (int16_t)AI_ID_INVALID; }
-		uint16_t GetGraphlId() { return (graph_id > 0 && graph_id <= AI_ID_MAX) ? graph_id : (uint16_t)AI_ID_INVALID; }
+		uint16_t GetGraphId() { return (graph_id > 0 && graph_id <= AI_ID_MAX) ? graph_id : (uint16_t)AI_ID_INVALID; }
 		string GetWeapon() { return (!weapon.empty()) ? weapon : string(""); }
 		bool IsDead() { return is_dead; }
 		void IsDead(bool value) { is_dead = value; }
