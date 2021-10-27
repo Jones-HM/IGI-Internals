@@ -65,7 +65,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(DebugPlayerData, &DebugPlayerDataDetour, &DebugPlayerDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("DebugPlayerData Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(DebugSoldierData, &DebugSoldierDataDetour, &DebugSoldierDataOut);
+	mh_status = CreateHook(DebugSoldierData, &DebugSoldierDataDetour, &DebugSoldierDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("DebugSoldierData Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(DbgPrint, &DbgAllocDetour, &DbgAllocOut);

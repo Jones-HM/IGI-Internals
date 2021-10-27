@@ -9,6 +9,8 @@ namespace IGI {
 #define FUNC_NAME __func__ 
 #endif 
 
+#define NULLF (float)0.0f
+
 //Defining Helper for Pointers. 
 #define READ_PTR(addr) *(PINT)addr 
 #define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
@@ -76,11 +78,10 @@ namespace IGI {
 //Address of Camera/ViewPort.
 #define CAM_ANGLE_ADDR (void*)0x00BCAAE0
 #define	CAM_POS_ADDR (void*)0x00BCAB08
-#define	CAM_CTRL_ADDR 0x00684138
+#define	CAM_CONTROL_ADDR (void*)0x00684138
 #define	VIEWPORT_BASE_ADDR 0x00BCAAE0
 #define	VIEWPORT_TASK_ADDR (void*)0x00497E94
 #define	VIEWPORT_SIZE 9
-#define	VIEWPORT_OFF (float)5.5f
 #define FLOAT_SIZE 4
 
 	//Datatypes re-defined.

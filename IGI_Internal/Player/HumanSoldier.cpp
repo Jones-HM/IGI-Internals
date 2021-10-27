@@ -7,7 +7,7 @@ using namespace IGI;
 HumanSoldier::HumanSoldier() : HumanSoldier("", 0, 0, "", true, 0, 0) {}
 HumanSoldier::HumanSoldier(string model_id, int soldier_id, int graph_id, string weapon, bool is_dead, int e_team, uint32_t address)
 {
-	this->model_id = model_id; this->soldier_id = soldier_id; this->graph_id = graph_id; this->weapon = weapon; this->is_dead = is_dead; this->e_team = e_team; this->address = address;
+	this->model_id = model_id; this->soldier_id = soldier_id; this->graph_id = graph_id; this->weapon = weapon; this->is_dead = is_dead; this->e_team = e_team; this->address = address, init = false;
 }
 
 void HumanSoldier::AddSoldier() {
@@ -21,7 +21,7 @@ bool HumanSoldier::RemoveSoldier() {
 	return false;
 }
 
-void HumanSoldier::AddSoldierData(uint32_t address, std::vector<uint8_t> data) {
+void HumanSoldier::AddSoldierData(address_t address, std::vector<uint8_t> data) {
 
 	auto soldier = this;
 	std::string soldier_data(data.begin(), data.end());
@@ -75,6 +75,7 @@ void HumanSoldier::AddSoldierData(uint32_t address, std::vector<uint8_t> data) {
 
 		//Add soldier to Soldiers list.
 		soldier->AddSoldier();
+		std::sort(soldiers.begin(), soldiers.end(),[](HumanSoldier& a, HumanSoldier& b) { return a.GetSoldierId() < b.GetSoldierId(); });
 	}
 	else LOG_ERROR("Trying to add empty data for HumanSoldier");
 }
@@ -113,7 +114,7 @@ HumanSoldier HumanSoldier::FindSoldier(graph_t graph_id) {
 	return {};
 }
 
-void HumanSoldier::PrintSoldierDataList() {
+string HumanSoldier::DebugSoldierDataList() {
 	std::stringstream ss;
 	for (auto& soldier : soldiers) {
 		if (soldier.ValidateSoldier()) {
@@ -127,9 +128,10 @@ void HumanSoldier::PrintSoldierDataList() {
 		}
 		else LOG_CONSOLE("Soldier data invalid for Id: %d", soldier.GetSoldierId());
 	}
+	return ss.str();
 }
 
-void HumanSoldier::PrintSoldierData() {
+string HumanSoldier::DebugSoldierData() {
 	std::stringstream ss;
 	auto soldier = *this;
 	if (!soldier.ValidateSoldier())
@@ -142,6 +144,37 @@ void HumanSoldier::PrintSoldierData() {
 #endif
 	if (!soldier.ValidateSoldier())
 		LOG_FILE("Soldier: %s", ss.str().c_str());
-	else
-		LOG_CONSOLE("Soldier: %s", ss.str().c_str());
+	return ss.str();
+}
+
+void HumanSoldier::ExecuteSoldier(soldier_t soldier_id) {
+	ExecuteSoldiers(soldier_id);
+}
+
+void HumanSoldier::ExecuteSoldiers(soldier_t sol_id)
+{
+	auto SoldierExecute = (void(__cdecl*)(int, int))0x0045C440;
+
+	for (auto& soldier : soldiers) {
+		address_t soldier_addr = soldier.GetAddress();
+		soldier_t soldier_id = soldier.GetSoldierId();
+		
+		if (sol_id != (soldier_t)AI_ID_INVALID) {
+			if (sol_id != soldier_id) continue;
+		}
+
+		if (soldier_addr != NULL && soldier_id != (soldier_t)AI_ID_INVALID) {
+			if (soldier_id == 0 || soldier_addr == READ_PTR(humanplayer_ptr)) {
+				LOG_ERROR("HumanSoldier_%d cannot be Executed!", soldier_id);
+				continue;
+			}
+
+			int soldier_ptr = (soldier_addr + 0x2EC);
+			LOG_FILE("HumanSoldier_%d Executed!", soldier_id);
+			SoldierExecute(soldier_ptr, soldier_addr);
+		}
+		else
+			LOG_ERROR("Soldier address is invalid");
+	}
+	soldiers.clear();
 }

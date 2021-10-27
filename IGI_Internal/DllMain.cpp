@@ -161,10 +161,6 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 bool g_Enabled = true;
 void DllMainLoop() {
 
-	//string m_str(32, '\0');
-	//strcpy(m_str.data(), (char*)0x00A4EC6C);
-	//LOG_INFO("Model: %s", m_str.data());
-
 	g_menu_screen = READ_PTR(menu_screen_ptr);
 	g_game_level = LEVEL::GET();
 	if (g_curr_level != g_game_level) {
@@ -182,8 +178,8 @@ void DllMainLoop() {
 
 	else if (g_menu_screen == MENU_SCREEN_INGAME) {
 		if (GT_IsKeyToggled(VK_F1)) {
-			DEBUG::TEXT_INIT(GAME_CONST_FONT_BIG);
-			DEBUG::TEXT_ENABLE(g_Enabled);
+			DEBUG::INIT(GAME_CONST_FONT_BIG);
+			DEBUG::ENABLE(g_Enabled);
 			string dbg_msg = "Debug mode " + std::string((g_Enabled) ? "Enabled" : "Disabled");
 			MISC::STATUS_MESSAGE_SHOW(dbg_msg.c_str());
 			g_Enabled = !g_Enabled;
@@ -195,7 +191,7 @@ void DllMainLoop() {
 
 		else if (GT_IsKeyToggled(VK_F2)) {
 			const char* cfg_file = "LOCAL:objects.qsc";
-			QFILE::QSC_COMPILE(cfg_file);
+			QFILE::COMPILE(cfg_file);
 			LOG_INFO("Compile '%s' done!", cfg_file);
 			MISC::STATUS_MESSAGE_SHOW("Compile object.qsc done!");
 		}
@@ -210,32 +206,16 @@ void DllMainLoop() {
 
 
 		else if (GT_IsKeyToggled(VK_F4)) {
-			auto SoldierExecute = (void(__cdecl*)(int, int))0x0045C440;
-
-			for (auto& soldier : soldiers) {
-				address_t soldier_addr = soldier.GetAddress();
-				soldier_t soldier_id = soldier.GetSoldierId();
-				if (soldier_addr != 0 && soldier_id != -1) {
-					if (soldier_id == 0 || soldier_addr == READ_PTR(humanplayer_ptr)) {
-						LOG_ERROR("HumanSoldier_%d cannot be Executed!", soldier_id);
-						continue;
-					}
-
-					int soldier_ptr = (soldier_addr + 0x2EC);
-					char* dead_expr = (char*)(soldier_addr + 0x2EC + 0x107C);
-					//if (strlen(dead_expr) > 3) LOG_FILE("Expression %s", dead_expr);
-
-					SoldierExecute(soldier_ptr, soldier_addr);
-					LOG_FILE("HumanSoldier_%d Executed!", soldier_id);
-				}
-				else
-					LOG_ERROR("Soldier address is invalid");
-			}
+			SOLDIER::INIT();
 		}
 
 		else if (GT_IsKeyToggled(VK_F5)) {
-			delay_ms = 5000;
-			ThreadCallerExec<Void>(LEVEL::RESTART);
+			soldier_t id = 2000;
+			auto soldier = SOLDIER::FIND(id);
+			SOLDIER::EXECUTE(soldier);
+			
+			//delay_ms = 5000;
+			//ThreadCallerExec<Void>(LEVEL::RESTART);
 		}
 
 		else if (GT_IsKeyToggled(VK_F6)) {
@@ -268,43 +248,19 @@ void DllMainLoop() {
 
 		else if (GT_IsKeyToggled(VK_RETURN)) {
 
-			//HumanSoldier::PrintSoldierDataList();
+			g_Soldier.DebugSoldierDataList();
 			//soldier_t soldier_id = 2000;
 			//auto human = HumanSoldier::FindSoldier(soldier_id);
-			//human.PrintSoldierData();
+			//human.DebugSoldierData();
 
-			//for (const auto& soldier : soldiers) {
-			//	if (soldier.soldier_id != 0) {
-			//		string ai_data_info = "Model: " + soldier.model_id + " Id: " + std::to_string(soldier.soldier_id) + " " + soldier.weapon;
+			//for (auto& soldier : soldiers) {
+			//	if (soldier.GetSoldierId() != 0) {
+			//		string ai_data_info = "Model: " + soldier.GetModelId() + " Id: " + std::to_string(soldier.GetSoldierId()) + " " + soldier.GetWeapon();
 			//		MISC::STATUS_MESSAGE_SHOW(ai_data_info.c_str());
 			//		std::this_thread::sleep_for(3s);
 			//	}
 			//}
 			//soldiers.clear();
-
-			//auto SoldierExecute = (void(__cdecl*)(int, int))0x0045C440;
-
-			//for (auto& soldier : soldiers) {
-			//	int32_t soldier_addr = soldier.GetAddress();
-			//	int32_t soldier_id = soldier.GetSoldierId();
-			//	if (soldier_addr != 0 && soldier_id != -1) {
-			//		if (soldier_id == 0) {
-			//			LOG_ERROR("HumanSoldier_%d cannot be Executed!", soldier_id);
-			//			continue;
-			//		}
-
-			//		int soldier_ptr = (soldier_addr + 0x2EC);
-			//		char* dead_expr = (char*)(soldier_addr + 0x2EC + 0x107C);
-			//		if (strlen(dead_expr) > 3)
-			//			LOG_FILE("Expression %s", dead_expr);
-
-			//		SoldierExecute(soldier_ptr, soldier.GetAddress());
-			//		LOG_FILE("HumanSoldier_%d Executed!", soldier_id);
-			//	}
-			//	else
-			//		LOG_ERROR("Soldier address is invalid");
-			//}
-			soldiers.clear();
 		}
 
 
@@ -321,32 +277,13 @@ void DllMainLoop() {
 			ctrls.FORWARD(VK_UP);
 			ctrls.BACKWARD(VK_DOWN);
 			ctrls.CALIBRATE(VK_BACK);
-			ctrls.QUIT(VK_F12);
-			ctrls.AXIS_OFF(VIEWPORT_OFF);
+			ctrls.QUIT(VK_RETURN);
+			ctrls.AXIS_OFF(0.5f);
 
-			CAMERA::FREECAM_ENABLE(ctrls);
+			CAMERA::FREECAM(ctrls);
 		}
 
 		else if (GT_IsKeyToggled(VK_F12)) {
-
-		//CAMERA::DEATTACH();
-		//	while (!GT_IsKeyToggled(VK_SNAPSHOT))
-		//	{
-		//		auto position = CAMERA::POS_READ();
-		//		std::cout << "X: " << position.X() << std::endl;
-		//		std::cout << "Y: " << position.Y() << std::endl;
-		//		std::cout << "Z: " << position.Z() << std::endl;
-
-		//		auto angle = CAMERA::ANGLE_READ();
-
-		//		std::cout << "Pitch: " << angle.Pitch() << std::endl;
-		//		std::cout << "Roll: " << angle.Roll() << std::endl;
-		//		std::cout << "Yaw: " << angle.Yaw() << std::endl;
-		//		std::cout << "Fov: " << angle.Fov() << std::endl;
-		//		Sleep(350);
-		//		GT_ClearConsole();
-		//	}
-		//	CAMERA::ATTACH();
 		}
 
 		else if (GT_IsKeyToggled(VK_SNAPSHOT)) {

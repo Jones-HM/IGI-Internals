@@ -2,12 +2,25 @@
 #include "Natives.hpp" 
 #include "NativeCaller.hpp" 
 #include "Camera.hpp"
+#include "HumanSoldier.hpp"
 
 #define NATIVE_DECL __declspec(noinline) inline 
 
 namespace IGI {
+	
+	namespace MISC {
+		NATIVE_DECL void FRAMES_SET(int frames) { NATIVE_INVOKE<Void>((Void)HASH::FRAMES_SET, frames); };
+		NATIVE_DECL void CUTSCENE_DELETE() { NATIVE_INVOKE<Void>((Void)HASH::CUTSCENE_DELETE, (const char*)local_buf); }
+		NATIVE_DECL void GAMEMATERIAL_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::GAMEMATERIAL_LOAD); }
+		NATIVE_DECL void LOG_ADD(const char* log_msg) { NATIVE_INVOKE<Void>((Void)HASH::LOG_ADD, log_msg); }
+		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg, const char* status_sprite) { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, status_msg, status_sprite, &status_byte); }
+		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg) { STATUS_MESSAGE_SHOW(status_msg, GAME_CONST_STATUSSCREEN_NOTE); }
+		NATIVE_DECL void STATUS_MESSAGE_CLEAR() { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_CLEAR, (const char*)local_buf); }
+		NATIVE_DECL void WARNINGS_DISABLE() { *(PINT)0x00936274 = 0; }
+		NATIVE_DECL void ERRORS_DISABLE() { *(PINT)0x00936268 = 0; }
+	}
+
 	namespace PLAYER {
-		//Set Player profile properties. 
 		NATIVE_DECL void INDEX_NAME_SET(int index, const char* name) { std::memcpy((char*)PLAYER_INDEX_ADDR(index + 1), name, PLAYER_NAME_SIZE); }
 		NATIVE_DECL void INDEX_MISSION_SET(int index, byte mission) { *(byte*)(PLAYER_INDEX_ADDR(index + 1) + PLAYER_ACTIVE_MISSION_OFF) = (byte)mission; }
 		NATIVE_DECL void ACTIVE_NAME_SET(const char* name) { std::memcpy((char*)PLAYER_ACTIVE_ADDR, name, PLAYER_NAME_SIZE); }
@@ -25,9 +38,9 @@ namespace IGI {
 	}
 
 	namespace DEBUG {
-		NATIVE_DECL void TEXT_INIT() { *(int*)0x0056DF94 = 1; *(int*)0x00A5EA75 = (int)0x005C8BF4; }
-		NATIVE_DECL void TEXT_INIT(const char* font_type) { *(int*)0x00A5EA75 = (int)0x005C8BF4; strcpy((char*)0x0054D958, font_type); }
-		NATIVE_DECL void TEXT_ENABLE(bool state) { *(uint8_t*)0x005BDC1C = state; }
+		NATIVE_DECL void INIT() { *(int*)0x0056DF94 = 1; *(int*)0x00A5EA75 = (int)0x005C8BF4; }
+		NATIVE_DECL void INIT(const char* font_type) { *(int*)0x00A5EA75 = (int)0x005C8BF4; strcpy((char*)0x0054D958, font_type); }
+		NATIVE_DECL void ENABLE(bool state) { *(uint8_t*)0x005BDC1C = state; }
 	}
 
 	namespace GAME {
@@ -48,6 +61,26 @@ namespace IGI {
 		NATIVE_DECL void CAM_VIEW_SET(int cam_type) { NATIVE_INVOKE<Void>((Void)HASH::HUMAN_CAM_VIEW, (int)READ_PTR(humanplayer_ptr), cam_type); }
 	}
 
+	namespace SOLDIER {
+		NATIVE_DECL void INIT() { g_Soldier.Init(true); }
+		NATIVE_DECL void ADD(HumanSoldier& soldier) { soldier.AddSoldier(); }
+		NATIVE_DECL bool REMOVE(HumanSoldier& soldier) { return soldier.RemoveSoldier(); }
+		NATIVE_DECL bool VALIDATE(HumanSoldier& soldier) { return soldier.ValidateSoldier(); }
+		NATIVE_DECL HumanSoldier FIND(soldier_t soldier_id) { return g_Soldier.FindSoldier(soldier_id); }
+		NATIVE_DECL HumanSoldier FIND(ai_t ai_id) { return g_Soldier.FindSoldier(ai_id); }
+		NATIVE_DECL HumanSoldier FIND(graph_t graph_id) { return g_Soldier.FindSoldier(graph_id); }
+		NATIVE_DECL HumanSoldier FIND(address_t address) { return g_Soldier.FindSoldier(address); }
+		NATIVE_DECL HumanSoldier FIND(string model_id) { return g_Soldier.FindSoldier(model_id); }
+		NATIVE_DECL void DEBUG_DATA(HumanSoldier& soldier) { MISC::STATUS_MESSAGE_SHOW(soldier.DebugSoldierData().c_str()); std::this_thread::sleep_for(7s); MISC::STATUS_MESSAGE_CLEAR(); }
+		NATIVE_DECL void DEBUG_DATA_LIST(HumanSoldier& soldier) { soldier.DebugSoldierDataList(); }
+		NATIVE_DECL void EXECUTE(int ptr, int addr) { NATIVE_INVOKE<Void>((Void)HASH::SOLDIER_EXECUTE, ptr, addr); }
+		NATIVE_DECL void EXECUTE(HumanSoldier& soldier) { g_Soldier.ExecuteSoldier(soldier.GetSoldierId()); }
+		NATIVE_DECL void EXECUTE(soldier_t soldier_id) { g_Soldier.ExecuteSoldier(soldier_id); }
+		NATIVE_DECL void EXECUTE() { if (soldiers.size() > 0) { auto soldier = soldiers.at(0); SOLDIER::EXECUTE(soldier); } }
+		NATIVE_DECL void EXECUTE_ALL() { g_Soldier.ExecuteSoldiers(); }
+		NATIVE_DECL void CAM_VIEW_SET(HumanSoldier& soldier,int cam_type) { NATIVE_INVOKE<Void>((Void)HASH::HUMAN_CAM_VIEW, (int)READ_PTR(soldier.GetAddress()), cam_type); }
+	}
+
 	namespace WEAPON {
 		NATIVE_DECL void UNLIMITED_AMMO_SET(bool enable) { *(PINT)0x56E214 = enable; }
 		NATIVE_DECL void TYPE_OPEN() { NATIVE_INVOKE<Void>((Void)HASH::WEAPON_TYPE_OPEN); }
@@ -58,19 +91,19 @@ namespace IGI {
 	}
 
 	namespace CAMERA {
-		NATIVE_DECL void ATTACH() { g_Camera.AttachCam(); }
-		NATIVE_DECL void DEATTACH() { g_Camera.DeattachCam(); }
+		NATIVE_DECL void ATTACH() { g_Camera.Attach(); }
+		NATIVE_DECL void DEATTACH() { g_Camera.Deattach(); }
 		NATIVE_DECL void CALIBRATE() { g_Camera.CalibrateView(); }
-		NATIVE_DECL void FREECAM_ENABLE(Camera::Controls& cam_controls) { g_Camera.EnableFreeCam(cam_controls); }
+		NATIVE_DECL void FREECAM(Camera::Controls& controls) { g_Camera.FreeCam(controls); }
 		NATIVE_DECL void X_POS_UPDATE(double x) { g_Camera.WritePosition(x); }
-		NATIVE_DECL void Y_POS_UPDATE(double y) { g_Camera.WritePosition(y); }
-		NATIVE_DECL void Z_POS_UPDATE(double z) { g_Camera.WritePosition(z); }
+		NATIVE_DECL void Y_POS_UPDATE(double y) { g_Camera.WritePosition(NULLF, y); }
+		NATIVE_DECL void Z_POS_UPDATE(double z) { g_Camera.WritePosition(NULLF, NULLF, z); }
 		NATIVE_DECL void POS_UPDATE(Camera::Position& pos) { g_Camera.WritePosition(pos); }
 		NATIVE_DECL void ANGLE_UPDATE(Camera::Angle& angle) { g_Camera.WriteAngle(angle); }
-		NATIVE_DECL void PITCH_UPDATE(float pitch) { g_Camera.WritePitch(pitch); }
-		NATIVE_DECL void ROLL_UPDATE(float roll) { g_Camera.WriteRoll(roll); }
-		NATIVE_DECL void YAW_UPDATE(float yaw) { g_Camera.WriteYaw(yaw); }
-		NATIVE_DECL void FOV_UPDATE(float fov) { g_Camera.WriteFov(fov); }
+		NATIVE_DECL void PITCH_UPDATE(float pitch) { g_Camera.WriteAngle(pitch); }
+		NATIVE_DECL void ROLL_UPDATE(float roll) { g_Camera.WriteAngle(NULLF, roll); }
+		NATIVE_DECL void YAW_UPDATE(float yaw) { g_Camera.WriteAngle(NULLF, NULLF, yaw); }
+		NATIVE_DECL void FOV_UPDATE(float fov) { g_Camera.WriteAngle(NULLF, NULLF, NULLF, fov); }
 		NATIVE_DECL Camera::Position POS_READ() { return g_Camera.ReadPosition(); }
 		NATIVE_DECL Camera::Angle ANGLE_READ() { return g_Camera.ReadAngle(); }
 	}
@@ -85,7 +118,7 @@ namespace IGI {
 	}
 
 	namespace QFILE {
-		NATIVE_DECL void QSC_COMPILE(const char* qsc_file) { NATIVE_INVOKE<Void>((Void)HASH::QSC_COMPILE, qsc_file); }
+		NATIVE_DECL void COMPILE(const char* qsc_file) { NATIVE_INVOKE<Void>((Void)HASH::QSC_COMPILE, qsc_file); }
 		NATIVE_DECL void OPEN(const char* file, char* mode) { NATIVE_INVOKE<Void>((Void)HASH::FILE_OPEN, file, mode); }
 	}
 
@@ -108,17 +141,5 @@ namespace IGI {
 
 	namespace MISSION {
 		NATIVE_DECL void OPEN(char** ptr_mission) { NATIVE_INVOKE<Void>((Void)HASH::MISSION_OPEN, ptr_mission); }
-	}
-
-	namespace MISC {
-		NATIVE_DECL void FRAMES_SET(int frames) { NATIVE_INVOKE<Void>((Void)HASH::FRAMES_SET, frames); };
-		NATIVE_DECL void CUTSCENE_DELETE() { NATIVE_INVOKE<Void>((Void)HASH::CUTSCENE_DELETE, (const char*)local_buf); }
-		NATIVE_DECL void STATUS_MESSAGE_CLEAR() { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_CLEAR, (const char*)local_buf); }
-		NATIVE_DECL void GAMEMATERIAL_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::GAMEMATERIAL_LOAD); }
-		NATIVE_DECL void LOG_ADD(const char* log_msg) { NATIVE_INVOKE<Void>((Void)HASH::LOG_ADD, log_msg); }
-		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg, const char* status_sprite) { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, status_msg, status_sprite, &status_byte); }
-		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg) { STATUS_MESSAGE_SHOW(status_msg, GAME_CONST_STATUSSCREEN_NOTE); }
-		NATIVE_DECL void WARNINGS_DISABLE() { *(PINT)0x936274 = 0; }
-		NATIVE_DECL void ERRORS_DISABLE() { *(PINT)0x936268 = 0; }
 	}
 }

@@ -30,10 +30,10 @@ namespace IGI {
 			Angle(float pitch, float roll, float yaw, float fov) { this->pitch = pitch; this->roll = roll; this->yaw = yaw; this->fov = fov; }
 
 			//Getters.
-			double Pitch() { return pitch; }
-			double Roll() { return roll; }
-			double Yaw() { return yaw; }
-			double Fov() { return fov; }
+			float Pitch() { return pitch; }
+			float Roll() { return roll; }
+			float Yaw() { return yaw; }
+			float Fov() { return fov; }
 
 			//Setters.
 			void Pitch(float pitch) { this->pitch = pitch; }
@@ -77,7 +77,7 @@ namespace IGI {
 			key_t right;//Key event - Camera Right. (Y-Axis)
 			key_t forward;//Key event - Camera Forward. (X-Axis)
 			key_t backward;//Key event - Camera Backward. (X-Axis)
-			key_t calibrate;//Key event - Camera Re-Calibrate. [Reset to X-Axis]
+			key_t calibrate;//Key event - Camera Calibrate. [Reset to X-Axis]
 			key_t quit;//Key event - Quit Free cam.
 			float axis_off; //Offset value to move Camera from Axis.
 
@@ -97,7 +97,7 @@ namespace IGI {
 			key_t BACKWARD() { return backward; }
 			key_t CALIBRATE() { return calibrate; }
 			key_t QUIT() { return quit; }
-			key_t AXIS_OFF() { return axis_off; }
+			float AXIS_OFF() { return axis_off; }
 
 			//Setters.
 			void UP(key_t key) { this->up = key; }
@@ -109,7 +109,6 @@ namespace IGI {
 			void CALIBRATE(key_t key) { this->calibrate = key; }
 			void QUIT(key_t key) { this->quit = key; }
 			void AXIS_OFF(float axis_off) { this->axis_off = axis_off; }
-		
 		};
 
 		//Camera Section.
@@ -125,15 +124,15 @@ namespace IGI {
 		void WritePosition(double x);
 		void WritePosition(double x, double y);
 		void WritePosition(double x, double y, double z);
-		void WriteAngle(Camera::Angle angle);
-		void WritePitch(float pitch);
-		void WriteRoll(float roll);
-		void WriteYaw(float yaw);
-		void WriteFov(float fov);
+		void WriteAngle(Angle& angle);
+		void WriteAngle(float pitch);
+		void WriteAngle(float pitch, float roll);
+		void WriteAngle(float pitch, float roll, float yaw);
+		void WriteAngle(float pitch, float roll,float yaw, float fov);
 		void CalibrateView();
-		void AttachCam();
-		void DeattachCam();
-		void EnableFreeCam(Camera::Controls&);
+		void Attach();
+		void Deattach();
+		void FreeCam(Controls&);
 	};
 	inline Camera g_Camera;
 }

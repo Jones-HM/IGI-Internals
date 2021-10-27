@@ -163,8 +163,6 @@ void ReadWholeFile(LPCSTR file_name, LPCSTR file_mode = "rb") {
 	}
 }
 
-
-
 void DbgAllocDetour(void) {
 	LOG_INFO("%s called", "DbgAlloc");
 }
@@ -181,7 +179,7 @@ void __cdecl DebugSoldierDataDetour2(int soldier_addr, char* event_type) {
 		for (auto& soldier : soldiers) {
 			//auto soldier = soldiers.at(0);
 			if (soldier_addr == soldier.GetAddress()) {
-				//soldier.PrintSoldierData();
+				//soldier.DebugSoldierData();
 				//LOG_CONSOLE("%s Addr: %p Expr: '%s' Event: '%s'", "", soldier_addr, (char*)(soldier_addr + 0x2EC + 0x107C), event_type);
 				return DebugSoldierDataOut(soldier_addr, event_type);
 			}
@@ -217,9 +215,10 @@ void __cdecl DebugSoldierDataDetour2(int soldier_addr, char* event_type) {
 
 void DebugSoldierDataDetour(int soldier_addr, char* event_type) {
 
+	if (!g_Soldier.Init()) return;
+
 	//Vector to hold AI data.
 	std::vector<uint8_t> ai_data(AI_BUF_SIZE_HALF, '\0');
-
 
 #ifdef SOLDIER_DATA_ALL
 	ai_data.resize(AI_BUF_SIZE_FULL);
@@ -237,8 +236,6 @@ void DebugSoldierDataDetour(int soldier_addr, char* event_type) {
 	}
 
 	if (soldier_addr != new_addr && ai_count <= AI_COUNT_MAX) {
-		//LOG_FILE("%s soldier_addr: %p Expr: '%s' AiEvent: '%s'", "DebugSoldierData", soldier_addr, (char*)(soldier_addr + 0x2EC + 0x107C), event_type);
-
 		void* ai_addr = reinterpret_cast<void*>(soldier_addr + 0x100);
 
 		HumanSoldier soldier;
@@ -250,12 +247,6 @@ void DebugSoldierDataDetour(int soldier_addr, char* event_type) {
 		DebugSoldierDataOut(soldier_addr, event_type);
 	}
 	new_level = g_curr_level;
-}
-
-void SoldierDeadDetour(int param_1, int param_2) {
-	//LOG_FILE("%s-->> p_1: %p p_2: %p", "SoldierDead", p_1, p_2);
-	//g_DbgHelper->StackTrace(true);
-	SoldierDeadOut(param_1, param_2);
 }
 
 void WeaponDropDetour(int** param_1) {
@@ -281,12 +272,7 @@ void WeaponDropDetour(int** param_1) {
 	WeaponDropOut(param_1);
 }
 
-
-void SoldierHitDetour(int address, char* param_2, int param_3) {
-	//LOG_CONSOLE("%s address: %p p_2: '%s' rotation : %d", "SoldierHit", address, p_2, rotation);
-	//soldiers.clear();
-
-#define SOLDIER_DATA_ALL
+void AddSoldierDataHit(int address,bool is_alive) {
 	//Vector to hold AI data.
 	std::vector<uint8_t> ai_data(AI_BUF_SIZE_HALF, '\0');
 
@@ -301,15 +287,28 @@ void SoldierHitDetour(int address, char* param_2, int param_3) {
 	std::thread th{ [&]() {
 		std::memcpy(ai_data.data(), ai_address, ai_data.capacity());
 		std::string soldier_data(ai_data.begin(), ai_data.end());
-		//WriteFileType(std::string(g_Utility.GetModuleFolder() + "\\" + "ai_data.dat"), soldier_data, BINARY_FILE);
 		//Add soldier data information.
 	soldier.AddSoldierData(address,ai_data);
-	soldier.PrintSoldierData();
+	soldier.DebugSoldierData();
+	soldier.IsDead(!is_alive);
 		} };
 	th.join();
+}
 
+
+void SoldierHitDetour(int address, char* param_2, int param_3) {
+	LOG_CONSOLE("%s address: %p param_2: '%s' param_3 : %d", "SoldierHit", address, param_2, param_3);
+	AddSoldierDataHit(address,true);
 	SoldierHitOut(address, param_2, param_3);
 }
+
+void SoldierDeadDetour(int ptr, int address) {
+	//LOG_CONSOLE("%s ptr: %p address: %p", "SoldierDead", ptr, address);
+	//g_DbgHelper->StackTrace(true);
+	//AddSoldierDataHit(address,false);
+	SoldierDeadOut(ptr, address);
+}
+
 
 void HumanSoldierDeadDetour(int param_1, char* param_2, int param_3) {
 	LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "SoldierDead", param_1, param_2, param_3);
