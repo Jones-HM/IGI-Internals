@@ -321,7 +321,7 @@
 				"address": 4939520,
 				"name": "ResourceLoad",
 				"signature": "int * ResourceLoad(char *resource_file,char **buffer)",
-				"note": "Load resource in Memory and Returns address of file., Params: resource file like 'sounds.qvm','AI/303.qvm'"
+				"note": "Load resource in Memory and Returns address of file., Params: resource file like 'sounds.res','AI/303.qvm'"
 			}
 		},
 		{
@@ -331,6 +331,33 @@
 				"name": "ResourceUnload",
 				"signature": "void ResourceUnload(int *resource_file);",
 				"note": "Unload resource loaded in memory, Params: resource file like 'sounds.qvm','AI/303.qvm'"
+			}
+		},
+		{
+			"Native": {
+				"hash": "004B5B90",
+				"address": 4938640,
+				"name": "IsResourceLoaded",
+				"signature": "int IsResourceLoaded(char *res_file,int *res_file_ptr);",
+				"note": "Check where resource is in loaded in memory, Params: resource 'sounds.qvm','AI/303.qvm' and address of res file"
+			}
+		},
+		{
+			"Native": {
+				"hash": "004B18B0",
+				"address": 4921520,
+				"name": "ResourcePackUnpack",
+				"signature": "int ResourcePackUnpack(char *res_file,char **buffer);",
+				"note": "Packs and return address or Unpacks resource file into memory depending upon resource type, Params: resource 'sounds.res','terrain.res', and buffer."
+			}
+		},
+		{
+			"Native": {
+				"hash": "004B16D0",
+				"address": 4921040,
+				"name": "ResourceUnpack",
+				"signature": "void ResourceUnpack(int* res_ptr, int res_addr, int res_size);",
+				"note": "Unpacks resource file into memory, Params: Resource ptr, address where to unpack (Allocate using Mem_Alloc) and size of resource."
 			}
 		},
 		{
@@ -473,7 +500,7 @@
 				"hash": "004A5350",
 				"address": 4870992,
 				"name": "FileOpen",
-				"signature": "void FileOpen(const char* file,char *mode);",
+				"signature": "void* FileOpen(const char* file,char *mode);",
 				"note": "Open file for reading or writing, Params: Check fopen() in c."
 			}
 		},
@@ -536,17 +563,53 @@
 				"hash": "004A53B3",
 				"address": 4871091,
 				"name": "GameDataSymbolLoad",
-				"signature": "int GameDataSymbolLoad(char* sym_buf,char* sym_path);",
-				"note": "Load game data symbol to buffer for game like internal vairables,UI controls,timers etc."
+				"signature": "int GameDataSymbolLoad(char* sym_buf,char* sym_path,char* sym_name);",
+				"note": "Load game data symbol to buffer for game like internal vairables,UI controls,timers etc. Params: like (buf,\"LOCAL:models/%s.mef\",\"000_02_1\")"
 			}
 		},
 		{
 			"Native": {
 				"hash": "004B80A0",
 				"address": 4948128,
-				"name": "GameDataSymbolSave",
-				"signature": "void GameDataSymbolSave(char* sym_buf);",
-				"note": "Set game data symbol buffer for game like internal vairables,UI controls,timers etc."
+				"name": "GameDataSymbolRemove",
+				"signature": "void GameDataSymbolRemove(char* sym_buf);",
+				"note": "Removes game data symbol for game like internal vairables,UI controls,timers etc."
+			}
+		},
+		{
+			"Native": {
+				"hash": "004B7EE0",
+				"address": 4947680,
+				"name": "SymbolRegisterBool8",
+				"signature": "void SymbolRegisterBool8(int **sym_buf,int sym_addr);",
+				"note": "Register new symbol of type 'Boolean' for game like internal vairables,UI controls,timers etc."
+			}
+		},
+		{
+			"Native": {
+				"hash": "004B7E80",
+				"address": 4947584,
+				"name": "SymbolRegisterInt16",
+				"signature": "void SymbolRegisterInt16(int **sym_buf,int sym_addr);",
+				"note": "Register new symbol of type 'Int16' for game like internal vairables,UI controls,timers etc."
+			}
+		},
+		{
+			"Native": {
+				"hash": "004B7FA0",
+				"address": 4947872,
+				"name": "SymbolRegisterInt32",
+				"signature": "void SymbolRegisterInt16(int **sym_buf,int sym_addr);",
+				"note": "Register new symbol of type 'Int32' for game like internal vairables,UI controls,timers etc."
+			}
+		},
+		{
+			"Native": {
+				"hash": "004B7FC0",
+				"address": 4947904,
+				"name": "SymbolRegisterReal32",
+				"signature": "void SymbolRegisterReal32(int **sym_buf,int sym_addr);",
+				"note": "Register new symbol of type 'Real32 aka Float' for game like internal vairables,UI controls,timers etc."
 			}
 		},
 		{
@@ -603,13 +666,40 @@
 				"note": "Get Player XP Hit damage for current health."
 			}
 		},
-    {
+		{
 			"Native": {
 				"hash": "00463760",
 				"address": 4601696,
 				"name": "HumanViewCam",
-				"signature": "void HumanViewCam(int cam_ptr,int cam_type)",
-				"note": "Camera view for Humanplayer , Param: cam_ptr is in defined in Constants as 'cam_ptr' and cam_type is [1-6]"
+				"signature": "void HumanViewCam(int soldier_ptr,int cam_type)",
+				"note": "Camera view for Human Player/Soldier , Param: soldier_ptr is pointer to Entity you are changing and cam_type is [1-6]"
+			}
+		},
+		{
+			"Native": {
+				"hash": "004659E0",
+				"address": 4610528,
+				"name": "HumanTaskViewReset",
+				"signature": "void HumanTaskViewReset(int human_ptr)",
+				"note": "Reset Human view angle after changing it by Zoom (Dragunov,Binoculars). "
+			}
+		},
+		{
+			"Native": {
+				"hash": "00406220",
+				"address": 4219424,
+				"name": "IsPlayerProfileActive",
+				"signature": "char* IsPlayerProfileActive()",
+				"note": "Checks if current player profle is active."
+			}
+		},
+		{
+			"Native": {
+				"hash": "0045C440",
+				"address": 4572224,
+				"name": "SoldierExecute",
+				"signature": "void SoldierExecute(int ptr, int addr)",
+				"note": "Execute current soldier in level, Param: ptr = (addr+0x2EC) and soldier address."
 			}
 		}
 	]

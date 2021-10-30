@@ -992,23 +992,23 @@ inline bool operator<(const value_t lhs, const value_t rhs) noexcept
     #define JSON_HEDLEY_DIAGNOSTIC_DISABLE_CPP98_COMPAT_WRAP_(x) x
 #endif
 
-#if defined(JSON_HEDLEY_CONST_CAST)
-    #undef JSON_HEDLEY_CONST_CAST
+#if defined(JSON_HEDLEY_CAST)
+    #undef JSON_HEDLEY_CAST
 #endif
 #if defined(__cplusplus)
-#  define JSON_HEDLEY_CONST_CAST(T, expr) (const_cast<T>(expr))
+#  define JSON_HEDLEY_CAST(T, expr) (const_cast<T>(expr))
 #elif \
   JSON_HEDLEY_HAS_WARNING("-Wcast-qual") || \
   JSON_HEDLEY_GCC_VERSION_CHECK(4,6,0) || \
   JSON_HEDLEY_INTEL_VERSION_CHECK(13,0,0)
-#  define JSON_HEDLEY_CONST_CAST(T, expr) (__extension__ ({ \
+#  define JSON_HEDLEY_CAST(T, expr) (__extension__ ({ \
         JSON_HEDLEY_DIAGNOSTIC_PUSH \
         JSON_HEDLEY_DIAGNOSTIC_DISABLE_CAST_QUAL \
         ((T) (expr)); \
         JSON_HEDLEY_DIAGNOSTIC_POP \
     }))
 #else
-#  define JSON_HEDLEY_CONST_CAST(T, expr) ((T) (expr))
+#  define JSON_HEDLEY_CAST(T, expr) ((T) (expr))
 #endif
 
 #if defined(JSON_HEDLEY_REINTERPRET_CAST)
@@ -26507,7 +26507,7 @@ inline nlohmann::json::json_pointer operator "" _json_pointer(const char* s, std
 #undef JSON_HEDLEY_CONCAT_EX
 #undef JSON_HEDLEY_CONST
 #undef JSON_HEDLEY_CONSTEXPR
-#undef JSON_HEDLEY_CONST_CAST
+#undef JSON_HEDLEY_CAST
 #undef JSON_HEDLEY_CPP_CAST
 #undef JSON_HEDLEY_CRAY_VERSION
 #undef JSON_HEDLEY_CRAY_VERSION_CHECK

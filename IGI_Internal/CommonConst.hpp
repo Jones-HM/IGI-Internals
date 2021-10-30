@@ -9,7 +9,8 @@ namespace IGI {
 #define FUNC_NAME __func__ 
 #endif 
 
-#define NULLF (float)0.0f
+#define NULLF (float)0.0f //Floating point Null.
+#define MEF_ID_SIZE 8 // XXX_XX_X = 8, Ex: 435_01_1.
 
 //Defining Helper for Pointers. 
 #define READ_PTR(addr) *(PINT)addr 
@@ -51,18 +52,33 @@ namespace IGI {
 #define GAME_WEAPONS_DIR (const char*)R"(WEAPONS:)"
 
 //Common constants. 
-#define GAME_CONST_CONFIG_FILE (const char*)R"(LOCAL:config.qsc)"
-#define GAME_CONST_MAINMENU_FILE (const char*)R"(LOCAL:menusystem\mainmenu.qsc)"
-#define GAME_CONST_INGAMEMENU_FILE (const char*)R"(LOCAL:menusystem\ingame.qsc)"
-#define GAME_CONST_WEAPON_CONFIG_FILE (const char*)R"(LOCAL:weapons/weaponconfig.qsc)"
-#define GAME_CONST_STATUSSCREEN_AMMO (const char*)R"(STATUSSCREEN:ammo.spr)"
-#define GAME_CONST_STATUSSCREEN_GUN (const char*)R"(STATUSSCREEN:a_gun.spr)"
-#define GAME_CONST_STATUSSCREEN_WEAPON (const char*)R"(STATUSSCREEN:weapon.spr)"
-#define GAME_CONST_STATUSSCREEN_NOTE (const char*)R"(STATUSSCREEN:note.spr)"
-#define GAME_CONST_FONT_BIG (const char*)R"(LOCAL:computer/font1.fnt)"
-#define GAME_CONST_FONT_MEDIUM (const char*)R"(LOCAL:computer/font3.fnt)"
-#define GAME_CONST_FONT_SMALL (const char*)R"(LOCAL:computer/font4.fnt)"
-#define GAME_CONST_FONT_DEBUG (const char*)R"(LOCAL:debug.fnt)"
+#define GAME_CONFIG_FILE (const char*)R"(LOCAL:config.qsc)"
+#define GAME_MAINMENU_FILE (const char*)R"(LOCAL:menusystem\mainmenu.qsc)"
+#define GAME_INGAMEMENU_FILE (const char*)R"(LOCAL:menusystem\ingame.qsc)"
+#define GAME_WEAPON_CONFIG_FILE (const char*)R"(LOCAL:weapons/weaponconfig.qsc)"
+#define GAME_STATUSSCREEN_AMMO (const char*)R"(STATUSSCREEN:ammo.spr)"
+#define GAME_STATUSSCREEN_GUN (const char*)R"(STATUSSCREEN:a_gun.spr)"
+#define GAME_STATUSSCREEN_WEAPON (const char*)R"(STATUSSCREEN:weapon.spr)"
+#define GAME_STATUSSCREEN_NOTE (const char*)R"(STATUSSCREEN:note.spr)"
+#define GAME_FONT_BIG (const char*)R"(LOCAL:computer/font1.fnt)"
+#define GAME_FONT_MEDIUM (const char*)R"(LOCAL:computer/font3.fnt)"
+#define GAME_FONT_SMALL (const char*)R"(LOCAL:computer/font4.fnt)"
+#define GAME_FONT_DEBUG (const char*)R"(LOCAL:debug.fnt)"
+#define GAME_RESOURCE_RES (const char*) ".res" //Resource = Level1.res
+#define GAME_RESOURCE_MEF (const char*) ".mef"//Mesh External File. 3D-Objects. (Version 5). v.85
+#define GAME_RESOURCE_SPRITE (const char*) ".spr" //2D-Sprite.
+#define GAME_RESOURCE_FONT (const char*) ".fnt" //Fonts.
+#define GAME_RESOURCE_TEXTURE (const char*) ".tex" //Textures - Skins of Objects. 
+#define GAME_RESOURCE_QVM (const char*) ".qvm" // Q Virtual Machine. (Version 5).v.85  - compiled in-game scripts for Objects.
+#define GAME_RESOURCE_OLM (const char*) ".olm"//Object Light Map.
+#define GAME_RESOURCE_WAV (const char*) ".wav" //Sounds. Signature 'ILSF' = InnerLoopSoundFile.
+#define GAME_RESOURCE_LMP (const char*) ".lmp"//Terrain Light Map.
+#define GAME_RESOURCE_CTR (const char*) ".ctr" //Terrain related.
+#define GAME_RESOURCE_CMD (const char*) ".cmd" //Terrain related.
+#define GAME_RESOURCE_HMP (const char*) ".hmp"//Terrain related.
+#define GAME_RESOURCE_MTP (const char*) ".mtp" //Object(Material) Properties.
+#define GAME_RESOURCE_ANIMATION (const char*) ".iff" //Animation.
+#define GAME_RESOURCE_PIC (const char*) ".pic" //Graphics.
 
 #define GUN_PICKUP_PTR (int*)0x0019F720
 #define AMMO_PICKUP_PTR (int*)0x0019F820
@@ -91,7 +107,7 @@ namespace IGI {
 	typedef uint32_t address_t;
 	typedef std::vector<uint8_t> binary_t;
 	typedef int key_t;
-
+	typedef std::pair<address_t,std::string> pair_t;
 
 	enum MENU_SCREEN {
 		MENU_SCREEN_MAINMENU = 3,

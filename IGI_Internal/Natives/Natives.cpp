@@ -41,7 +41,6 @@ namespace IGI {
 	}
 }
 
-
 Natives::Natives() {
 	g_Natives = this;
 	InitNativesSignatures();
@@ -52,18 +51,18 @@ Natives::~Natives() {
 }
 
 void Natives::InitNativesSignatures() {
-	const string natives_file = g_Utility.GetModuleFolder() + "\\" + NATIVES_FILE_NAME;
+	const string natives_file = g_Utility.GetModuleFolder() + "\\" + NATIVES_FILE;
 
 	bool nativesLoaded = LoadNativesFile(natives_file);
 
 	if (!nativesLoaded) {
 
-		string err_str = ("Method: " + std::string(FUNC_NAME) + "()\nReason: " + std::string("Natives definition couldn't be loaded from ") + std::string(NATIVES_FILE_NAME));
+		string err_str = ("Method: " + std::string(FUNC_NAME) + "()\nReason: " + std::string("Natives definition couldn't be loaded from ") + std::string(NATIVES_FILE));
 		LOG_ERROR("%s(): %s",FUNC_NAME,err_str.c_str());
 		throw std::exception(err_str.c_str());
 	}
 	else
-		LOG_FILE("%s(): Natives definition loaded from '%s'",FUNC_NAME, NATIVES_FILE_NAME);
+		LOG_FILE("%s(): Natives definition loaded from '%s'",FUNC_NAME, NATIVES_FILE);
 }
 
 string Natives::FindNativeName(uint32_t native_address) {

@@ -254,7 +254,7 @@ void DbgHelper::StackTrace(bool file_info, bool capture_cxt, bool full_stack) {
 */
 
 void DbgHelper::StackTracePrint(std::vector<StackFrame> stack_trace, bool file_info, bool capture_cxt) {
-	const string file_name = g_Utility.GetModuleFolder() + "\\" + LOG_FILE_NAME;
+	const string file_name = g_Utility.GetModuleFolder() + "\\" + LOGGER_FILE;
 	std::ofstream fout(file_name, std::ios_base::app);
 
 	fout << "\nStackTrace Info: " << std::endl;

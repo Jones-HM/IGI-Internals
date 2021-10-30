@@ -41,7 +41,7 @@ namespace IGI {
 		vsprintf_s(fmt_buff, fmt, va_alist);
 		va_end(va_alist);
 
-		if(g_Console) g_Console->SetTextColor(g_Log_Color[log_type]);
+		if (g_Console) g_Console->SetTextColor(g_Log_Color[log_type]);
 		char log_buff[2048] = { NULL };
 
 		// Print to console 
@@ -65,7 +65,7 @@ namespace IGI {
 	void Log::WriteW(bool log_console, bool log_file, ELOG_TYPE log_type, const wchar_t* buff) {
 
 		if (g_Console) g_Console->SetTextColor(g_Log_Color[log_type]);
-			
+
 		// Print to console 
 		if (log_console) {
 			int result = setmode(fileno(stdout), O_U16TEXT);
@@ -102,7 +102,7 @@ namespace IGI {
 
 	void Log::LogFileA(const char* buff) {
 
-		const string file_name = g_Utility.GetModuleFolder() + "\\" + LOG_FILE_NAME;
+		const string file_name = g_Utility.GetModuleFolder() + "\\" + LOGGER_FILE;
 
 		std::ofstream fout;
 		fout.open(file_name, std::ios_base::app);
@@ -117,7 +117,7 @@ namespace IGI {
 	void Log::LogFileW(const wchar_t* buff) {
 		int result = setmode(fileno(stdout), O_U16TEXT);
 
-		const string file_name =g_Utility.GetModuleFolder() + "\\" + LOG_FILE_NAME;
+		const string file_name = g_Utility.GetModuleFolder() + "\\" + LOGGER_FILE;
 		const std::locale utf8_locale = std::locale(std::locale(), new std::codecvt_utf8_utf16<wchar_t>());
 		if (result != -1) {
 			std::wofstream wf(file_name, std::ios_base::app);

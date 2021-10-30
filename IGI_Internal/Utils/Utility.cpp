@@ -7,7 +7,7 @@ inline HANDLE g_Handle;
 using namespace IGI;
 
 
-const string Utility::GetRunningExecutableFolder() {
+const string Utility::GetExecutableFolder() {
 
 	char file_name[MAX_PATH];
 	GetModuleFileNameA(NULL, file_name, MAX_PATH);
@@ -47,7 +47,7 @@ const HANDLE Utility::GetHandle() {
 
 
 //Returns the last Win32 error, in string format. Returns an empty string if there is no error. 
-string Utility::GetLastErrorAsString()
+string Utility::GetLastErrorString()
 {
 	//Get the error message ID, if any. 
 	DWORD error_message_i_d = ::GetLastError();
@@ -255,7 +255,14 @@ bool Utility::StrCaseCompare(const string& a, const string& b) {
 	});
 }
 
-bool Utility::IsAsciiStr(const std::string& s)
+size_t Utility::Find(string& data, string& search, size_t pos)
+{
+	std::transform(data.begin(), data.end(), data.begin(), ::tolower);
+	std::transform(search.begin(), search.end(), search.begin(), ::tolower);
+	return data.find(search, pos);
+}
+
+bool Utility::IsAsciiStr(const string& s)
 {
     return std::all_of(s.begin(), s.end(), [](unsigned char c) { 
         return c >= 0x20 && c <= 0x7F; 

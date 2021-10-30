@@ -13,8 +13,8 @@ Hook::Hook(bool createOnInit) {
 	Hook::Initialize();
 	if (createOnInit) {
 		if (hook_status == MH_OK) {
-			if (g_Hook->CreateHooks() == MH_OK) {
-				g_Hook->EnableHooks();
+			if (CreateHooks() == MH_OK) {
+				EnableHooks();
 			}
 			else
 				LOG_ERROR("Error occurred while creating hooks.");
@@ -68,9 +68,6 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = CreateHook(DebugSoldierData, &DebugSoldierDataDetour, &DebugSoldierDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("DebugSoldierData Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(DbgPrint, &DbgAllocDetour, &DbgAllocOut);
-	if (mh_status != MH_OK)LOG_ERROR("DbgAlloc Hooking error : %s", MH_StatusToString(mh_status));
-
 	mh_status = CreateHook(GunPickup, &GunPickupDetour, &GunPickupOut);
 	if (mh_status != MH_OK)LOG_ERROR("GunPickup Hooking error : %s", MH_StatusToString(mh_status));
 
@@ -104,7 +101,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(SetGameDataSymbol, &SetGameDataSymbolDetour, &SetGameDataSymbolOut);
 	if (mh_status != MH_OK)LOG_ERROR("SetGameDataSymbol Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status =  MH_OK;//CreateHook(TextPrint, &TextPrintDetour, &TextPrintOut);
+	mh_status = MH_OK;//CreateHook(TextPrint, &TextPrintDetour, &TextPrintOut);
 	if (mh_status != MH_OK)LOG_ERROR("TextPrint Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(GameTextPrint, &GamePrintTextDetour, &GameTextPrintOut);
@@ -113,7 +110,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(ParseWeaponConfig, &ParseWeaponConfigDetour, &ParseWeaponConfigOut); 
 	if (mh_status != MH_OK) LOG_ERROR("ParseWeaponConfig Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(StartLevel, &StartLevelDetour, &StartLevelOut); 
+	mh_status = CreateHook(StartLevel, &StartLevelDetour, &StartLevelOut);
 	if (mh_status != MH_OK)LOG_ERROR("StartLevel Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(QuitLvl, &QuitLvlDetour, &QuitLvlOut); 
@@ -121,6 +118,18 @@ MH_STATUS Hook::CreateHooks() {
 
 	mh_status = CreateHook(LoadResourceFile, &LoadResourceDetour, &LoadResourceOut);
 	if (mh_status != MH_OK)LOG_ERROR("LoadResourceFile Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(ResourceUnpack, &ResourceUnpackDetour, &ResourceUnpackOut);
+	if (mh_status != MH_OK)LOG_ERROR("ResourceUnpack Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(IsResourceLoaded, &IsResourceLoadedDetour, &IsResourceLoadedOut);
+	if (mh_status != MH_OK)LOG_ERROR("IsResourcePacked Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(ResourceUnload, &ResourceUnloadDetour, &ResourceUnloadOut);
+	if (mh_status != MH_OK)LOG_ERROR("ResourceUnload Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = MH_OK;//CreateHook(ResourceFlush, &ResourceFlushDetour, &ResourceFlushOut);
+	if (mh_status != MH_OK)LOG_ERROR("ResourceFlush Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(LoadGameData, &LoadGameDataDetour, &LoadGameDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("LoadGameData Createhook error : %s", MH_StatusToString(mh_status));
@@ -136,9 +145,9 @@ MH_STATUS Hook::CreateHooks() {
 
 	mh_status = MH_OK;//CreateHook(SFXItems, &SFXItemsDetour, &SFXItemsOut);
 	if (mh_status != MH_OK)LOG_ERROR("SFXItems Createhook error : %s", MH_StatusToString(mh_status));
-	
+
 	mh_status = MH_OK;//CreateHook(CompileQVM, &CompileQVMDetour, &CompileQVMOut); 
-	if (mh_status != MH_OK) LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status)); 
+	if (mh_status != MH_OK) LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(AssembleQAS, &AssembleQASDetour, &AssembleQASOut);
 	if (mh_status != MH_OK)LOG_ERROR("AssembleQAS Createhook error : %s", MH_StatusToString(mh_status));
@@ -186,8 +195,8 @@ MH_STATUS Hook::EnableHooks() {
 MH_STATUS Hook::DisableHooks() {
 	MH_STATUS status = MH_DisableHook(MH_ALL_HOOKS);
 	if (status != MH_OK)
-		LOG_ERROR("Error disabling hook.");
+		LOG_ERROR("Error disabling hooks.");
 	else
-		LOG_INFO("All Hooks disabled.");
+		LOG_WARNING("All hooks disabled.");
 	return status;
 }

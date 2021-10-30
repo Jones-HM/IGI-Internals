@@ -32,6 +32,9 @@
     <ClCompile Include="Camera\Camera.cpp">
       <Filter>Camera</Filter>
     </ClCompile>
+    <ClCompile Include="GameResources\GameResource.cpp">
+      <Filter>GameResource</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
@@ -91,6 +94,9 @@
     <ClInclude Include="Camera\Camera.hpp">
       <Filter>Camera</Filter>
     </ClInclude>
+    <ClInclude Include="GameResources\GameResource.hpp">
+      <Filter>GameResource</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Natives">
@@ -113,6 +119,9 @@
     </Filter>
     <Filter Include="Camera">
       <UniqueIdentifier>{8ff3d951-fd0f-4ea7-80d3-d36ef8fb9eb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GameResource">
+      <UniqueIdentifier>{9c1d0c8b-d9ef-443e-ad94-15861733c09b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

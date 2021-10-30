@@ -1,6 +1,6 @@
 #include "HumanSoldier.hpp"
 #include "Logger.hpp"
-//#define SOLDIER_DATA_ALL
+#define SOLDIER_DATA_ALL
 
 using namespace IGI;
 
@@ -11,12 +11,12 @@ HumanSoldier::HumanSoldier(string model_id, int soldier_id, int graph_id, string
 }
 
 void HumanSoldier::AddSoldier() {
-	auto it = std::find_if(soldiers.begin(), soldiers.end(), [&soldier = *this](HumanSoldier& curr_soldier) -> bool { return soldier.soldier_id == curr_soldier.soldier_id; });
+	auto it = std::find_if(soldiers.begin(), soldiers.end(), [&](HumanSoldier& soldier) -> bool { return this->GetSoldierId() == soldier.GetSoldierId(); });
 	if (it == soldiers.end())soldiers.push_back(*this);
 }
 
 bool HumanSoldier::RemoveSoldier() {
-	auto it = std::find_if(soldiers.begin(), soldiers.end(), [&soldier = *this](HumanSoldier& curr_soldier) -> bool { return soldier.soldier_id == curr_soldier.soldier_id; });
+	auto it = std::find_if(soldiers.begin(), soldiers.end(), [&](HumanSoldier& soldier) -> bool { return this->GetSoldierId() == soldier.GetSoldierId(); });
 	if (it != soldiers.end()) { soldiers.erase(it); return true; }
 	return false;
 }
@@ -75,7 +75,7 @@ void HumanSoldier::AddSoldierData(address_t address, std::vector<uint8_t> data) 
 
 		//Add soldier to Soldiers list.
 		soldier->AddSoldier();
-		std::sort(soldiers.begin(), soldiers.end(),[](HumanSoldier& a, HumanSoldier& b) { return a.GetSoldierId() < b.GetSoldierId(); });
+		std::sort(soldiers.begin(), soldiers.end(), [](HumanSoldier& a, HumanSoldier& b) { return a.GetSoldierId() < b.GetSoldierId(); });
 	}
 	else LOG_ERROR("Trying to add empty data for HumanSoldier");
 }
@@ -158,7 +158,7 @@ void HumanSoldier::ExecuteSoldiers(soldier_t sol_id)
 	for (auto& soldier : soldiers) {
 		address_t soldier_addr = soldier.GetAddress();
 		soldier_t soldier_id = soldier.GetSoldierId();
-		
+
 		if (sol_id != (soldier_t)AI_ID_INVALID) {
 			if (sol_id != soldier_id) continue;
 		}

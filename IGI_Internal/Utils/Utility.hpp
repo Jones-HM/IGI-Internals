@@ -15,14 +15,14 @@ namespace IGI {
 		Utility() = default;
 		~Utility() = default;
 
-		const string GetRunningExecutableFolder();
+		const string GetExecutableFolder();
 		const string GetModuleFolder();
 		void    SetModuleHandle(const HMODULE);
 		const HMODULE  GetModuleHandle();
 		void    SetHandle(const HANDLE);
 		const HANDLE  GetHandle();
 		string   GetBaseFileName(string);
-		string   GetLastErrorAsString();
+		string   GetLastErrorString();
 		const string GetModuleName(const HMODULE);
 		const string GetModuleNameWithoutExtension(const HMODULE);
 		std::tuple<std::vector<uint8_t>, string, string>  ReadFile(string, int);
@@ -30,6 +30,7 @@ namespace IGI {
 		bool RemoveFile(const string&);
 		bool WriteMemory(LPVOID, binary_t&);
 		bool StrCaseCompare(const string&, const string&);
+		size_t Find(string& data,string& search, size_t pos=0);
 		bool IsAsciiStr(const std::string&);
 		void Tokenize(string&,char,vector<string>&);
 	};

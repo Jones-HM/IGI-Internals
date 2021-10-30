@@ -30,7 +30,6 @@
 void StartLevelMain(int = 1, bool = true, bool = true, int = 1);
 void QuitLevelMain();
 void DllMainLoop();
-void SaveMesh_MEF(string);
 
 int delay_ms = 1500;
 
@@ -91,6 +90,9 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 					auto auto_msg_box = std::make_unique<AutoMsgBox>();
 					LOG_WARNING("AutoMsgBox initialized.");
 
+					auto game_resources = std::make_unique<GameResource>();
+					LOG_WARNING("GameResources initialized.");
+
 #ifdef  USE_MINHOOK_LIB 
 					// Initialize Hooking. 
 					auto hook_instance = std::make_unique<Hook>(true);
@@ -123,6 +125,9 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 
 					auto_msg_box.reset();
 					LOG_WARNING("AutoMsgBox uninitialized.");
+
+					game_resources.reset();
+					LOG_WARNING("GameResources uninitialized.");
 #ifdef  USE_MINHOOK_LIB
 					hook_instance.reset();
 					LOG_WARNING("Hook uninitialized.");
@@ -173,12 +178,13 @@ void DllMainLoop() {
 	}
 
 	if (g_menu_screen == MENU_SCREEN_MAINMENU) {
-		//g_Console->Clear();
+		g_Console->Clear();
+		game_resources.clear();
 	}
 
 	else if (g_menu_screen == MENU_SCREEN_INGAME) {
 		if (GT_IsKeyToggled(VK_F1)) {
-			DEBUG::INIT(GAME_CONST_FONT_BIG);
+			DEBUG::INIT(GAME_FONT_BIG);
 			DEBUG::ENABLE(g_Enabled);
 			string dbg_msg = "Debug mode " + std::string((g_Enabled) ? "Enabled" : "Disabled");
 			MISC::STATUS_MESSAGE_SHOW(dbg_msg.c_str());
@@ -204,47 +210,80 @@ void DllMainLoop() {
 			MISC::STATUS_MESSAGE_SHOW("WeaponPickup done!");
 		}
 
-
 		else if (GT_IsKeyToggled(VK_F4)) {
 			SOLDIER::INIT();
 		}
 
 		else if (GT_IsKeyToggled(VK_F5)) {
 			soldier_t id = 2000;
-			auto soldier = SOLDIER::FIND(id);
+			auto soldier = soldiers.at(0);
 			SOLDIER::EXECUTE(soldier);
-			
+			SOLDIER::DEBUG_DATA(soldier);
+
 			//delay_ms = 5000;
 			//ThreadCallerExec<Void>(LEVEL::RESTART);
 		}
 
 		else if (GT_IsKeyToggled(VK_F6)) {
-			for (const auto& resource : game_resources) {
-				if (std::string(resource.second.data()).find(".mef") != std::string::npos) {
-					SaveMesh_MEF(resource.second.data());
-				}
-			}
+			RESOURCE::ANIMATION_INFO_SAVE("IGI_Animations.txt");
+			RESOURCE::FONT_INFO_SAVE("IGI_Fonts.txt");
+			RESOURCE::SOUND_INFO_SAVE("IGI_Sound.txt");
+			RESOURCE::MATERIAL_INFO_SAVE("IGI_Material.txt");
+			RESOURCE::LIGHTMAP_INFO_SAVE("IGI_Lightmap.txt");
+			RESOURCE::OBJECT_INFO_SAVE("IGI_Object.txt");
+			RESOURCE::RESOURCE_INFO_SAVE("IGI_Resource.txt");
+			RESOURCE::TERRAIN_INFO_SAVE("IGI_Terrain.txt");
+			RESOURCE::TEXTURE_INFO_SAVE("IGI_Texture.txt");
+			RESOURCE::GRAPHICS_2D_INFO_SAVE("IGI_2D_Graphics.txt");
+			RESOURCE::GRAPHICS_3D_INFO_SAVE("IGI_3D_Graphics.txt");
+			LOG_CONSOLE("Resource files saved");
 		}
 
 		else if (GT_IsKeyToggled(VK_F7)) {
-			for (const auto& resource : game_resources) {
-				LOG_FILE("Resource '%s'\tAddress: %p", resource.second.data(), resource.first);
+
+			std::vector<string> res_list{
+				"STATUSSCREEN:status.res","LANGUAGE:messages.res",
+				"LOCAL:menusystem/missionsprites.res","LOCAL:common/sprites/sprites.res",
+				"LOCAL:common/textures/textures.res" ,"COMPUTER:computer.res",
+				"LANGUAGE:computer.res" ,"LANGUAGE:objectives.res",
+				"LOCAL:language/ENGLISH/menusystem.res" ,"LOCAL:language/ENGLISH/missions.res",
+			};
+
+			for (const auto& res : res_list) {
+				auto addr = RESOURCE::FIND(res.c_str());
+				LOG_INFO("'%s': %p", res.c_str(), addr);
 			}
-			MISC::STATUS_MESSAGE_SHOW("All resources info saved to Logs.");
+			RESOURCE::UNLOAD(res_list);
+
+
+			//for (const auto& resource : game_resources) {
+			//	auto model_id = resource.name.c_str();
+			//	if (RESOURCE::IS_LOADED(model_id))
+			//		RESOURCE::UNLOAD(model_id);
+			//}
+
+			LOG_CONSOLE("Resource Run");
 		}
 
 
 		else if (GT_IsKeyToggled(VK_F8)) {
-			StartLevelMain(4);
+			RESOURCE::MEF_REMOVE_MODEL("WATERTOWER");
+			RESOURCE::MEF_REMOVE_MODEL("BARRACKS");
+			LOG_INFO("MEF_RemoveModel run");
+			//StartLevelMain(4);
 		}
 
 		else if (GT_IsKeyToggled(VK_F9)) {
-			static int hcam_val = 0;
+			RESOURCE::MEF_RESTORE_MODEL("WATERTOWER");
+			RESOURCE::MEF_RESTORE_MODEL("BARRACKS");
+			LOG_INFO("MEF_RestoreModel run");
+
+			/*static int hcam_val = 0;
 			HUMAN::CAM_VIEW_SET(hcam_val);
 			hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
 			status_byte = 1;
 			NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, "HumanViewCam changed!", NULL, (char*)&status_byte);
-		}
+	*/	}
 
 		else if (GT_IsKeyToggled(VK_RETURN)) {
 
@@ -294,38 +333,9 @@ void DllMainLoop() {
 
 	else if (g_menu_screen == MENU_SCREEN_RESTART) {
 		soldiers.clear();
+		//game_resources.clear();
 	}
 
-}
-
-
-void SaveMesh_MEF(string model_id) {
-	MISC::ERRORS_DISABLE();
-	MISC::WARNINGS_DISABLE();
-
-	char sym_buf[0x64] = { NULL };
-	binary_t mef_buf(0x55730, '\0');//350kb MEF
-	auto LoadGameData = (int(__cdecl*)(char*, const char*, const char*))0x004A53B3;
-	auto ResourceLoad = (int* (__cdecl*)(const char*, char**))0x004B5F00;
-
-	//LoadGameData(sym_buf, "LOCAL:models/%s.mef", model_id.c_str());
-	//LOG_CONSOLE("Symbol: %s", sym_buf);
-	auto res_addr = ResourceLoad(model_id.data(), NULL);
-	//LOG_CONSOLE("ResourceLoaded at address %p", (int)res_addr);
-
-	std::memcpy(mef_buf.data(), (void*)res_addr, mef_buf.capacity());
-	binary_t mef_end{ 'N', 'A', 'M', 'E' };
-	auto it = std::search(mef_buf.begin(), mef_buf.end(), mef_end.begin(), mef_end.end());
-	mef_buf.resize(it - mef_buf.begin());
-
-	model_id = model_id.substr(model_id.find_last_of("/"));
-	fs::current_path(g_Utility.GetModuleFolder() + "\\");
-	string mef_dir = "level" + std::to_string(g_curr_level) + "_mefs";
-	fs::create_directory(mef_dir);
-
-	string mesh_file = mef_dir + "\\" + model_id;
-	WriteFileType(mesh_file, mef_buf, BINARY_FILE);
-	LOG_CONSOLE("Mesh File %s saved successfully!", mesh_file.c_str());
 }
 
 void StartLevelMain(int level, bool disable_warn, bool disable_err, int hash_val) {

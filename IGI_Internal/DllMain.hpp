@@ -14,6 +14,7 @@
 #include "NativeHelper.hpp" 
 #include "Natives.hpp" 
 #include "Memory.hpp"
+#include "GameResource.hpp"
 #include "HumanSoldier.hpp"
 #include "Camera.hpp"
 
@@ -31,7 +32,6 @@
 #include "DbgHelper.hpp" 
 #endif 
 
-using namespace IGI;
 using namespace IGI;
 
 BOOL __stdcall DllMain(HINSTANCE, DWORD, LPVOID);

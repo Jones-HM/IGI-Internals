@@ -1,5 +1,5 @@
 #pragma once
-//#define SOLDIER_DATA_ALL
+#define SOLDIER_DATA_ALL
 #include "Common.hpp"
 #include "Logger.hpp"
 #include "Utils/DbgHelper.hpp"
@@ -9,6 +9,7 @@
 #include "Natives/NativeHelper.hpp"
 #include "HumanSoldier.hpp"
 #include "Utils/Utility.hpp"
+#include "GameResource.hpp"
 
 using namespace IGI;
 
@@ -163,9 +164,63 @@ void ReadWholeFile(LPCSTR file_name, LPCSTR file_mode = "rb") {
 	}
 }
 
-void DbgAllocDetour(void) {
-	LOG_INFO("%s called", "DbgAlloc");
+auto IsResourceLoaded = (int(__cdecl*)(char*, int*))0x004B5B90;
+decltype(IsResourceLoaded) IsResourceLoadedOut;
+
+auto ResourceUnpack = (void(__cdecl*)(int*, int, int))0x004B16D0;
+decltype(ResourceUnpack) ResourceUnpackOut;
+
+auto ResourceUnload = (void(__cdecl*)(int*))0x004B6380;
+decltype(ResourceUnload) ResourceUnloadOut;
+
+auto ResourceFlush = (void(__cdecl*)(int*))0x004b63d0;
+decltype(ResourceFlush) ResourceFlushOut;
+
+void ResourceFlushDetour(int* resource_file) {
+
 }
+
+void ResourceUnloadDetour(int* resource_file) {
+	//LOG_INFO("UnloadResource: '%s'", resource_file);
+
+	//Remove resource from game resources list onUnload.
+	auto it = std::find_if(game_resources.begin(), game_resources.end(), [&](Resource& res) -> bool { return res.name == string((char*)resource_file); });
+	if (it != game_resources.end()) {
+		game_resources.erase(it);
+		//LOG_FILE("Removed: '%s' vec_size: %d", resource_file, game_resources.size());
+	}
+
+	ResourceUnloadOut(resource_file);
+}
+
+int IsResourceLoadedDetour(char* param_1, int* param_2) {
+	//LOG_INFO("IsResourceLoaded p_1 '%s' p_2: %p", param_1, param_2);
+	int ret_val = IsResourceLoadedOut(param_1, param_2);
+	//LOG_INFO("IsResourceLoaded %d", ret_val);
+	return ret_val;
+}
+
+void ResourceUnpackDetour(int* res_ptr, int res_addr, int res_size) {
+	void* res_name_addr = (void*)0x00A7B658;
+	//LOG_INFO("ResourceUnpack ptr: %p, %s addr: %p size : %p", res_ptr, res_name_addr,res_addr, res_size);
+	string res_name(0x64, '\0');
+	std::strcpy(res_name.data(), (const char*)res_name_addr);
+	//Resource resource(res_name, res_addr, (res_size + 0x1C + 4));
+	//game_resources.push_back(resource);
+	ResourceUnpackOut(res_ptr, res_addr, res_size);
+}
+
+int* __cdecl LoadResourceDetour(char* res_name, char** res_buf) {
+	auto res_addr = LoadResourceOut(res_name, res_buf);
+	//LOG_INFO("%s '%s' : %p\tAddress: %p", "LoadResource", res_name, res_name, res_addr);
+
+	//Adding resources to game resources list.
+	Resource resource(string(res_name), (address_t)res_addr, 0);
+	game_resources.push_back(resource);
+
+	return res_addr;
+}
+
 
 void DebugPlayerDataDetour(int soldier_addr, char* event_type) {
 
@@ -272,7 +327,7 @@ void WeaponDropDetour(int** param_1) {
 	WeaponDropOut(param_1);
 }
 
-void AddSoldierDataHit(int address,bool is_alive) {
+void AddSoldierDataHit(int address, bool is_alive) {
 	//Vector to hold AI data.
 	std::vector<uint8_t> ai_data(AI_BUF_SIZE_HALF, '\0');
 
@@ -297,8 +352,8 @@ void AddSoldierDataHit(int address,bool is_alive) {
 
 
 void SoldierHitDetour(int address, char* param_2, int param_3) {
-	LOG_CONSOLE("%s address: %p param_2: '%s' param_3 : %d", "SoldierHit", address, param_2, param_3);
-	AddSoldierDataHit(address,true);
+	//LOG_CONSOLE("%s address: %p param_2: '%s' param_3 : %d", "SoldierHit", address, param_2, param_3);
+	AddSoldierDataHit(address, true);
 	SoldierHitOut(address, param_2, param_3);
 }
 
@@ -319,7 +374,7 @@ void HumanSoldierDeadDetour(int param_1, char* param_2, int param_3) {
 int* __cdecl SFXItemsDetour(int param_1, char* sfx_item) {
 	auto ret_val = SFXItemsOut(param_1, sfx_item);
 	LOG_FILE("%s param_1: %p ret_val : %p sfx_item: %s", "SFXItems", param_1, ret_val, sfx_item);
-	//const string log_file = GetModuleFolder() + "\\" + LOG_FILE_NAME;
+	//const string log_file = GetModuleFolder() + "\\" + APP_LOG_FILE;
 	//auto file_data =g_Utility.ReadFile(log_file);
 
 	//if (file_data.find(sfx_item) == std::string::npos)
@@ -366,7 +421,7 @@ void AmmoPickupDetour(int param_1, int* param_2) {
 }
 
 void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param_4, int param_5, int param_6) {
-	LOG_FILE("%s param_1 : %p param_2 : %p param_3 : %p param_4 : %p param_5 : %p param_6 : %p", "StatusMessageShow", param_1, param_2, param_3, param_4, param_5, param_6);
+	//LOG_FILE("%s param_1 : %p param_2 : %p param_3 : %p param_4 : %p param_5 : %p param_6 : %p", "StatusMessageShow", param_1, param_2, param_3, param_4, param_5, param_6);
 	//Sleep(100);
 	char* text = nullptr;
 
@@ -379,7 +434,7 @@ void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param
 	}
 
 	//LOG_CONSOLE("%s text: %s", "StatusMessageShow", text);
-	g_DbgHelper->StackTrace(true, false, true);
+	//g_DbgHelper->StackTrace(true, false, true);
 	StatusMessageShowOut(param_1, param_2, param_3, param_4, param_5, param_6);
 }
 
@@ -411,20 +466,9 @@ int __cdecl LoadGameDataDetour(char* res_buf, const char* res_path, const char* 
 	return ret_val;
 }
 
-int* __cdecl LoadResourceDetour(char* res_name, char** res_buf) {
-	int* res_addr = LoadResourceOut(res_name, res_buf);
-	//LOG_FILE("%s File '%s'\t Address %p", "LoadResource", file_name, (int)res_addr);
-	//ReadWholeFile(file_name);
-
-	game_resources.insert(std::pair<address_t, string>((address_t)res_addr, std::string(res_name)));
-	//game_resources[(address_t)res_addr] = std::string(res_name);
-
-	return res_addr;
-}
-
 int __cdecl  StatusMsgDetour(int send_status, const char* buffer, const char* msg_sprite, const char* status_byte_addr) {
 	LOG_CONSOLE("%s send_status : %p buffer : '%s' msg_sprite : %p status_byte : %p", FUNC_NAME, send_status, buffer, msg_sprite, status_byte_addr);
-	g_DbgHelper->StackTrace(true, false, true);
+	//g_DbgHelper->StackTrace(true, false, true);
 	return StatusMsgOut(send_status, buffer, msg_sprite, status_byte_addr);
 }
 
@@ -459,7 +503,7 @@ void __cdecl SetFramesDetour(int frames) {
 
 int __cdecl  StartLevelDetour(int param1, int param2, int param3, int param4) {
 	//LOG_FILE("%s param1 : %p param2 : %p param3 : %p param4 : %p", FUNC_NAME, param1, param2, param3, param4);
-	g_DbgHelper->StackTrace(true, false, true);
+	//g_DbgHelper->StackTrace(true, false, true);
 	return StartLevelOut(param1, param2, param3, param4);
 }
 
@@ -519,6 +563,6 @@ FILE* __cdecl GameOpenFileDetour(char* file_name, char* file_mode) {
 int __cdecl LevelLoadDetour(int param1, int param2, int param3, int param4) {
 	LOG_INFO("%s param1 : %s param2 : %p param3 : %p  param4 : %p", "LevelLoad", param1, param2, param3, param4);
 	Sleep(100);
-	g_DbgHelper->StackTrace(true, false, true);
+	//g_DbgHelper->StackTrace(true, false, true);
 	return LevelLoadOut(param1, param2, param3, param4);
 }
