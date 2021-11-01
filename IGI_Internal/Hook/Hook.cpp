@@ -140,17 +140,26 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(GameOpenFile, &GameOpenFileDetour, &GameOpenFileOut);
 	if (mh_status != MH_OK)LOG_ERROR("GameOpenFile Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(LoadQVM, &LoadQVMDetour, &LoadQVMOut);
+	mh_status = MH_OK;//CreateHook(GameOpenQFile, &GameOpenQFileDetour, &GameOpenQFileOut);
+	if (mh_status != MH_OK)LOG_ERROR("GameOpenQFile Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(LoadQVM, &LoadQVMDetour, &LoadQVMOut);
 	if (mh_status != MH_OK)LOG_ERROR("LoadQVM Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(CompileQVM, &CompileQVMDetour, &CompileQVMOut); 
+	if (mh_status != MH_OK) LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(AssembleQVM, &AssembleQVMDetour, &AssembleQVMOut);
+	if (mh_status != MH_OK)LOG_ERROR("AssembleQAS Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(ParseQVM, &ParseQVMDetour, &ParseQVMOut);
+	if (mh_status != MH_OK)LOG_ERROR("ParseQVM Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(CleanupQVM, &CleanupQVMDetour, &CleanupQVMOut);
+	if (mh_status != MH_OK)LOG_ERROR("CleanupQVM Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(SFXItems, &SFXItemsDetour, &SFXItemsOut);
 	if (mh_status != MH_OK)LOG_ERROR("SFXItems Createhook error : %s", MH_StatusToString(mh_status));
-
-	mh_status = MH_OK;//CreateHook(CompileQVM, &CompileQVMDetour, &CompileQVMOut); 
-	if (mh_status != MH_OK) LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status));
-
-	mh_status = CreateHook(AssembleQAS, &AssembleQASDetour, &AssembleQASOut);
-	if (mh_status != MH_OK)LOG_ERROR("AssembleQAS Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(AmmoTypeOpen, &AmmoTypeOpenDetour, &AmmoTypeOpenOut);
 	if (mh_status != MH_OK)LOG_ERROR("AmmoTypeOpen Createhook error : %s", MH_StatusToString(mh_status));

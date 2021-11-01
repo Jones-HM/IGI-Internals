@@ -279,3 +279,12 @@ void Utility::Tokenize(string& str_in, char delim, vector<string>& vec_out) {
 		vec_out.push_back(str_in.substr(start, end - start));
 	}
 }
+
+void Utility::Replace(string& str, const string& from, const string& to) {
+	if (from.empty()) return;
+	size_t start_pos = 0;
+	while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+		str.replace(start_pos, from.length(), to);
+		start_pos += to.length();
+	}
+}

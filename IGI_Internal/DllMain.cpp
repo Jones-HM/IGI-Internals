@@ -197,7 +197,7 @@ void DllMainLoop() {
 
 		else if (GT_IsKeyToggled(VK_F2)) {
 			const char* cfg_file = "LOCAL:objects.qsc";
-			QFILE::COMPILE(cfg_file);
+			SCRIPT::COMPILE(cfg_file);
 			LOG_INFO("Compile '%s' done!", cfg_file);
 			MISC::STATUS_MESSAGE_SHOW("Compile object.qsc done!");
 		}
@@ -267,15 +267,15 @@ void DllMainLoop() {
 
 
 		else if (GT_IsKeyToggled(VK_F8)) {
-			RESOURCE::MEF_REMOVE_MODEL("WATERTOWER");
-			RESOURCE::MEF_REMOVE_MODEL("BARRACKS");
+			std::vector<string> models_list{ "Watertower","Watchtower","Barracks" };
+			RESOURCE::MEF_REMOVE_MODELS(models_list);
+
 			LOG_INFO("MEF_RemoveModel run");
 			//StartLevelMain(4);
 		}
 
 		else if (GT_IsKeyToggled(VK_F9)) {
-			RESOURCE::MEF_RESTORE_MODEL("WATERTOWER");
-			RESOURCE::MEF_RESTORE_MODEL("BARRACKS");
+			RESOURCE::MEF_RESTORE_MODELS();
 			LOG_INFO("MEF_RestoreModel run");
 
 			/*static int hcam_val = 0;
@@ -283,7 +283,8 @@ void DllMainLoop() {
 			hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
 			status_byte = 1;
 			NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, "HumanViewCam changed!", NULL, (char*)&status_byte);
-	*/	}
+	*/
+		}
 
 		else if (GT_IsKeyToggled(VK_RETURN)) {
 
@@ -308,21 +309,27 @@ void DllMainLoop() {
 			//std::vector<uint8_t> vec{ {0x75},{0x47} };
 			//g_Memory->WriteMemory((LPVOID)0x00460C8F, vec);
 
-			Camera::Controls ctrls;
-			ctrls.UP(VK_SPACE);
-			ctrls.DOWN(VK_MENU);
-			ctrls.LEFT(VK_LEFT);
-			ctrls.RIGHT(VK_RIGHT);
-			ctrls.FORWARD(VK_UP);
-			ctrls.BACKWARD(VK_DOWN);
-			ctrls.CALIBRATE(VK_BACK);
-			ctrls.QUIT(VK_RETURN);
-			ctrls.AXIS_OFF(0.5f);
+			Camera::Controls controls;
+			controls.UP(VK_SPACE);
+			controls.DOWN(VK_MENU);
+			controls.LEFT(VK_LEFT);
+			controls.RIGHT(VK_RIGHT);
+			controls.FORWARD(VK_UP);
+			controls.BACKWARD(VK_DOWN);
+			controls.CALIBRATE(VK_BACK);
+			controls.QUIT(VK_RETURN);
+			controls.AXIS_OFF(0.5f);
 
-			CAMERA::FREECAM(ctrls);
+			CAMERA::FREECAM(controls);
 		}
 
 		else if (GT_IsKeyToggled(VK_F12)) {
+			
+			string qsc_file = "LOCAL:hconfig.qsc";
+			string qas_file = "LOCAL:hconfig.qas";
+			SCRIPT::PARSE(qsc_file, qas_file);
+
+			LOG_INFO("Compile Run");
 		}
 
 		else if (GT_IsKeyToggled(VK_SNAPSHOT)) {

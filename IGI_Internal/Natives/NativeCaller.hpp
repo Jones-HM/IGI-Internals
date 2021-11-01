@@ -45,13 +45,13 @@ namespace IGI {
 			std::stringstream ss;
 			ss << "Hash : " << native_hash << " Param1: " << HEX_ADDR_FMT(param1) << " type: " << TYPE(param1) << " Param2: " << HEX_ADDR_FMT(param2) << " type: " << TYPE(param2) <<
 				" Param3: " << HEX_ADDR_FMT(param3) << " type: " << TYPE(param3) << " Param4: " << HEX_ADDR_FMT(param4) << " type: " << TYPE(param4) << " Argc: " << native_argc << std::endl;
-			//LOG_FILE("%s(): %s", FUNC_NAME, ss.str().data());
+			LOG_FILE("%s(): %s", FUNC_NAME, ss.str().data());
 
 #define IS_SAME_T1(T) std::is_same_v<T1,T> 
 			m_hash_found = false;
 			if constexpr (!IS_SAME_T1(void*)) {
 				if (native_argc >= 1) {
-					//LOG_FILE("Found handler for Hash %p\tSymbol : %s", native_hash, ::g_Natives->FindNativeName(reinterpret_cast<NativeHash>(native_hash)).c_str());
+					LOG_FILE("Found handler for Hash %p\tSymbol : %s", native_hash, ::g_Natives->FindNativeName(reinterpret_cast<NativeHash>(native_hash)).c_str());
 					m_hash_found = true;
 
 					std::function<RT(T1, T2, T3, T4)> hash_invoker{ (RT(_cdecl*)(T1,T2,T3,T4))native_hash };
@@ -60,7 +60,7 @@ namespace IGI {
 				}
 			}
 			else {
-				//LOG_FILE("Found handler for Hash %p\tSymbol : %s", native_hash, ::g_Natives->FindNativeName(reinterpret_cast<NativeHash>(native_hash)).c_str());
+				LOG_FILE("Found handler for Hash %p\tSymbol : %s", native_hash, ::g_Natives->FindNativeName(reinterpret_cast<NativeHash>(native_hash)).c_str());
 				m_hash_found = true;
 
 				std::function<RT(void)> hash_invoker{ (RT(_cdecl*)(void))native_hash };
@@ -68,7 +68,7 @@ namespace IGI {
 				if constexpr (!std::is_same_v<RT, Void>) return ret_val;
 			}
 			if (!m_hash_found)
-				//LOG_FILE("Error finding handler for Hash 0x%X", native_hash);
+				LOG_FILE("Error finding handler for Hash 0x%X", native_hash);
 			return reinterpret_cast<RT>(nullptr);
 		}
 

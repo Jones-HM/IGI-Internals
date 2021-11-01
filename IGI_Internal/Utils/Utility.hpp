@@ -33,6 +33,7 @@ namespace IGI {
 		size_t Find(string& data,string& search, size_t pos=0);
 		bool IsAsciiStr(const std::string&);
 		void Tokenize(string&,char,vector<string>&);
+		void Replace(string& str, const string& from, const string& to);
 	};
 	inline Utility g_Utility;
 }

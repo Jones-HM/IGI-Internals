@@ -136,7 +136,7 @@ void GameResource::MEF_RemoveModel(string model) {
 
 				//Model Id Half/Full.
 				if (std::regex_match(model, model_re) || std::regex_match(model, model_re_full)) {
-					
+
 					size_t mef_id_size = (std::regex_match(model, model_re)) ? 3 : MEF_ID_SIZE;
 					model_id = resource.name.substr(resource.name.find_last_of("/") + 1, mef_id_size);
 
@@ -152,7 +152,7 @@ void GameResource::MEF_RemoveModel(string model) {
 					model_id = resource.name.substr(resource.name.find_last_of("/") + 1, 3);
 					model_name = MEF_FindModelName(model_id);
 					//Case insensitive Find.
-					if (g_Utility.Find(model_name,model) != string::npos) {
+					if (g_Utility.Find(model_name, model) != string::npos) {
 						model_addr = resource.address;
 						model_match = true;
 					}
@@ -194,9 +194,15 @@ void GameResource::MEF_RestoreModel(string model) {
 				std::memcpy((void*)mef.address, (void*)mef.data.data(), mef.size);
 		}
 		else {
-			if (g_Utility.Find(mef.name,model) != string::npos) {
+			if (g_Utility.Find(mef.name, model) != string::npos) {
 				std::memcpy((void*)mef.address, (void*)mef.data.data(), mef.size);
 			}
 		}
+	}
+}
+
+void GameResource::MEF_RestoreModels() {
+	for (auto& mef : mef_resources) {
+		std::memcpy((void*)mef.address, (void*)mef.data.data(), mef.size);
 	}
 }

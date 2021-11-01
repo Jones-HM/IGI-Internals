@@ -50,11 +50,20 @@ decltype(CompileQVM) CompileQVMOut;
 auto GameOpenFile = (FILE * (__cdecl*)(char*, char*))0x4A5350;
 decltype(GameOpenFile) GameOpenFileOut;
 
-auto LoadQVM = (int* (__cdecl*)(LPCSTR))0x4B80B0;
+auto GameOpenQFile = (int* (__cdecl*)(char*, char*))0x004B1510;
+decltype(GameOpenQFile) GameOpenQFileOut;
+
+auto LoadQVM = (int* (__cdecl*)(const char*))0x4B80B0;
 decltype(LoadQVM) LoadQVMOut;
 
-auto AssembleQAS = (int(__cdecl*)(char*, char*))0x4BB270;
-decltype(AssembleQAS) AssembleQASOut;
+auto AssembleQVM = (int(__cdecl*)(char*, char*))0x004BB270;
+decltype(AssembleQVM) AssembleQVMOut;
+
+auto ParseQVM = (int(__cdecl*)(char*,int))0x004BBCB0;
+decltype(ParseQVM) ParseQVMOut;
+
+auto CleanupQVM = (void(__cdecl*)(char*))0x004B1AC0;
+decltype(CleanupQVM) CleanupQVMOut;
 
 auto AmmoTypeOpen = (void(__cdecl*)(int))0x47CA40;
 decltype(AmmoTypeOpen) AmmoTypeOpenOut;
@@ -175,6 +184,11 @@ decltype(ResourceUnload) ResourceUnloadOut;
 
 auto ResourceFlush = (void(__cdecl*)(int*))0x004b63d0;
 decltype(ResourceFlush) ResourceFlushOut;
+
+void CleanupQVMDetour(char* file) {
+	LOG_INFO("CleanupQVM: file: '%s'", file);
+	CleanupQVMOut(file);
+}
 
 void ResourceFlushDetour(int* resource_file) {
 
@@ -523,27 +537,33 @@ void __cdecl WeaponTypeOpenDetour(int param1) {
 	WeaponTypeOpenOut(param1);
 }
 
-int __cdecl AssembleQASDetour(char* file_out, char* file_in) {
-	int qas_ret = AssembleQASOut(file_out, file_in);
-	LOG_INFO("%s file_in : %s file_out : %s  Status : %d", "AssembleQAS", file_in, file_out, qas_ret);
-	return qas_ret;
+int __cdecl AssembleQVMDetour(char* file_out, char* file_in) {
+	int qvm_ret = AssembleQVMOut(file_out, file_in);
+	LOG_INFO("%s file_in : '%s'file_out : '%s'  Status : %d", "AssembleQVM", file_in, file_out, qvm_ret);
+	return qvm_ret;
+}
+
+int __cdecl ParseQVMDetour(char* file_in, int mem_blk) {
+	int qvm_ret = ParseQVMOut(file_in, mem_blk);
+	LOG_INFO("%s file_in : '%s' mem_blk : %p mem_blk: '%s' Status : %d", "ParseQVM", file_in, mem_blk, mem_blk, qvm_ret);
+	return qvm_ret;
 }
 
 void __cdecl CompileQVMDetour(char* file_name) {
 	LOG_INFO("%s file_name : %s", "CompileQVM", file_name);
 
-	*(PDWORD64)(0x0201B1) += 1;
-	strcpy((char*)0x943606, file_name);
-	Sleep(100);
+	//*(PDWORD64)(0x0201B1) += 1;
+	//strcpy((char*)0x943606, file_name);
+	//Sleep(100);
 	CompileQVMOut(file_name);
 }
 
 int* __cdecl LoadQVMDetour(LPCSTR file_name) {
-	LOG_CONSOLE("%s file_name : %s", "LoadQVM", file_name);
 
 	//auto CompileQVM = (int(__cdecl*)(int))0x4B85B0;
 	//auto CompileCleanUp = (int(__cdecl*)(int*))0x4B83D0;
 	auto qvm_file = LoadQVMOut(file_name);
+	LOG_CONSOLE("%s '%s': '%s': %p", "LoadQVM", file_name, qvm_file, qvm_file);
 
 	//ReadWholeFile(file_name); 
 	return qvm_file;
@@ -551,14 +571,19 @@ int* __cdecl LoadQVMDetour(LPCSTR file_name) {
 
 FILE* __cdecl GameOpenFileDetour(char* file_name, char* file_mode) {
 	//if (string(file_mode) == "wb")
-	LOG_CONSOLE("%s File : '%s' Mode : '%s'", "OpenFile", file_name, file_mode);
+	LOG_INFO("%s File : '%s' Mode : '%s'", "OpenFile", file_name, file_mode);
 
 	//ReadWholeFile(file_name, file_mode); 
 	//g_DbgHelper->StackTrace(true, false, true);
 
-	Sleep(100);
 	return GameOpenFileOut(file_name, file_mode);
 }
+
+int* __cdecl GameOpenQFileDetour(char* file_name, char* file_mode) {
+	LOG_INFO("%s File : '%s' Mode : '%s'", "OpenQFile", file_name, file_mode);
+	return GameOpenQFileOut(file_name, file_mode);
+}
+
 
 int __cdecl LevelLoadDetour(int param1, int param2, int param3, int param4) {
 	LOG_INFO("%s param1 : %s param2 : %p param3 : %p  param4 : %p", "LevelLoad", param1, param2, param3, param4);

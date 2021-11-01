@@ -21,6 +21,11 @@ namespace IGI {
 		NATIVE_DECL void ERRORS_DISABLE() { *(PINT)0x00936268 = 0; }
 	}
 
+	namespace MEMORY {
+		NATIVE_DECL address_t ALLOC(int num, int size) { return NATIVE_INVOKE<address_t>((Void)HASH::MEMORY_ALLOC, num, size); }
+		NATIVE_DECL void DEALLOC() { NATIVE_INVOKE<Void>((Void)HASH::MEMORY_DEALLOC); }
+	}
+
 	namespace PLAYER {
 		NATIVE_DECL void INDEX_NAME_SET(int index, const char* name) { std::memcpy((char*)PLAYER_INDEX_ADDR(index + 1), name, PLAYER_NAME_SIZE); }
 		NATIVE_DECL void INDEX_MISSION_SET(int index, byte mission) { *(byte*)(PLAYER_INDEX_ADDR(index + 1) + PLAYER_ACTIVE_MISSION_OFF) = (byte)mission; }
@@ -96,16 +101,16 @@ namespace IGI {
 		NATIVE_DECL void DEATTACH() { g_Camera.Deattach(); }
 		NATIVE_DECL void CALIBRATE() { g_Camera.CalibrateView(); }
 		NATIVE_DECL void FREECAM(Camera::Controls& controls) { g_Camera.FreeCam(controls); }
-		NATIVE_DECL void X_POS_UPDATE(double x) { g_Camera.WritePosition(x); }
-		NATIVE_DECL void Y_POS_UPDATE(double y) { g_Camera.WritePosition(NULLF, y); }
-		NATIVE_DECL void Z_POS_UPDATE(double z) { g_Camera.WritePosition(NULLF, NULLF, z); }
-		NATIVE_DECL void POS_UPDATE(Camera::Position& pos) { g_Camera.WritePosition(pos); }
+		NATIVE_DECL void X_UPDATE(double x) { g_Camera.WritePosition(x); }
+		NATIVE_DECL void Y_UPDATE(double y) { g_Camera.WritePosition(NULLF, y); }
+		NATIVE_DECL void Z_UPDATE(double z) { g_Camera.WritePosition(NULLF, NULLF, z); }
+		NATIVE_DECL void POSITION_UPDATE(Camera::Position& pos) { g_Camera.WritePosition(pos); }
 		NATIVE_DECL void ANGLE_UPDATE(Camera::Angle& angle) { g_Camera.WriteAngle(angle); }
 		NATIVE_DECL void PITCH_UPDATE(float pitch) { g_Camera.WriteAngle(pitch); }
 		NATIVE_DECL void ROLL_UPDATE(float roll) { g_Camera.WriteAngle(NULLF, roll); }
 		NATIVE_DECL void YAW_UPDATE(float yaw) { g_Camera.WriteAngle(NULLF, NULLF, yaw); }
 		NATIVE_DECL void FOV_UPDATE(float fov) { g_Camera.WriteAngle(NULLF, NULLF, NULLF, fov); }
-		NATIVE_DECL Camera::Position POS_READ() { return g_Camera.ReadPosition(); }
+		NATIVE_DECL Camera::Position POSITION_READ() { return g_Camera.ReadPosition(); }
 		NATIVE_DECL Camera::Angle ANGLE_READ() { return g_Camera.ReadAngle(); }
 	}
 
@@ -129,15 +134,20 @@ namespace IGI {
 		template <typename T>NATIVE_DECL void LOAD(T resource_files) { for (const auto& resource : resource_files) LOAD(resource.c_str()); }
 		NATIVE_DECL void UNLOAD(const char* resource_file) { NATIVE_INVOKE<Void>((Void)HASH::RESOURCE_UNLOAD, resource_file); }
 		template <typename T>NATIVE_DECL void UNLOAD(T resource_files) { for (const auto& resource : resource_files) if (IS_LOADED(resource.c_str())) UNLOAD(resource.c_str()); else LOG_ERROR("Resource '%s' cannot be loaded", resource.c_str()); }
-		NATIVE_DECL void FLUSH(int resource_file) { NATIVE_INVOKE<Void>((Void)HASH::RESOURCE_FLUSH, resource_file); }
-		NATIVE_DECL int PACK_UNPACK(const char* resource_file, char** buffer) { return NATIVE_INVOKE<int>((Void)HASH::RESOURCE_PACK_UNPACK, resource_file, buffer); }
-		NATIVE_DECL int PACK_UNPACK(const char* resource_file) { return PACK_UNPACK(resource_file, NULL); }
+		NATIVE_DECL void FLUSH(int resource_addr) { NATIVE_INVOKE<Void>((Void)HASH::RESOURCE_FLUSH, resource_addr); }
+		NATIVE_DECL int UNPACK(const char* resource_file, char** buffer) { return NATIVE_INVOKE<int>((Void)HASH::RESOURCE_PACK_UNPACK, resource_file, buffer); }
+		NATIVE_DECL int UNPACK(const char* resource_file) { return UNPACK(resource_file, NULL); }
 		NATIVE_DECL void UNPACK(int* res_ptr, int res_addr, int res_size) { NATIVE_INVOKE<Void>((Void)HASH::RESOURCE_UNPACK, res_ptr, res_addr, res_size); }
 		NATIVE_DECL address_t FIND(const char* resource_name) { return g_Resource->FindGameResource(resource_name); }
 		NATIVE_DECL Resource FIND(string& resource_name) { return Resource(resource_name, g_Resource->FindGameResource(resource_name), 0); }
 		NATIVE_DECL string MEF_FIND_MODEL_NAME(string& model_id) { return g_Resource->MEF_FindModelName(model_id); }
+		NATIVE_DECL string MEF_FIND_MODEL_ID(string& model_name, bool full_id) { return g_Resource->MEF_FindModelId(model_name, full_id); }
+		NATIVE_DECL string MEF_FIND_MODEL_ID(string& model_name) { return g_Resource->MEF_FindModelId(model_name, true); }
 		NATIVE_DECL void MEF_REMOVE_MODEL(string model_id) { g_Resource->MEF_RemoveModel(model_id); }
+		template <typename T>NATIVE_DECL void MEF_REMOVE_MODELS(T model_files) { for (const auto& model : model_files) MEF_REMOVE_MODEL(model); }
 		NATIVE_DECL void MEF_RESTORE_MODEL(string model_id) { g_Resource->MEF_RestoreModel(model_id); }
+		template <typename T>NATIVE_DECL void MEF_RESTORE_MODELS(T model_files) { for (const auto& model : model_files) MEF_RESTORE_MODEL(model); }
+		NATIVE_DECL void MEF_RESTORE_MODELS() { g_Resource->MEF_RestoreModels(); }
 	}
 
 	namespace QTASK {
@@ -150,8 +160,23 @@ namespace IGI {
 	}
 
 	namespace QFILE {
-		NATIVE_DECL void COMPILE(const char* qsc_file) { NATIVE_INVOKE<Void>((Void)HASH::QSC_COMPILE, qsc_file); }
-		NATIVE_DECL void OPEN(const char* file, char* mode) { NATIVE_INVOKE<Void>((Void)HASH::FILE_OPEN, file, mode); }
+		NATIVE_DECL FILE* OPEN(const char* file, char* mode) { return NATIVE_INVOKE<FILE*>((Void)HASH::FILE_OPEN, file, mode); }
+		NATIVE_DECL FILE* READ_WRITE(const char* file, char* mode) { return NATIVE_INVOKE<FILE*>((Void)HASH::FILE_READ_WRITE, file, mode); }
+	}
+
+	namespace QVM {
+		NATIVE_DECL int* LOAD(string qvm_file) { g_Utility.Replace(qvm_file, ".qvm", ".qsc"); return NATIVE_INVOKE<int*>((Void)HASH::QVM_LOAD, qvm_file.c_str()); }
+		NATIVE_DECL int READ(int qvm_addr) { return NATIVE_INVOKE<int>((Void)HASH::QVM_PARSE, qvm_addr); }
+		NATIVE_DECL void CLEANUP(int* qvm_addr) { NATIVE_INVOKE<Void>((Void)HASH::QVM_CLEANUP, qvm_addr); }
+		NATIVE_DECL int READ(string qvm_file) { auto qvm_addr = LOAD(qvm_file); auto status = READ((int)qvm_addr); CLEANUP(qvm_addr); return status; }
+	}
+
+	namespace SCRIPT {
+		NATIVE_DECL void COMPILE(string qsc_file) { NATIVE_INVOKE<Void>((Void)HASH::QSCRIPT_COMPILE, qsc_file.c_str()); }
+		NATIVE_DECL int PARSE(string qas_file, int mem_addr) { return NATIVE_INVOKE<int>((Void)HASH::QAS_PARSE, qas_file.c_str(), mem_addr); }
+		NATIVE_DECL int PARSE(string qsc_file,string qas_file) { auto mem_blk = (int*)MEMORY::ALLOC(0x94, 4); char* buff = nullptr; auto res_addr = RESOURCE::LOAD(qsc_file.c_str(),&buff); std::strcpy((char*)mem_blk, qsc_file.data()); mem_blk[0x20] = (int)res_addr; mem_blk[0x21] = (int)buff; mem_blk[0x22] = 0; return PARSE(qas_file, (int)mem_blk); }
+		NATIVE_DECL int ASSEMBLE(string qas_file, string qvm_file) { return NATIVE_INVOKE<int>((Void)HASH::QAS_ASSEMBLE, qvm_file.c_str(), qas_file.c_str()); }
+		NATIVE_DECL void CLEANUP(string q_file) { NATIVE_INVOKE<Void>((Void)HASH::SCRIPT_CLEANUP, q_file.c_str()); }
 	}
 
 	namespace GFX {
@@ -164,11 +189,6 @@ namespace IGI {
 		NATIVE_DECL void VOLUME_UPDATE() { NATIVE_INVOKE<Void>((Void)HASH::MUSIC_UPDATE_VOLUME, (const char*)local_buf); }
 		NATIVE_DECL void VOLUME_SET(float volume) { NATIVE_INVOKE<Void>((Void)HASH::MUSIC_VOLUME, volume, volume); }
 		NATIVE_DECL void VOLUME_SFX_SET(float volume) { NATIVE_INVOKE<Void>((Void)HASH::MUSIC_SFX_VOLUME, volume); }
-	}
-
-	namespace MEMORY {
-		NATIVE_DECL uint32_t ALLOC(int num, int size) { return NATIVE_INVOKE<uint32_t>((Void)HASH::MEMORY_ALLOC, num, size); }
-		NATIVE_DECL void DEALLOC() { NATIVE_INVOKE<Void>((Void)HASH::MEMORY_DEALLOC); }
 	}
 
 	namespace MISSION {

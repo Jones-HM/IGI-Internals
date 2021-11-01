@@ -54,6 +54,7 @@ namespace IGI {
 		string MEF_FindModelId(string model_id, bool full_id=true);
 		void MEF_RemoveModel(string model_id);
 		void MEF_RestoreModel(string model_id);
+		void MEF_RestoreModels();
 		//Setters/Getters.
 	};
 
