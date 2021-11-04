@@ -6,6 +6,7 @@
 #include "DllMain.hpp" 
 #include "AutoMsgBox.hpp"
 
+
 //Include all static libraries for project. 
 #if defined(_M_IX86) 
 #if defined(DBG_x86)
@@ -31,7 +32,7 @@ void StartLevelMain(int = 1, bool = true, bool = true, int = 1);
 void QuitLevelMain();
 void DllMainLoop();
 
-int delay_ms = 1500;
+int delay_ms = 2500;
 
 void ThreadCallerDelay(int delay) {
 	std::this_thread::sleep_for(std::chrono::microseconds(delay));
@@ -68,7 +69,6 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 					g_Console->Clear();
 					GT_InitTrainerWindowEx(PROJECT_NAME, 50, 50, 1200, 700, BG_GREEN, FG_GRAY);
 #endif 
-
 					auto GAME_font = LR"(
 ╔═══╦═══╦═══╗ ╔╦═══╦═══╦════╗  ╔══╦═══╦══╗                 
 ║╔═╗║╔═╗║╔═╗║░║║╔══╣╔═╗║╔╗╔╗║░░╚╣╠╣╔═╗╠╣╠╝	▄▌			▄ 
@@ -178,11 +178,14 @@ void DllMainLoop() {
 	}
 
 	if (g_menu_screen == MENU_SCREEN_MAINMENU) {
-		g_Console->Clear();
+		//g_Console->Clear();
+
 		game_resources.clear();
+		g_level_graphs.clear();
 	}
 
 	else if (g_menu_screen == MENU_SCREEN_INGAME) {
+
 		if (GT_IsKeyToggled(VK_F1)) {
 			DEBUG::INIT(GAME_FONT_BIG);
 			DEBUG::ENABLE(g_Enabled);
@@ -211,14 +214,29 @@ void DllMainLoop() {
 		}
 
 		else if (GT_IsKeyToggled(VK_F4)) {
-			SOLDIER::INIT();
+			//g_Graph.DebugGraphInfo(true, true);
+			//g_level_graphs.clear();
+			g_Graph.DOT_SaveGraphs();
+			LOG_CONSOLE("DOT Save graphs done");
+			//static int hcam_val = 0;
+			//HUMAN::CAM_VIEW_SET(hcam_val);
+			//hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
+			//status_byte = 1;
+			//NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, "HumanViewCam changed!", NULL, (char*)&status_byte);
+
 		}
 
 		else if (GT_IsKeyToggled(VK_F5)) {
-			soldier_t id = 2000;
-			auto soldier = soldiers.at(0);
-			SOLDIER::EXECUTE(soldier);
-			SOLDIER::DEBUG_DATA(soldier);
+			SOLDIER::INIT();
+
+			//for (auto& soldier : soldiers) {
+			//	if (soldier.GetSoldierId() == 0 || soldier.GetAddress() == READ_PTR(humanplayer_ptr)) continue;
+			//	else {
+			//		SOLDIER::EXECUTE(soldier);
+			//		LOG_INFO("Soldier_%d executed", soldier.GetSoldierId());
+			//	}
+			//}
+			//soldiers.clear();
 
 			//delay_ms = 5000;
 			//ThreadCallerExec<Void>(LEVEL::RESTART);
@@ -255,13 +273,6 @@ void DllMainLoop() {
 			}
 			RESOURCE::UNLOAD(res_list);
 
-
-			//for (const auto& resource : game_resources) {
-			//	auto model_id = resource.name.c_str();
-			//	if (RESOURCE::IS_LOADED(model_id))
-			//		RESOURCE::UNLOAD(model_id);
-			//}
-
 			LOG_CONSOLE("Resource Run");
 		}
 
@@ -277,30 +288,6 @@ void DllMainLoop() {
 		else if (GT_IsKeyToggled(VK_F9)) {
 			RESOURCE::MEF_RESTORE_MODELS();
 			LOG_INFO("MEF_RestoreModel run");
-
-			/*static int hcam_val = 0;
-			HUMAN::CAM_VIEW_SET(hcam_val);
-			hcam_val = (++hcam_val > 6) ? 0 : hcam_val;
-			status_byte = 1;
-			NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, "HumanViewCam changed!", NULL, (char*)&status_byte);
-	*/
-		}
-
-		else if (GT_IsKeyToggled(VK_RETURN)) {
-
-			g_Soldier.DebugSoldierDataList();
-			//soldier_t soldier_id = 2000;
-			//auto human = HumanSoldier::FindSoldier(soldier_id);
-			//human.DebugSoldierData();
-
-			//for (auto& soldier : soldiers) {
-			//	if (soldier.GetSoldierId() != 0) {
-			//		string ai_data_info = "Model: " + soldier.GetModelId() + " Id: " + std::to_string(soldier.GetSoldierId()) + " " + soldier.GetWeapon();
-			//		MISC::STATUS_MESSAGE_SHOW(ai_data_info.c_str());
-			//		std::this_thread::sleep_for(3s);
-			//	}
-			//}
-			//soldiers.clear();
 		}
 
 
@@ -324,7 +311,7 @@ void DllMainLoop() {
 		}
 
 		else if (GT_IsKeyToggled(VK_F12)) {
-			
+
 			string qsc_file = "LOCAL:hconfig.qsc";
 			string qas_file = "LOCAL:hconfig.qas";
 			SCRIPT::PARSE(qsc_file, qas_file);
@@ -335,7 +322,6 @@ void DllMainLoop() {
 		else if (GT_IsKeyToggled(VK_SNAPSHOT)) {
 			g_Console->Clear();
 		}
-
 	}
 
 	else if (g_menu_screen == MENU_SCREEN_RESTART) {

@@ -34,7 +34,7 @@ namespace IGI {
 
 	void Log::WriteA(bool log_console, bool log_file, ELOG_TYPE log_type, const char* fmt, ...) {
 
-		char fmt_buff[2048] = { NULL };
+		char fmt_buff[4096] = { NULL };
 		va_list va_alist;
 
 		va_start(va_alist, fmt);
@@ -42,7 +42,7 @@ namespace IGI {
 		va_end(va_alist);
 
 		if (g_Console) g_Console->SetTextColor(g_Log_Color[log_type]);
-		char log_buff[2048] = { NULL };
+		char log_buff[4096] = { NULL };
 
 		// Print to console 
 		if (log_console) {

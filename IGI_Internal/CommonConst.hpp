@@ -13,11 +13,11 @@ namespace IGI {
 #define MEF_ID_SIZE 8 // XXX_XX_X = 8, Ex: 435_01_1.
 
 //Defining Helper for Pointers. 
-#define READ_PTR(addr) *(PINT)addr 
+#define READ_PTR(addr) *(int*)addr 
 #define READ_PTR_OFF(addr,off) (READ_PTR((addr + off)))
-#define READ_PTR_OFF2(addr,off1,off2) *(PINT)(READ_PTR_OFF(addr,off1) + off2)
-#define READ_PTR_OFF3(addr,off1,off2,off3) *(PINT)(READ_PTR_OFF2(addr,off1,off2) + off3)
-#define READ_PTR_OFF4(addr,off1,off2,off3,off4) *(PINT)(READ_PTR_OFF3(addr,off1,off2,off3) + off4)
+#define READ_PTR_OFF2(addr,off1,off2) *(int*)(READ_PTR_OFF(addr,off1) + off2)
+#define READ_PTR_OFF3(addr,off1,off2,off3) *(int*)(READ_PTR_OFF2(addr,off1,off2) + off3)
+#define READ_PTR_OFF4(addr,off1,off2,off3,off4) *(int*)(READ_PTR_OFF3(addr,off1,off2,off3) + off4)
 #define READ_STATIC_PTR_OFF(addr,off) (READ_PTR(addr) + (DWORD)off)
 #define READ_STATIC_PTR_OFF2(addr,off1,off2) READ_PTR_OFF(READ_PTR(addr),off1) + (DWORD)off2 
 #define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3 
@@ -84,7 +84,8 @@ namespace IGI {
 #define AMMO_PICKUP_PTR (int*)0x0019F820
 #define GUN_PICKUP_SET(gun_id) *GUN_PICKUP_PTR = gun_id
 #define AMMO_PICKUP_SET(ammo_id) *AMMO_PICKUP_PTR = ammo_id
-#define WEAPON_ID_COUNT 45
+#define WEAPON_SIZE 45
+#define MATERIAL_SIZE 24
 #define AI_BUF_SIZE_HALF 0x001F40
 #define AI_BUF_SIZE_FULL 0x007000
 #define AI_COUNT_MAX 50
@@ -161,7 +162,7 @@ namespace IGI {
 		WEAPON_ID_SENTRY = 44//Weapon Type: HMG (Machine Gun).
 	};
 
-	inline std::array<GAME_AMMO, WEAPON_ID_COUNT> weapons_ammo_list = {
+	inline std::array<GAME_AMMO, WEAPON_SIZE> weapons_ammo_list = {
 	GAME_AMMO::AMMO_ID_NONE, //Empty Slot
 	GAME_AMMO::AMMO_ID_919, //GLOCK
 	GAME_AMMO::AMMO_ID_NONE, //Empty Slot
@@ -209,4 +210,58 @@ namespace IGI {
 	GAME_AMMO::AMMO_ID_127, //SENTRY
 	};
 
+	//Defining Material type.
+	enum GAME_MATERIAL {
+		MATERIAL_AIR, //AIR.
+		MATERIAL_GROUND, //GROUND
+		MATERIAL_WATER, //WATER
+		MATERIAL_WOOD, //WOOD
+		MATERIAL_CARTON, //CARTON
+		MATERIAL_STRONGMETAL, //STRONGMETAL
+		MATERIAL_NORMALMETAL, //NORMALMETAL
+		MATERIAL_SOFTMETAL, //SOFTMETAL
+		MATERIAL_FLESH, //FLESH
+		MATERIAL_BLOODYFLESH, //BLOODYFLESH
+		MATERIAL_TEXTILES, //TEXTILES
+		MATERIAL_CONCRETE, //CONCRETE
+		MATERIAL_RUNWAY, //RUNWAY
+		MATERIAL_RUG, //RUG
+		MATERIAL_GLASS, //GLASS
+		MATERIAL_PLASTIC, //PLASTIC
+		MATERIAL_PORCELAIN, //PORCELAIN
+		MATERIAL_RUBBER, //RUBBER
+		MATERIAL_FENCE, //FENCE
+		MATERIAL_GRAVEL, //GRAVEL
+		MATERIAL_SNOW, //SNOW
+		MATERIAL_HUMANCOLLISION, //HUMANCOLLISION
+		MATERIAL_METALLADDER, //METALLADDER
+		MATERIAL_METALFENCE, //METALFENCE
+	};
+
+	inline std::array<std::string,MATERIAL_SIZE> game_materials = {
+		"AIR",
+		"GROUND",
+		"WATER",
+		"WOOD",
+		"CARTON",
+		"STRONG METAL",
+		"NORMAL METAL",
+		"SOFT METAL",
+		"FLESH",
+		"BLOODY FLESH",
+		"TEXTILES",
+		"CONCRETE",
+		"RUNWAY",
+		"RUG",
+		"GLASS",
+		"PLASTIC",
+		"PORCELAIN",
+		"RUBBER",
+		"FENCE",
+		"GRAVEL",
+		"SNOW",
+		"HUMAN COLLISION",
+		"METAL LADDER",
+		"METAL FENCE",
+	};
 }

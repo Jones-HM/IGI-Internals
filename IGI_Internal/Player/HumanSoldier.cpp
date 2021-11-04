@@ -131,19 +131,21 @@ string HumanSoldier::DebugSoldierDataList() {
 	return ss.str();
 }
 
-string HumanSoldier::DebugSoldierData() {
+string HumanSoldier::DebugSoldierData(bool dbg_print) {
 	std::stringstream ss;
 	auto soldier = *this;
 	if (!soldier.ValidateSoldier())
-		LOG_CONSOLE("Soldier data invalid for Id: %d", soldier.GetSoldierId());
+		LOG_INFO("Soldier data invalid for Id: %d", soldier.GetSoldierId());
 
 	ss << "Model: " << soldier.model_id << " Id: " << soldier.soldier_id << " " << soldier.weapon << " Address: " << HEX_ADDR_FMT(soldier.address);
 
 #ifdef SOLDIER_DATA_ALL
 	ss << " AIid: " << std::dec << soldier.ai_id << " " << soldier.ai_type << " GraphId: " << std::dec << soldier.graph_id;
 #endif
-	if (!soldier.ValidateSoldier())
-		LOG_FILE("Soldier: %s", ss.str().c_str());
+	if (dbg_print) {
+		if (soldier.ValidateSoldier())
+			LOG_INFO("Soldier: %s", ss.str().c_str());
+	}
 	return ss.str();
 }
 

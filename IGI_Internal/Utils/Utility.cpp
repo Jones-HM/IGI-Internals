@@ -94,16 +94,16 @@ const string Utility::GetModuleName(const HMODULE module) {
 	return full_path.substr(lastIndex, full_path.length() - lastIndex);
 }
 
-const string Utility::GetModuleNameWithoutExtension(const HMODULE module) {
+const string Utility::GetModuleNameExtension(const HMODULE module) {
 
-	const string file_nameWithExtension = GetModuleName(module);
+	const string file_name = GetModuleName(module);
 
-	size_t lastIndex = file_nameWithExtension.find_last_of(".");
-	if (lastIndex == -1) {
-		return file_nameWithExtension;
+	size_t last_index = file_name.find_last_of(".");
+	if (last_index == -1) {
+		return file_name;
 	}
 
-	return file_nameWithExtension.substr(0, lastIndex);
+	return file_name.substr(0, last_index);
 }
 
 std::tuple<std::vector<uint8_t>, string, string> Utility::ReadFile(string file_name, int file_type)
@@ -287,4 +287,10 @@ void Utility::Replace(string& str, const string& from, const string& to) {
 		str.replace(start_pos, from.length(), to);
 		start_pos += to.length();
 	}
+}
+
+int Utility::ShellExec(string shell_cmd)
+{
+	if (shell_cmd.empty()) return EXIT_FAILURE;
+	return system(shell_cmd.c_str());
 }

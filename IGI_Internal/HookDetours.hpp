@@ -10,7 +10,10 @@
 #include "HumanSoldier.hpp"
 #include "Utils/Utility.hpp"
 #include "GameResource.hpp"
+#include "Graphs/Graph.hpp"
 
+Graph graph;
+//Graph::Node node;
 using namespace IGI;
 
 auto ParseConfig = (int(__cdecl*)(char* q_file))0x405850;
@@ -59,7 +62,7 @@ decltype(LoadQVM) LoadQVMOut;
 auto AssembleQVM = (int(__cdecl*)(char*, char*))0x004BB270;
 decltype(AssembleQVM) AssembleQVMOut;
 
-auto ParseQVM = (int(__cdecl*)(char*,int))0x004BBCB0;
+auto ParseQVM = (int(__cdecl*)(char*, int))0x004BBCB0;
 decltype(ParseQVM) ParseQVMOut;
 
 auto CleanupQVM = (void(__cdecl*)(char*))0x004B1AC0;
@@ -182,8 +185,162 @@ decltype(ResourceUnpack) ResourceUnpackOut;
 auto ResourceUnload = (void(__cdecl*)(int*))0x004B6380;
 decltype(ResourceUnload) ResourceUnloadOut;
 
-auto ResourceFlush = (void(__cdecl*)(int*))0x004b63d0;
+auto ResourceFlush = (void(__cdecl*)(int*))0x004B63D0;
 decltype(ResourceFlush) ResourceFlushOut;
+
+
+/**
+** A.I Graph Hooks methods section.
+**/
+
+auto GraphAiRouteTable = (int(__cdecl*)(int*))0x005092A0;
+decltype(GraphAiRouteTable) GraphAiRouteTableOut;
+
+void GraphAiRouteTableDetour(int* param_1) {
+	int route_table = GraphAiRouteTableOut(param_1);
+	//LOG_INFO("GraphAiRouteTable: param_1 : %p route_table : %p", param_1, route_table);
+}
+
+auto GraphNodePosition = (int(__cdecl*)(int*))0x004FAF80;
+decltype(GraphNodePosition) GraphNodePositionOut;
+
+void GraphNodePositionDetour(int* param_1) {
+	GraphNodePositionOut(param_1);
+	auto node_pos = *(double*)(0x00A77268);
+	//LOG_INFO("GraphNodePosition: node_pos : %lf : %p", node_pos, READ_PTR(0x00a77268));
+}
+
+auto GraphNodeMaterial = (void(__cdecl*)(int, int))0x004CE400;
+decltype(GraphNodeMaterial) GraphNodeMaterialOut;
+
+void GraphNodeMaterialDetour(int param_1, int material_id) {
+	//LOG_FILE("GraphNodeMaterial: material %d : '%s'", material_id, node_material.c_str());
+	graph.GetNode().NodeMaterial(material_id);
+	GraphNodeMaterialOut(param_1, material_id);
+}
+
+auto GraphNodeLink1 = (void(__cdecl*)(int*))0x004FB080;
+decltype(GraphNodeLink1) GraphNodeLink1Out;
+
+void GraphNodeLink1Detour(int* param_1) {
+
+	GraphNodeLink1Out(param_1);
+	int node_link1 = READ_PTR(0x00A77258);
+	graph.GetLink().NodeLink1(node_link1);
+	//LOG_FILE("GraphNodeLink1: node_link1 : %d", node_link1);
+}
+
+auto GraphNodeLink2 = (void(__cdecl*)(int*))0x004FB0B0;
+decltype(GraphNodeLink2) GraphNodeLink2Out;
+
+void GraphNodeLink2Detour(int* param_1) {
+	GraphNodeLink2Out(param_1);
+	int node_link2 = READ_PTR(0x00A77254);
+	graph.GetLink().NodeLink2(node_link2);
+	//LOG_FILE("GraphNodeLink2: node_link2 : %d", node_link2);
+}
+
+auto GraphNodeLinkType = (void(__cdecl*)(int*))0x004FB0D0;
+decltype(GraphNodeLinkType) GraphNodeLinkTypeOut;
+
+void GraphNodeLinkTypeDetour(int* param_1) {
+	GraphNodeLinkTypeOut(param_1);
+	int node_link_type = READ_PTR(0x00A76D24);
+	graph.GetLink().NodeLinkType(node_link_type);
+
+	graph.AddLink(graph.GetLink());//Add previous node to list.
+
+	//Create new link on every link.
+	Graph::Link new_link; graph.SetLink(new_link);
+
+	//LOG_FILE("GraphNodeLinkType: link_type : %d", node_link_type);
+}
+
+auto GraphNodeGamma = (void(__cdecl*)(int*))0x004FAFA0;
+decltype(GraphNodeGamma) GraphNodeGammaOut;
+
+void GraphNodeGammaDetour(int* param_1) {
+	GraphNodeGammaOut(param_1);
+	auto node_gamma = *(float*)(0x00A77280);
+	graph.GetNode().NodeGamma(node_gamma);
+	//LOG_FILE("GraphNodeGammaDetour: node_gamma : %0.5f", node_gamma);
+}
+
+auto GraphNodeRadius = (void(__cdecl*)(int*))0x004FAFC0;
+decltype(GraphNodeRadius) GraphNodeRadiusOut;
+
+void GraphNodeRadiusDetour(int* param_1) {
+	GraphNodeRadiusOut(param_1);
+	auto node_radius = *(float*)(0x00A77284);
+	graph.GetNode().NodeRadius(node_radius);
+	//LOG_FILE("GraphNodeRadiusDetour: node_radius : %0.5f", node_radius);
+}
+
+auto GraphNodeCriteria = (int(__cdecl*)(int*))0x004FB030;
+decltype(GraphNodeCriteria) GraphNodeCriteriaOut;
+
+void GraphNodeCriteriaDetour(int* param_1) {
+	int node_criteria = GraphNodeCriteriaOut(param_1);
+	graph.GetNode().NodeCriteria(READ_PTR(node_criteria));
+	//LOG_INFO("GraphNodeCriteria: node_criteria : %d", READ_PTR(0x00a77294));
+}
+
+auto GraphMaxNodes = (int(__cdecl*)(int*))0x004FAEE0;
+decltype(GraphMaxNodes) GraphMaxNodesOut;
+
+void GraphMaxNodesDetour(int* param_1) {
+	int nodes_max = GraphMaxNodesOut(param_1);
+	graph.NodeMax(nodes_max);
+	//LOG_FILE("GraphMaxNodes: maxNodes : %d", nodes_max);
+}
+
+auto GraphNodesId = (void(__cdecl*)(int*))0x004FAF50;
+decltype(GraphNodesId) GraphNodeIdOut;
+
+void GraphNodeIdDetour(int* param_1) {
+
+	if (graph.NodeInit()) graph.AddNode(graph.GetNode());//Add previous node to list.
+
+	//Create new Node on every id.
+	Graph::Node new_node;
+	graph.SetNode(new_node);
+
+	GraphNodeIdOut(param_1);
+	int node_id = READ_PTR(0x00A77260);
+	graph.GetNode().NodeId(node_id);
+	graph.NodeInit(true);
+	//LOG_FILE("GraphNodeId: node_id : %d", node_id);
+}
+
+auto GraphOpen = (void(__cdecl*)(int, char*))0x004F9FF0;
+decltype(GraphOpen) GraphOpenOut;
+
+void GraphOpenDetour(int level_ptr, char* graph_file) {
+	//LOG_FILE("\nGraphOpen: level_ptr: %p graph_file: '%s'", level_ptr, graph_file);
+
+	//Add graph data to list.
+	if (graph.GraphInit()) { graph.AddNode(graph.GetNode()); g_level_graphs.push_back(graph); }
+
+	//Create new graph for each instance.
+	Graph new_graph; graph = new_graph;
+
+	auto find_graph_id = [](string s)-> graph_t {
+		string id; for (const auto& c : s) if (::isdigit(c)) id += c;
+		return std::stoi(id);
+	};
+
+	graph_t graph_id = find_graph_id(graph_file);
+	graph.GraphId(graph_id);
+
+	GraphOpenOut(level_ptr, graph_file);
+	graph.GraphInit(true);
+}
+/**
+** A.I Graph Hooks methods section.
+**/
+
+
+
 
 void CleanupQVMDetour(char* file) {
 	LOG_INFO("CleanupQVM: file: '%s'", file);
@@ -341,7 +498,7 @@ void WeaponDropDetour(int** param_1) {
 	WeaponDropOut(param_1);
 }
 
-void AddSoldierDataHit(int address, bool is_alive) {
+void AddSoldierDataHit(int address, bool is_dead) {
 	//Vector to hold AI data.
 	std::vector<uint8_t> ai_data(AI_BUF_SIZE_HALF, '\0');
 
@@ -358,8 +515,8 @@ void AddSoldierDataHit(int address, bool is_alive) {
 		std::string soldier_data(ai_data.begin(), ai_data.end());
 		//Add soldier data information.
 	soldier.AddSoldierData(address,ai_data);
-	soldier.DebugSoldierData();
-	soldier.IsDead(!is_alive);
+	soldier.DebugSoldierData(true);
+	soldier.IsDead(is_dead);
 		} };
 	th.join();
 }
@@ -367,20 +524,19 @@ void AddSoldierDataHit(int address, bool is_alive) {
 
 void SoldierHitDetour(int address, char* param_2, int param_3) {
 	//LOG_CONSOLE("%s address: %p param_2: '%s' param_3 : %d", "SoldierHit", address, param_2, param_3);
-	AddSoldierDataHit(address, true);
+	AddSoldierDataHit(address, false);
 	SoldierHitOut(address, param_2, param_3);
 }
 
 void SoldierDeadDetour(int ptr, int address) {
 	//LOG_CONSOLE("%s ptr: %p address: %p", "SoldierDead", ptr, address);
-	//g_DbgHelper->StackTrace(true);
-	//AddSoldierDataHit(address,false);
+	AddSoldierDataHit(address, true);
 	SoldierDeadOut(ptr, address);
 }
 
 
 void HumanSoldierDeadDetour(int param_1, char* param_2, int param_3) {
-	LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "SoldierDead", param_1, param_2, param_3);
+	//LOG_CONSOLE("%s param_1: %p param_2: '%s' param_3 : %d", "SoldierDead", param_1, param_2, param_3);
 	//g_DbgHelper->StackTrace(true);
 	HumanSoldierDeadOut(param_1, param_2, param_3);
 }
@@ -550,7 +706,7 @@ int __cdecl ParseQVMDetour(char* file_in, int mem_blk) {
 }
 
 void __cdecl CompileQVMDetour(char* file_name) {
-	LOG_INFO("%s file_name : %s", "CompileQVM", file_name);
+	//LOG_INFO("%s file_name : %s", "CompileQVM", file_name);
 
 	//*(PDWORD64)(0x0201B1) += 1;
 	//strcpy((char*)0x943606, file_name);

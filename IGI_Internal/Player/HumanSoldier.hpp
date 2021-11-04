@@ -36,7 +36,7 @@ namespace IGI {
 		HumanSoldier FindSoldier(graph_t graph_id);
 		HumanSoldier FindSoldier(address_t address);
 		HumanSoldier FindSoldier(string model_id);
-		string DebugSoldierData();
+		string DebugSoldierData(bool dbg_print = false);
 		string DebugSoldierDataList();
 
 		//Setters/Getters.

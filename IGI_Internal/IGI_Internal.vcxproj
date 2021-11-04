@@ -75,15 +75,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\;$(SolutionDir)$(SolutionName)\Camera\;$(SolutionDir)$(SolutionName)\GameResources</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\;$(SolutionDir)$(SolutionName)\Camera\;$(SolutionDir)$(SolutionName)\GameResources;$(SolutionDir)$(SolutionName)\Graphs</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
+    <TargetName>$(ProjectName)-$(Configuration)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <LibraryPath>$(LibraryPath)</LibraryPath>
-    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\;$(SolutionDir)$(SolutionName)\Camera\;$(SolutionDir)$(SolutionName)\GameResources</IncludePath>
+    <IncludePath>$(SolutionDir)$(SolutionName)\Libs\;$(SolutionDir)$(SolutionName)\Natives\;$(SolutionDir)$(SolutionName)\Utils\;$(SolutionDir)$(SolutionName)\Hook\;$(SolutionDir)$(SolutionName)\Memory\;$(SolutionDir)$(SolutionName)\Player\;$(SolutionDir)$(SolutionName)\Camera\;$(SolutionDir)$(SolutionName)\GameResources;$(SolutionDir)$(SolutionName)\Graphs</IncludePath>
     <ExternalIncludePath>$(SolutionDir)$(ProjectName)\src;$(ExternalIncludePath)</ExternalIncludePath>
     <GenerateManifest>false</GenerateManifest>
+    <TargetName>$(ProjectName)-$(Configuration)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -196,6 +198,7 @@
     <ClInclude Include="Common.hpp" />
     <ClInclude Include="CommonConst.hpp" />
     <ClInclude Include="GameResources\GameResource.hpp" />
+    <ClInclude Include="Graphs\Graph.hpp" />
     <ClInclude Include="HookDetours.hpp" />
     <ClInclude Include="Hook\Hook.hpp" />
     <ClInclude Include="Hook\MinHook.hpp" />
@@ -222,6 +225,7 @@
   <ItemGroup>
     <ClCompile Include="Camera\Camera.cpp" />
     <ClCompile Include="GameResources\GameResource.cpp" />
+    <ClCompile Include="Graphs\Graph.cpp" />
     <ClCompile Include="Hook\Hook.cpp" />
     <ClCompile Include="Memory\Memory.cpp" />
     <ClCompile Include="Natives\Natives.cpp" />

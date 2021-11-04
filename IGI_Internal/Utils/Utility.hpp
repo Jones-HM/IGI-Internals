@@ -24,7 +24,7 @@ namespace IGI {
 		string   GetBaseFileName(string);
 		string   GetLastErrorString();
 		const string GetModuleName(const HMODULE);
-		const string GetModuleNameWithoutExtension(const HMODULE);
+		const string GetModuleNameExtension(const HMODULE);
 		std::tuple<std::vector<uint8_t>, string, string>  ReadFile(string, int);
 		bool WriteFile(string, binary_t,int);
 		bool RemoveFile(const string&);
@@ -34,6 +34,7 @@ namespace IGI {
 		bool IsAsciiStr(const std::string&);
 		void Tokenize(string&,char,vector<string>&);
 		void Replace(string& str, const string& from, const string& to);
+		int ShellExec(string shell_cmd);
 	};
 	inline Utility g_Utility;
 }

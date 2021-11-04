@@ -53,7 +53,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(CreateConfig, &CreateConfigDetour, &CreateConfigOut);
 	if (mh_status != MH_OK)LOG_ERROR("CreateConfig Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(StatusMsg, &StatusMsgDetour, &StatusMsgOut);
+	mh_status = MH_OK;//CreateHook(StatusMsg, &StatusMsgDetour, &StatusMsgOut);
 	if (mh_status != MH_OK)LOG_ERROR("StatusMsg Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(GenericPickup, &GenericPickupDetour, &GenericPickupOut);
@@ -65,7 +65,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(DebugPlayerData, &DebugPlayerDataDetour, &DebugPlayerDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("DebugPlayerData Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(DebugSoldierData, &DebugSoldierDataDetour, &DebugSoldierDataOut);
+	mh_status = MH_OK;//CreateHook(DebugSoldierData, &DebugSoldierDataDetour, &DebugSoldierDataOut);
 	if (mh_status != MH_OK)LOG_ERROR("DebugSoldierData Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(GunPickup, &GunPickupDetour, &GunPickupOut);
@@ -92,7 +92,7 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = CreateHook(SoldierHit, &SoldierHitDetour, &SoldierHitOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanSoldierHit Hooking error : %s", MH_StatusToString(mh_status));
 
-	mh_status = MH_OK;//CreateHook(HumanSoldierDead, &HumanSoldierDeadDetour, &HumanSoldierDeadOut);
+	mh_status = CreateHook(HumanSoldierDead, &HumanSoldierDeadDetour, &HumanSoldierDeadOut);
 	if (mh_status != MH_OK)LOG_ERROR("HumanXPDead Hooking error : %s", MH_StatusToString(mh_status));
 
 	mh_status = MH_OK;//CreateHook(StatusMessageShow, &StatusMessageShowDetour, &StatusMessageShowOut);
@@ -143,10 +143,10 @@ MH_STATUS Hook::CreateHooks() {
 	mh_status = MH_OK;//CreateHook(GameOpenQFile, &GameOpenQFileDetour, &GameOpenQFileOut);
 	if (mh_status != MH_OK)LOG_ERROR("GameOpenQFile Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(LoadQVM, &LoadQVMDetour, &LoadQVMOut);
+	mh_status = MH_OK;//CreateHook(LoadQVM, &LoadQVMDetour, &LoadQVMOut);
 	if (mh_status != MH_OK)LOG_ERROR("LoadQVM Createhook error : %s", MH_StatusToString(mh_status));
 
-	mh_status = CreateHook(CompileQVM, &CompileQVMDetour, &CompileQVMOut); 
+	mh_status = MH_OK;//CreateHook(CompileQVM, &CompileQVMDetour, &CompileQVMOut); 
 	if (mh_status != MH_OK) LOG_ERROR("CompileQVM Createhook error : %s", MH_StatusToString(mh_status));
 
 	mh_status = CreateHook(AssembleQVM, &AssembleQVMDetour, &AssembleQVMOut);
@@ -160,6 +160,48 @@ MH_STATUS Hook::CreateHooks() {
 
 	mh_status = MH_OK;//CreateHook(SFXItems, &SFXItemsDetour, &SFXItemsOut);
 	if (mh_status != MH_OK)LOG_ERROR("SFXItems Createhook error : %s", MH_StatusToString(mh_status));
+
+	/**
+	** A.I Graph Hooks methods section.
+	**/
+	mh_status = CreateHook(GraphOpen, &GraphOpenDetour, &GraphOpenOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphOpen Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodePosition, &GraphNodePositionDetour, &GraphNodePositionOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodePosition Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphMaxNodes, &GraphMaxNodesDetour, &GraphMaxNodesOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphMaxNodes Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodesId, &GraphNodeIdDetour, &GraphNodeIdOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodesId Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodeMaterial, &GraphNodeMaterialDetour, &GraphNodeMaterialOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodeMaterial Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodeCriteria, &GraphNodeCriteriaDetour, &GraphNodeCriteriaOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodeCriteria Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodeGamma, &GraphNodeGammaDetour, &GraphNodeGammaOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodeGamma Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodeRadius, &GraphNodeRadiusDetour, &GraphNodeRadiusOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodeRadius Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodeLink1, &GraphNodeLink1Detour, &GraphNodeLink1Out);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodeLink1 Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodeLink2, &GraphNodeLink2Detour, &GraphNodeLink2Out);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodeLink2 Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphNodeLinkType, &GraphNodeLinkTypeDetour, &GraphNodeLinkTypeOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphNodeLinkType Createhook error : %s", MH_StatusToString(mh_status));
+
+	mh_status = CreateHook(GraphAiRouteTable, &GraphAiRouteTableDetour, &GraphAiRouteTableOut);
+	if (mh_status != MH_OK)LOG_ERROR("GraphAiRouteTable Createhook error : %s", MH_StatusToString(mh_status));
+	/**
+	** A.I Graph Hooks methods section.
+	**/
 
 	mh_status = CreateHook(AmmoTypeOpen, &AmmoTypeOpenDetour, &AmmoTypeOpenOut);
 	if (mh_status != MH_OK)LOG_ERROR("AmmoTypeOpen Createhook error : %s", MH_StatusToString(mh_status));

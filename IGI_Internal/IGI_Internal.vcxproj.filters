@@ -35,6 +35,9 @@
     <ClCompile Include="GameResources\GameResource.cpp">
       <Filter>GameResource</Filter>
     </ClCompile>
+    <ClCompile Include="Graphs\Graph.cpp">
+      <Filter>Graphs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DllMain.hpp" />
@@ -97,6 +100,9 @@
     <ClInclude Include="GameResources\GameResource.hpp">
       <Filter>GameResource</Filter>
     </ClInclude>
+    <ClInclude Include="Graphs\Graph.hpp">
+      <Filter>Graphs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Natives">
@@ -122,6 +128,9 @@
     </Filter>
     <Filter Include="GameResource">
       <UniqueIdentifier>{9c1d0c8b-d9ef-443e-ad94-15861733c09b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Graphs">
+      <UniqueIdentifier>{8ae76e56-f91d-4db2-a159-a4b97fff101a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
