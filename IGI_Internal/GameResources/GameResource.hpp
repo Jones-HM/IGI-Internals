@@ -31,7 +31,7 @@ namespace IGI {
 
 	//Class to hold Game resource information.
 	class GameResource {
-	private:
+	public:
 		std::regex model_re = std::regex(R"(\d{3})");//Model Id regex.
 		std::regex model_re_full = std::regex(R"(\d{3}_\d{2}_\d{1})");//Model Id full regex.
 		std::list<string> mef_files;//Store MEF files.

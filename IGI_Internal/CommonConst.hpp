@@ -22,7 +22,7 @@ namespace IGI {
 #define READ_STATIC_PTR_OFF2(addr,off1,off2) READ_PTR_OFF(READ_PTR(addr),off1) + (DWORD)off2 
 #define READ_STATIC_PTR_OFF3(addr,off1,off2,off3) READ_PTR_OFF2(READ_PTR(addr),off1,off2) + (DWORD)off3 
 #define READ_STATIC_PTR_OFF4(addr,off1,off2,off3,off4) READ_PTR_OFF3(READ_PTR(addr),off1,off2,off3) + (DWORD)off4
-
+//Defining Helper for Types. 
 #define TYPE(x) string(typeid(x).name())
 #define TYPEID(x) typeid(x).name()
 #define TYPEID_S(x) (TYPE(x).length() < 2 || TYPE(x).empty()) ? "UnknownType" : TYPEID(x)
@@ -64,6 +64,9 @@ namespace IGI {
 #define GAME_FONT_MEDIUM (const char*)R"(LOCAL:computer/font3.fnt)"
 #define GAME_FONT_SMALL (const char*)R"(LOCAL:computer/font4.fnt)"
 #define GAME_FONT_DEBUG (const char*)R"(LOCAL:debug.fnt)"
+#define GAME_MAGIC_OBJ (const char*)R"(LOCAL:magicobj)"
+#define GAME_ANIM_TRIGGER (const char*)R"(LOCAL:animtrigger)"
+#define GAME_PHYSICS_OBJ (const char*)R"(LOCAL:physicsobj)"
 #define GAME_RESOURCE_RES (const char*) ".res" //Resource = Level1.res
 #define GAME_RESOURCE_MEF (const char*) ".mef"//Mesh External File. 3D-Objects. (Version 5). v.85
 #define GAME_RESOURCE_SPRITE (const char*) ".spr" //2D-Sprite.
@@ -104,7 +107,7 @@ namespace IGI {
 	//Datatypes re-defined.
 	typedef uint16_t soldier_t;
 	typedef int16_t ai_t;
-	typedef int32_t graph_t;
+	typedef int32_t graph_t,node_t;
 	typedef uint32_t address_t;
 	typedef std::vector<uint8_t> binary_t;
 	typedef int key_t;

@@ -4,6 +4,7 @@
 #include "Camera.hpp"
 #include "HumanSoldier.hpp"
 #include "GameResource.hpp"
+#include "Graph.hpp"
 
 #define NATIVE_DECL __declspec(noinline) inline 
 
@@ -13,10 +14,14 @@ namespace IGI {
 		NATIVE_DECL void FRAMES_SET(int frames) { NATIVE_INVOKE<Void>((Void)HASH::FRAMES_SET, frames); };
 		NATIVE_DECL void CUTSCENE_DELETE() { NATIVE_INVOKE<Void>((Void)HASH::CUTSCENE_DELETE, (const char*)local_buf); }
 		NATIVE_DECL void GAMEMATERIAL_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::GAMEMATERIAL_LOAD); }
+		NATIVE_DECL void MAGIC_OBJECT_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::MAGIC_OBJ_LOAD, GAME_MAGIC_OBJ); }
+		NATIVE_DECL void ANIM_TRIGGER_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::ANIM_TRIGGER_LOAD, GAME_ANIM_TRIGGER); }
+		NATIVE_DECL void PHYSICS_OBJECT_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::PHYSICS_OBJ_LOAD, GAME_PHYSICS_OBJ); }
 		NATIVE_DECL void LOG_ADD(const char* log_msg) { NATIVE_INVOKE<Void>((Void)HASH::LOG_ADD, log_msg); }
-		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg, const char* status_sprite) { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, status_msg, status_sprite, &status_byte); }
-		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg) { STATUS_MESSAGE_SHOW(status_msg, GAME_STATUSSCREEN_NOTE); }
 		NATIVE_DECL void STATUS_MESSAGE_CLEAR() { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_CLEAR, (const char*)local_buf); }
+		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg, const char* status_sprite) { NATIVE_INVOKE<Void>((Void)HASH::STATUS_MESSAGE_SHOW, *(PINT)0x00A758AC, status_msg, status_sprite, &status_byte); }
+		NATIVE_DECL void STATUS_MESSAGE_SHOW(const char* status_msg) { STATUS_MESSAGE_SHOW(status_msg, GAME_STATUSSCREEN_NOTE); std::this_thread::sleep_for(10s); MISC::STATUS_MESSAGE_CLEAR(); }
+		NATIVE_DECL void STATUS_MESSAGE_SHOW(string status_msg) { STATUS_MESSAGE_SHOW(status_msg.c_str()); }
 		NATIVE_DECL void WARNINGS_DISABLE() { *(PINT)0x00936274 = 0; }
 		NATIVE_DECL void ERRORS_DISABLE() { *(PINT)0x00936268 = 0; }
 	}
@@ -28,8 +33,10 @@ namespace IGI {
 
 	namespace PLAYER {
 		NATIVE_DECL void INDEX_NAME_SET(int index, const char* name) { std::memcpy((char*)PLAYER_INDEX_ADDR(index + 1), name, PLAYER_NAME_SIZE); }
+		NATIVE_DECL void INDEX_NAME_SET(int index, string name) { INDEX_NAME_SET(index, name.c_str()); }
 		NATIVE_DECL void INDEX_MISSION_SET(int index, byte mission) { *(byte*)(PLAYER_INDEX_ADDR(index + 1) + PLAYER_ACTIVE_MISSION_OFF) = (byte)mission; }
 		NATIVE_DECL void ACTIVE_NAME_SET(const char* name) { std::memcpy((char*)PLAYER_ACTIVE_ADDR, name, PLAYER_NAME_SIZE); }
+		NATIVE_DECL void ACTIVE_NAME_SET(string name) { ACTIVE_NAME_SET(name.c_str()); }
 		NATIVE_DECL void ACTIVE_MISSION_SET(byte mission) { { *(byte*)(PLAYER_ACTIVE_ADDR + PLAYER_ACTIVE_MISSION_OFF) = (byte)mission; } }
 		NATIVE_DECL char* IS_PROFILE_ACTIVE() { return NATIVE_INVOKE<char*>((Void)HASH::PLAYER_PROFILE_ACTIVE); }
 	}
@@ -52,11 +59,12 @@ namespace IGI {
 	namespace GAME {
 		NATIVE_DECL void INPUT_ENABLE() { NATIVE_INVOKE<Void>((Void)HASH::INPUT_ENABLE, (const char*)local_buf); }
 		NATIVE_DECL void INPUT_DISABLE() { NATIVE_INVOKE<Void>((Void)HASH::INPUT_DISABLE, (const char*)local_buf); }
-		NATIVE_DECL void QUIT() { *(PINT)0x5C8DE8 = 0; }
+		NATIVE_DECL void QUIT() { *(PINT)0x005C8DE8 = 0; }
 	}
 
 	namespace LEVEL {
 		NATIVE_DECL void RESTART() { NATIVE_INVOKE<Void>((Void)HASH::LEVEL_RESTART); }
+		NATIVE_DECL void LOAD() { NATIVE_INVOKE<Void>((Void)HASH::LEVEL_LOAD, 0x0057B568, 35); }
 		NATIVE_DECL int GET() { return READ_PTR(0x00539560); }
 		NATIVE_DECL void SET(int level) { *(PINT)0x00539560 = (level < 1 || level > GAME_LEVEL_MAX) ? 1 : level; }
 	}
@@ -128,18 +136,21 @@ namespace IGI {
 		NATIVE_DECL void OBJECT_INFO_SAVE(const char* file) { g_Resource->SaveGameResource(file, GAME_RESOURCE_QVM); }
 		NATIVE_DECL void MEF_EXTRACT() { g_Resource->ExtractResourceFile(GAME_RESOURCE_MEF); }
 		NATIVE_DECL bool IS_LOADED(const char* resource_file) { return NATIVE_INVOKE<bool>((Void)HASH::RESOURCE_IS_LOADED, resource_file, (int*)&resource_file); }
+		NATIVE_DECL bool IS_LOADED(string resource) { return IS_LOADED(resource.c_str()); }
 		NATIVE_DECL bool IS_LOADED(Resource& resource) { return IS_LOADED(resource.name.c_str()); }
 		NATIVE_DECL int* LOAD(const char* resource_file, char** buffer) { return NATIVE_INVOKE<int*>((Void)HASH::RESOURCE_LOAD, resource_file, buffer); }
-		NATIVE_DECL int* LOAD(const char* resource_file) { return LOAD(resource_file, NULL); }
+		NATIVE_DECL int* LOAD(string resource_file) { return LOAD(resource_file.c_str(), NULL); }
 		template <typename T>NATIVE_DECL void LOAD(T resource_files) { for (const auto& resource : resource_files) LOAD(resource.c_str()); }
 		NATIVE_DECL void UNLOAD(const char* resource_file) { NATIVE_INVOKE<Void>((Void)HASH::RESOURCE_UNLOAD, resource_file); }
-		template <typename T>NATIVE_DECL void UNLOAD(T resource_files) { for (const auto& resource : resource_files) if (IS_LOADED(resource.c_str())) UNLOAD(resource.c_str()); else LOG_ERROR("Resource '%s' cannot be loaded", resource.c_str()); }
+		NATIVE_DECL void UNLOAD(string resource_file) { UNLOAD(resource_file.c_str()); }
+		template <typename T>NATIVE_DECL void UNLOAD(T resource_files) { for (const auto& resource : resource_files) if (IS_LOADED(resource)) UNLOAD(resource); else LOG_ERROR("Resource '%s' cannot be loaded", resource.c_str()); }
 		NATIVE_DECL void FLUSH(int resource_addr) { NATIVE_INVOKE<Void>((Void)HASH::RESOURCE_FLUSH, resource_addr); }
 		NATIVE_DECL int UNPACK(const char* resource_file, char** buffer) { return NATIVE_INVOKE<int>((Void)HASH::RESOURCE_PACK_UNPACK, resource_file, buffer); }
-		NATIVE_DECL int UNPACK(const char* resource_file) { return UNPACK(resource_file, NULL); }
+		NATIVE_DECL int UNPACK(string resource_file) { return UNPACK(resource_file.c_str(), NULL); }
 		NATIVE_DECL void UNPACK(int* res_ptr, int res_addr, int res_size) { NATIVE_INVOKE<Void>((Void)HASH::RESOURCE_UNPACK, res_ptr, res_addr, res_size); }
 		NATIVE_DECL address_t FIND(const char* resource_name) { return g_Resource->FindGameResource(resource_name); }
-		NATIVE_DECL Resource FIND(string& resource_name) { return Resource(resource_name, g_Resource->FindGameResource(resource_name), 0); }
+		NATIVE_DECL address_t FIND(string resource_name) { return FIND(resource_name.c_str()); }
+		NATIVE_DECL void FIND(string resource_name, Resource& res) { res = Resource(resource_name, g_Resource->FindGameResource(resource_name), 0); }
 		NATIVE_DECL string MEF_FIND_MODEL_NAME(string& model_id) { return g_Resource->MEF_FindModelName(model_id); }
 		NATIVE_DECL string MEF_FIND_MODEL_ID(string& model_name, bool full_id) { return g_Resource->MEF_FindModelId(model_name, full_id); }
 		NATIVE_DECL string MEF_FIND_MODEL_ID(string& model_name) { return g_Resource->MEF_FindModelId(model_name, true); }
@@ -148,6 +159,21 @@ namespace IGI {
 		NATIVE_DECL void MEF_RESTORE_MODEL(string model_id) { g_Resource->MEF_RestoreModel(model_id); }
 		template <typename T>NATIVE_DECL void MEF_RESTORE_MODELS(T model_files) { for (const auto& model : model_files) MEF_RESTORE_MODEL(model); }
 		NATIVE_DECL void MEF_RESTORE_MODELS() { g_Resource->MEF_RestoreModels(); }
+	}
+
+	namespace GRAPH {
+		NATIVE_DECL void DEBUG_GRAPH_INFO(graph_t graph_id) { g_Graph.DebugGraphInfo(graph_id); }
+		NATIVE_DECL void DEBUG_GRAPHS_INFO(bool node_info, bool link_info) { g_Graph.DebugGraphsInfo(node_info, link_info, -1); }
+		NATIVE_DECL Graph GET_GRAPH(graph_t graph_id) { return g_Graph.GetGraph4mId(graph_id); }
+		NATIVE_DECL Graph::Node GET_GRAPH_NODE(graph_t graph_id, node_t node_id) { return g_Graph.GetNode4mId(graph_id,node_id); }
+		NATIVE_DECL float GET_NODE_RADIUS(graph_t graph_id, graph_t node_id) { return g_Graph.GetNodeRadius(graph_id,node_id); }
+		NATIVE_DECL float GET_NODE_GAMMA(graph_t graph_id, graph_t node_id) { return g_Graph.GetNodeGamma(graph_id,node_id); }
+		NATIVE_DECL int GET_NODE_MATERIAL(graph_t graph_id, graph_t node_id) { return g_Graph.GetNodeMaterial(graph_id,node_id); }
+		NATIVE_DECL string GET_NODE_MATERIAL_TYPE(graph_t graph_id, graph_t node_id) { return g_Graph.GetNodeMaterialType(graph_id,node_id); }
+		NATIVE_DECL string GET_NODE_LINKS(graph_t graph_id) { return g_Graph.GetNodeLinks(graph_id); }
+		NATIVE_DECL int GET_MAX_NODES(graph_t graph_id) { return g_Graph.GetMaxNodes(graph_id); }
+		NATIVE_DECL int GET_TOTAL_NODES(graph_t graph_id) { return g_Graph.GetTotalNodes(graph_id); }
+		NATIVE_DECL void DOT_SAVE_GRAPHS(string node_shape, string node_color, bool remove_source) { g_Graph.DOT_SaveGraphs(node_shape, node_color, remove_source); }
 	}
 
 	namespace QTASK {
@@ -174,13 +200,15 @@ namespace IGI {
 	namespace SCRIPT {
 		NATIVE_DECL void COMPILE(string qsc_file) { NATIVE_INVOKE<Void>((Void)HASH::QSCRIPT_COMPILE, qsc_file.c_str()); }
 		NATIVE_DECL int PARSE(string qas_file, int mem_addr) { return NATIVE_INVOKE<int>((Void)HASH::QSCRIPT_PARSE, qas_file.c_str(), mem_addr); }
-		NATIVE_DECL int PARSE(string qsc_file,string qas_file) { auto mem_blk = (int*)MEMORY::ALLOC(0x94, 4); char* buff = nullptr; auto res_addr = RESOURCE::LOAD(qsc_file.c_str(),&buff); std::strcpy((char*)mem_blk, qsc_file.data()); mem_blk[0x20] = (int)res_addr; mem_blk[0x21] = (int)buff; mem_blk[0x22] = 0; return PARSE(qas_file, (int)mem_blk); }
+		NATIVE_DECL int PARSE(string qsc_file, string qas_file) { auto mem_blk = (int*)MEMORY::ALLOC(0x94, 4); char* buff = nullptr; auto res_addr = RESOURCE::LOAD(qsc_file.c_str(), &buff); std::strcpy((char*)mem_blk, qsc_file.data()); mem_blk[0x20] = (int)res_addr; mem_blk[0x21] = (int)buff; mem_blk[0x22] = 0; return PARSE(qas_file, (int)mem_blk); }
+		NATIVE_DECL int PARSE(string qsc_file) { string qas_file = qsc_file; g_Utility.Replace(qas_file, ".qsc", ".qas"); return PARSE(qsc_file, qas_file); }
 		NATIVE_DECL int ASSEMBLE(string qas_file, string qvm_file) { return NATIVE_INVOKE<int>((Void)HASH::QSCRIPT_ASSEMBLE, qvm_file.c_str(), qas_file.c_str()); }
+		NATIVE_DECL int ASSEMBLE(string qas_file) { string qvm_file = qas_file; g_Utility.Replace(qvm_file, ".qas", ".qvm"); return ASSEMBLE(qas_file, qvm_file); }
 		NATIVE_DECL void CLEANUP(string q_file) { NATIVE_INVOKE<Void>((Void)HASH::QSCRIPT_CLEANUP, q_file.c_str()); }
 	}
 
 	namespace GFX {
-		NATIVE_DECL void GRAPHICS_RESET() { NATIVE_INVOKE<Void>((Void)HASH::GRAPHICS_RESET, (const char*)local_buf); }
+		NATIVE_DECL void RESET() { NATIVE_INVOKE<Void>((Void)HASH::RESET, (const char*)local_buf); }
 	}
 
 	namespace SFX {

@@ -1,7 +1,8 @@
 #include "Camera.hpp"
 #include "CommonConst.hpp"
 #include "NativeHelper.hpp"
-#include <GTConsole.hpp>
+#include "GTConsole.hpp"
+#include "Features.hpp"
 using namespace IGI;
 
 Camera::Position Camera::ReadPosition()
@@ -101,7 +102,7 @@ void  Camera::FreeCam(Camera::Controls& ctrl) {
 
 	//De-Attach ViewPort of camera and Set View.
 	Deattach();
-	HUMAN::CAM_VIEW_SET(3);
+	HUMAN::CAM_VIEW_SET(3);//To make Player Visible in free Cam.
 
 	//Main loop of FreeCam.
 	while (!GT_IsKeyPressed(ctrl.QUIT())) {
@@ -126,9 +127,13 @@ void  Camera::FreeCam(Camera::Controls& ctrl) {
 		//Key event for Calibrate view.
 		if (GT_IsKeyPressed(ctrl.CALIBRATE())) CalibrateView();
 
+		//Exceptions case - Compile and status msg.
+		if (GT_HotKeysPressed(VK_MENU, VK_F5)) ScriptCompile();
+		if (GT_HotKeysPressed(VK_CONTROL, VK_INSERT)) StatusMsgShow();
+		if (GT_IsKeyPressed(VK_END)) break;
+
 		//Update camera position.
 		WritePosition(pos);
-		//UpdateInfo(pos,angle);
 	}
 
 	//Attach ViewPort of camera and Reset View.
@@ -136,25 +141,9 @@ void  Camera::FreeCam(Camera::Controls& ctrl) {
 	Attach();
 }
 
-//void UpdateInfo(Camera::Position pos,Camera::Angle angle) {
-//
-//	GT_SetConsoleCursorXY(5,0);
-//	std::cout << "Position: " << std::endl;
-//	GT_SetConsoleCursorXY(5, 1);
-//	std::cout << "X: " << std::setprecision(17) << pos.X() << std::endl;
-//	GT_SetConsoleCursorXY(5, 2);
-//	std::cout << "Y: " << std::setprecision(17) << pos.Y() << std::endl;
-//	GT_SetConsoleCursorXY(5, 3);
-//	std::cout << "Z: " << std::setprecision(17) << pos.Z() << std::endl;
-//
-//	GT_SetConsoleCursorXY(5, 5);
-//	std::cout << "Angle: " << std::endl;
-//	GT_SetConsoleCursorXY(5, 6);
-//	std::cout << "Pitch: " << std::setprecision(7) << angle.Pitch() << std::endl;
-//	GT_SetConsoleCursorXY(5, 7);
-//	std::cout << "Roll: " << std::setprecision(7) << angle.Roll() << std::endl;
-//	GT_SetConsoleCursorXY(5, 8);
-//	std::cout << "Yaw: " << std::setprecision(7) << angle.Yaw() << std::endl;
-//	GT_SetConsoleCursorXY(5, 9);
-//	std::cout << "Fov: " << std::setprecision(7) << angle.Fov() << std::endl;
-//}
+
+void Camera::RunFreeCamThread(Controls& controls) {
+
+	auto freeCamThread = std::thread(&Camera::FreeCam, this, std::ref(controls));
+	freeCamThread.join();
+}

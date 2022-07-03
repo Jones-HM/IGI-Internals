@@ -133,6 +133,7 @@ namespace IGI {
 		void Attach();
 		void Deattach();
 		void FreeCam(Controls&);
+		void RunFreeCamThread(Controls&);
 	};
 	inline Camera g_Camera;
 }

@@ -11,6 +11,7 @@ namespace IGI {
 		graph_t graph_id; //Graph Id.
 		int node_max;//Maximum no. of nodes.
 
+	public:
 		struct Real64
 		{
 			double x, y, z;
@@ -22,10 +23,19 @@ namespace IGI {
 				this->y = y;
 				this->z = z;
 			}
+
+			// Setters / Getters.
+			double X() { return x; }
+			double Y() { return y; }
+			double Z() { return z; }
+
+			void X(double x) { this->x = x; }
+			void Y(double y) { this->x = y; }
+			void Z(double x) { this->x = z; }
 		};
 
 		//Class to hold  Graph Nodes information.
-	public:
+
 		class Node {
 			graph_t node_id; //Current Node id.
 			Real64 node_pos; //Node position in Real64.
@@ -112,22 +122,25 @@ namespace IGI {
 		bool NodeInit() { return node_init; }
 		void NodeInit(bool node_init) { this->node_init = node_init; }
 
-
-		void DebugGraphInfo(bool node_info = true, bool link_info = false);
-		string DebugGraphInfo(graph_t graph_id);
+		
+		void DebugGraphsInfo(bool node_info = true, bool link_info = false,graph_t graph_id=-1);
+		void DebugGraphInfo(graph_t graph_id);
 		void DOT_SaveGraphs(string node_shape="doublecircle", string node_color = "yellow", bool remove_source = false);
 		void DOT_CompileGraph(string graph_file, string output_fmt="svg", string layout_engine="fdp");
-		Graph GetGraphData(graph_t graph_id);
+		
+		//Graph methods.
+		Graph GetGraph4mId(graph_t graph_id);
+		Graph::Node GetNode4mId(graph_t graph_id, node_t node_id);
 		int GetMaxNodes(graph_t graph_id);
 		int GetTotalNodes(graph_t graph_id);
 
 		//Node Methods.
-		int GetNodeMaterial(graph_t graph_id, int node_id);
-		string GetNodeMaterialType(graph_t graph_id, int node_id);
-		string GetMaterialType(int material_id);
-		float GetNodeRadius(graph_t graph_id, int node_id);
-		float GetNodeGamma(graph_t graph_id, int node_id);
-		int GetNodeCriteria(graph_t graph_id, int node_id);
+		string GetNodeLinks(graph_t graph_id);
+		int GetNodeMaterial(graph_t graph_id, node_t node_id);
+		string GetNodeMaterialType(graph_t graph_id, node_t node_id);
+		float GetNodeRadius(graph_t graph_id, node_t node_id);
+		float GetNodeGamma(graph_t graph_id, node_t node_id);
+		int GetNodeCriteria(graph_t graph_id, node_t node_id);
 
 
 		//Setters/Getters for Node.

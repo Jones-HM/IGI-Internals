@@ -14,7 +14,7 @@ GameResource::~GameResource() {
 }
 
 void GameResource::InitGameResource() {
-	string mef_models = g_Utility.GetModuleFolder() + "\\" + MEF_MODELS_FILE;
+	string mef_models = g_Utility.GetAppdataPath() + "\\QEditor\\" + MEF_MODELS_FILE;
 	models_data = ReadFileType(mef_models, ASCII_FILE);
 }
 
@@ -136,7 +136,7 @@ void GameResource::MEF_RemoveModel(string model) {
 
 				//Model Id Half/Full.
 				if (std::regex_match(model, model_re) || std::regex_match(model, model_re_full)) {
-
+					LOG_INFO("%s Model Id Regex", FUNC_NAME);
 					size_t mef_id_size = (std::regex_match(model, model_re)) ? 3 : MEF_ID_SIZE;
 					model_id = resource.name.substr(resource.name.find_last_of("/") + 1, mef_id_size);
 
@@ -148,7 +148,7 @@ void GameResource::MEF_RemoveModel(string model) {
 				}
 				//Model Name.
 				else {
-					//LOG_INFO("Model Name Regex");
+					LOG_INFO("%s Model Name Regex",FUNC_NAME);
 					model_id = resource.name.substr(resource.name.find_last_of("/") + 1, 3);
 					model_name = MEF_FindModelName(model_id);
 					//Case insensitive Find.

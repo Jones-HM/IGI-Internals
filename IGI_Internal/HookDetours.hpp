@@ -12,6 +12,9 @@
 #include "GameResource.hpp"
 #include "Graphs/Graph.hpp"
 
+//Testing.
+bool graph_runner = false;
+
 Graph graph;
 //Graph::Node node;
 using namespace IGI;
@@ -132,6 +135,17 @@ decltype(DebugSoldierData) DebugSoldierDataOut;
 auto DbgPrint = (void(__cdecl*)(void))0x004E7840;
 decltype(DbgPrint) DbgAllocOut;
 
+auto QTaskListCheck = (void(__cdecl*)(int*, int))0x004C1790;
+decltype(QTaskListCheck) QTaskListCheckOut;
+
+void __cdecl QTaskListChecktDetour(int* param_1, int param_2) {
+	//LOG_INFO("%s param_1: %p param_1[1]: %p *param_1: %p param_2: %p", "QTaskListCheck", param_1, param_1[1], *param_1, param_2);
+	//g_DbgHelper->StackTrace(true);
+	//param_1[1] = 4096;
+	if (param_1[1] >= 500) param_1[1] = MEMORY::ALLOC(1024, 2);
+	QTaskListCheckOut(param_1, param_2);
+}
+
 auto CameraUpdate = (void(__cdecl*)(int*, int*, float*, float, float, float, int, int, float, float))0x004D9870;
 decltype(CameraUpdate) CameraUpdateOut;
 
@@ -206,8 +220,7 @@ decltype(GraphNodePosition) GraphNodePositionOut;
 
 void GraphNodePositionDetour(int* param_1) {
 	GraphNodePositionOut(param_1);
-	auto node_pos = *(double*)(0x00A77268);
-	//LOG_INFO("GraphNodePosition: node_pos : %lf : %p", node_pos, READ_PTR(0x00a77268));
+	//LOG_INFO("NodePos: %lf : %p", *(double*)(0x00A77268), READ_PTR(0x00A77268));
 }
 
 auto GraphNodeMaterial = (void(__cdecl*)(int, int))0x004CE400;
@@ -252,8 +265,6 @@ void GraphNodeLinkTypeDetour(int* param_1) {
 
 	//Create new link on every link.
 	Graph::Link new_link; graph.SetLink(new_link);
-
-	//LOG_FILE("GraphNodeLinkType: link_type : %d", node_link_type);
 }
 
 auto GraphNodeGamma = (void(__cdecl*)(int*))0x004FAFA0;
@@ -282,7 +293,6 @@ decltype(GraphNodeCriteria) GraphNodeCriteriaOut;
 void GraphNodeCriteriaDetour(int* param_1) {
 	int node_criteria = GraphNodeCriteriaOut(param_1);
 	graph.GetNode().NodeCriteria(READ_PTR(node_criteria));
-	//LOG_INFO("GraphNodeCriteria: node_criteria : %d", READ_PTR(0x00a77294));
 }
 
 auto GraphMaxNodes = (int(__cdecl*)(int*))0x004FAEE0;
@@ -291,7 +301,6 @@ decltype(GraphMaxNodes) GraphMaxNodesOut;
 void GraphMaxNodesDetour(int* param_1) {
 	int nodes_max = GraphMaxNodesOut(param_1);
 	graph.NodeMax(nodes_max);
-	//LOG_FILE("GraphMaxNodes: maxNodes : %d", nodes_max);
 }
 
 auto GraphNodesId = (void(__cdecl*)(int*))0x004FAF50;
@@ -309,14 +318,14 @@ void GraphNodeIdDetour(int* param_1) {
 	int node_id = READ_PTR(0x00A77260);
 	graph.GetNode().NodeId(node_id);
 	graph.NodeInit(true);
-	//LOG_FILE("GraphNodeId: node_id : %d", node_id);
+	//LOG_INFO("GraphNodeId: node_id : %d", node_id);
 }
 
 auto GraphOpen = (void(__cdecl*)(int, char*))0x004F9FF0;
 decltype(GraphOpen) GraphOpenOut;
 
 void GraphOpenDetour(int level_ptr, char* graph_file) {
-	//LOG_FILE("\nGraphOpen: level_ptr: %p graph_file: '%s'", level_ptr, graph_file);
+	//LOG_INFO("\nGraphOpen: level_ptr: %p graph_file: '%s'", level_ptr, graph_file);
 
 	//Add graph data to list.
 	if (graph.GraphInit()) { graph.AddNode(graph.GetNode()); g_level_graphs.push_back(graph); }
@@ -343,7 +352,7 @@ void GraphOpenDetour(int level_ptr, char* graph_file) {
 
 
 void CleanupQVMDetour(char* file) {
-	LOG_INFO("CleanupQVM: file: '%s'", file);
+	//LOG_INFO("CleanupQVM: file: '%s'", file);
 	CleanupQVMOut(file);
 }
 
@@ -351,18 +360,6 @@ void ResourceFlushDetour(int* resource_file) {
 
 }
 
-void ResourceUnloadDetour(int* resource_file) {
-	//LOG_INFO("UnloadResource: '%s'", resource_file);
-
-	//Remove resource from game resources list onUnload.
-	auto it = std::find_if(game_resources.begin(), game_resources.end(), [&](Resource& res) -> bool { return res.name == string((char*)resource_file); });
-	if (it != game_resources.end()) {
-		game_resources.erase(it);
-		//LOG_FILE("Removed: '%s' vec_size: %d", resource_file, game_resources.size());
-	}
-
-	ResourceUnloadOut(resource_file);
-}
 
 int IsResourceLoadedDetour(char* param_1, int* param_2) {
 	//LOG_INFO("IsResourceLoaded p_1 '%s' p_2: %p", param_1, param_2);
@@ -593,15 +590,6 @@ void AmmoPickupDetour(int param_1, int* param_2) {
 void StatusMessageShowDetour(int param_1, int** param_2, int* param_3, int param_4, int param_5, int param_6) {
 	//LOG_FILE("%s param_1 : %p param_2 : %p param_3 : %p param_4 : %p param_5 : %p param_6 : %p", "StatusMessageShow", param_1, param_2, param_3, param_4, param_5, param_6);
 	//Sleep(100);
-	char* text = nullptr;
-
-	__asm {
-		lea ebx, [esi + 0x10]
-		shl edx, 0x0A
-		sub eax, ecx
-		lea edi, [esp + edx * 0x1 + 0x28]
-		mov text, edi
-	}
 
 	//LOG_CONSOLE("%s text: %s", "StatusMessageShow", text);
 	//g_DbgHelper->StackTrace(true, false, true);
@@ -637,9 +625,10 @@ int __cdecl LoadGameDataDetour(char* res_buf, const char* res_path, const char* 
 }
 
 int __cdecl  StatusMsgDetour(int send_status, const char* buffer, const char* msg_sprite, const char* status_byte_addr) {
-	LOG_CONSOLE("%s send_status : %p buffer : '%s' msg_sprite : %p status_byte : %p", FUNC_NAME, send_status, buffer, msg_sprite, status_byte_addr);
 	//g_DbgHelper->StackTrace(true, false, true);
-	return StatusMsgOut(send_status, buffer, msg_sprite, status_byte_addr);
+	string status_buf = g_Utility.Trim(string(buffer));
+	//LOG_CONSOLE("%s send_status : %p buffer : '%s' msg_sprite : %p status_byte : %p", FUNC_NAME, send_status, status_buf.c_str(), msg_sprite, status_byte_addr);
+	return StatusMsgOut(send_status, status_buf.c_str(), msg_sprite, status_byte_addr);
 }
 
 int __cdecl ParseConfigDetour(char* q_file) {

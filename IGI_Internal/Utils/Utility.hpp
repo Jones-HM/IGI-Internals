@@ -31,10 +31,12 @@ namespace IGI {
 		bool WriteMemory(LPVOID, binary_t&);
 		bool StrCaseCompare(const string&, const string&);
 		size_t Find(string& data,string& search, size_t pos=0);
-		bool IsAsciiStr(const std::string&);
+		bool IsAsciiStr(const string&);
 		void Tokenize(string&,char,vector<string>&);
 		void Replace(string& str, const string& from, const string& to);
 		int ShellExec(string shell_cmd);
+		string Trim(const string& str, const string& whitespace = " ");
+		string GetAppdataPath();
 	};
 	inline Utility g_Utility;
 }
