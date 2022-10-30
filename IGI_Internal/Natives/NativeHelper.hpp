@@ -37,6 +37,8 @@ namespace IGI {
 		NATIVE_DECL void INDEX_MISSION_SET(int index, byte mission) { *(byte*)(PLAYER_INDEX_ADDR(index + 1) + PLAYER_ACTIVE_MISSION_OFF) = (byte)mission; }
 		NATIVE_DECL void ACTIVE_NAME_SET(const char* name) { std::memcpy((char*)PLAYER_ACTIVE_ADDR, name, PLAYER_NAME_SIZE); }
 		NATIVE_DECL void ACTIVE_NAME_SET(string name) { ACTIVE_NAME_SET(name.c_str()); }
+		NATIVE_DECL string ACTIVE_NAME_GET() { string name = ""; std::memcpy((void*)name.data(), (void*)PLAYER_BASE_ADDR, PLAYER_NAME_SIZE); return name; }
+		NATIVE_DECL int ACTIVE_MISSION_GET() { byte mission = 1; mission = *(byte*)(PLAYER_BASE_ADDR + PLAYER_ACTIVE_MISSION_OFF); return mission; }
 		NATIVE_DECL void ACTIVE_MISSION_SET(byte mission) { { *(byte*)(PLAYER_ACTIVE_ADDR + PLAYER_ACTIVE_MISSION_OFF) = (byte)mission; } }
 		NATIVE_DECL char* IS_PROFILE_ACTIVE() { return NATIVE_INVOKE<char*>((Void)HASH::PLAYER_PROFILE_ACTIVE); }
 	}
@@ -194,7 +196,7 @@ namespace IGI {
 		NATIVE_DECL int* LOAD(string qvm_file) { g_Utility.Replace(qvm_file, ".qvm", ".qsc"); return NATIVE_INVOKE<int*>((Void)HASH::QVM_LOAD, qvm_file.c_str()); }
 		NATIVE_DECL int READ(int qvm_addr) { return NATIVE_INVOKE<int>((Void)HASH::QVM_READ, qvm_addr); }
 		NATIVE_DECL void CLEANUP(int* qvm_addr) { NATIVE_INVOKE<Void>((Void)HASH::QVM_CLEANUP, qvm_addr); }
-		NATIVE_DECL int READ(string qvm_file) { auto qvm_addr = LOAD(qvm_file); auto status = READ((int)qvm_addr); CLEANUP(qvm_addr); return status; }
+		NATIVE_DECL int LOAD_AND_READ(string qvm_file) { auto qvm_addr = LOAD(qvm_file); auto status = READ((int)qvm_addr); CLEANUP(qvm_addr); return status; }
 	}
 
 	namespace SCRIPT {

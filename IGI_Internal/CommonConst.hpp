@@ -45,6 +45,7 @@ namespace IGI {
 //Native constants. 
 #define NATIVE_INVOKE g_NativeCaller.Invoke
 #define GAME_LEVEL_MAX READ_PTR(0x005C89FC)
+#define GAME_NAME (const char*)R"(IGI)"
 
 //Directory Constants.
 #define GAME_LOCAL_DIR (const char*)R"(LOCAL:)"

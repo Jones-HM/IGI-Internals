@@ -126,7 +126,6 @@ void DllMainLoop() {
 			controls.QUIT(VK_HOME);
 			controls.AXIS_OFF(0.5f);
 
-			//CAMERA::FREECAM(controls);
 			g_Camera.RunFreeCamThread(controls);
 			GAME::INPUT_ENABLE();
 			g_PlayerEnabled = true;
@@ -259,7 +258,8 @@ void DllMainLoop() {
 				LOG_INFO("Resource Unpack find name '%s'", resource_file.c_str());
 				auto resource_addr = RESOURCE::FIND(resource_file);
 				string data = "Resource '" + resource_file + "' found at address " + HEX_ADDR_STR(resource_addr);
-				InternalDataWrite(data);
+				LOG_INFO("'%s'", data.c_str());
+				InternalDataWrite(HEX_ADDR_STR(resource_addr));
 			}
 			catch (const std::exception& ex)
 			{
@@ -317,9 +317,9 @@ void DllMainLoop() {
 		else if (GT_HotKeysPressed(VK_SHIFT, VK_F5)) {
 			try {
 
-				string qvm_file = InternalDataRead();
-				LOG_INFO("QVM Read file '%s'", qvm_file.c_str());
-				int status = QVM::READ(qvm_file); //Status '0' success, 'Non-zero' error.
+				string qvm_addr = InternalDataRead();
+				LOG_INFO("QVM Read Address '%s'", qvm_addr.c_str());
+				int status = QVM::READ(std::stoi(qvm_addr)); //Status '0' success, 'Non-zero' error.
 			}
 			catch (const std::exception& ex)
 			{
@@ -389,6 +389,38 @@ void DllMainLoop() {
 		}
 
 		//Ctrl-Numpad Controls.
+
+		else if (GT_HotKeysPressed(VK_CONTROL, VK_ADD)) {
+			try
+			{
+				string active_name = PLAYER::ACTIVE_NAME_GET();
+				LOG_INFO("Player active name %s", active_name.c_str());
+
+				string name(active_name.data());
+				InternalDataWrite(name);
+			}
+			catch (const std::exception& ex)
+			{
+				LOG_INFO("Exception: %s", ex.what());
+			}
+		}
+
+		else if (GT_HotKeysPressed(VK_CONTROL, VK_SUBTRACT)) {
+			try
+			{
+				int active_mission = PLAYER::ACTIVE_MISSION_GET();
+				LOG_INFO("Player active mission %d", active_mission);
+
+				if (active_mission > 0 && active_mission <= 14) {
+					InternalDataWrite(std::to_string(active_mission));
+				}
+			}
+			catch (const std::exception& ex)
+			{
+				LOG_INFO("Exception: %s", ex.what());
+			}
+		}
+
 		else if (GT_HotKeysPressed(VK_CONTROL, VK_NUMPAD0)) {
 			string mission = InternalDataRead();
 			LOG_INFO("Player Active mission set %d", mission.c_str());
@@ -467,112 +499,8 @@ void DllMainLoop() {
 			}
 		}
 
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD1)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD2)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD3)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD4)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD5)) {
-			;
-		}
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD6)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD7)) {
-			;
-		}
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD8)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_MENU, VK_NUMPAD9)) {
-			;
-		}
-
-		//Shift-Numpad Controls.
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD0)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD1)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD2)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD3)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD4)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD5)) {
-			;
-		}
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD6)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD7)) {
-			;
-		}
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD8)) {
-			;
-		}
-
-		else if (GT_HotKeysPressed(VK_SHIFT, VK_NUMPAD9)) {
-			;
-		}
-
 		else if (GT_IsKeyToggled(VK_SNAPSHOT)) {
 			g_Console->Clear();
-		}
-
-		else if (GT_HotKeysPressed(VK_CONTROL, 'M')) {
-			GT_FindGameProcess("IGI");
-			model_bool = !model_bool;
-			LOG_CONSOLE("Model analysis started!");
-		}
-
-		if (model_bool) {
-			//std::vector<string> models_list{ "Watertower","Watchtower","Barracks" };
-			//string model_id = std::string(GT_ReadString(LPVOID(0x00401043), 9));
-			string model_id = std::string(GT_ReadString((LPVOID)0x00A5EA78, 13));//DBG_DATA.
-			LOG_CONSOLE("Model id: %s", model_id.c_str());
-
-			if (model_id.find("Model") != string::npos) {
-				if (model_id.find("_") != string::npos) {
-					string m_id = model_id.substr(7, 8);
-					std::regex model_re = std::regex(R"(\d{3}_\d{2})");//Model Id regex.
-					if (std::regex_match(m_id, model_re)) {
-						string model_name = RESOURCE::MEF_FIND_MODEL_NAME(m_id);
-						model_name = model_name.empty() ? "MODEL_MISSING" : model_name.c_str();
-						if (model_name == "MODEL_MISSING") {
-							string model_str = "Model Missing for Id " + m_id;
-							LOG_CONSOLE(model_str.c_str());
-						}
-						else {
-							LOG_CONSOLE("Model Name: '%s'", model_name.c_str());
-						}
-					}
-				}
-			}
 		}
 	}
 
@@ -608,11 +536,17 @@ void ScriptCompile() {
 }
 
 string InternalDataRead() {
-	string data = nullptr;
+	string data;
 	try {
 		string internal_data_file = g_Utility.GetModuleFolder() + "\\" + PROJECT_NAME + "-data.txt";
-		data = ReadFileType(internal_data_file, ASCII_FILE);
-		data = g_Utility.Trim(g_Utility.Trim(data, "\n"), " ");
+		std::ifstream in_stream(internal_data_file);
+
+		if (in_stream.good()) {
+			std::getline(in_stream, data);
+		}
+		else {
+			throw std::runtime_error("Internal data file doesn't exist in current directory");
+		}
 	}
 	catch (const std::exception& ex)
 	{
@@ -633,14 +567,8 @@ void StartLevelMain(int level, bool disable_warn, bool disable_err, int hash_val
 	if (disable_warn) MISC::WARNINGS_DISABLE();
 	if (disable_err) MISC::ERRORS_DISABLE();
 
-	//QuitLevelMain();
-	//std::this_thread::sleep_for(10s);
-
 	QTASK::HASH_INIT(1);
 	QTASK::UPDATE();
-
-	//auto StartLevel = (int(__cdecl*)(int, int, int, int))0x415B30;
-	//StartLevel(*(PINT)0x57BABC,00000000, * (PINT)0xC28C5C, * (PINT)(*(PINT)0x57BABC));
 
 	auto StartLevelCaller = (int(__cdecl*)(int))0x00416900;
 	StartLevelCaller(*(PINT)0x00567C8C);
@@ -650,17 +578,17 @@ void StartLevelMain(int level, bool disable_warn, bool disable_err, int hash_val
 
 void QuitLevelMain() {
 	auto sub_416d40 = (int(__cdecl*)())0x416d40;
-	auto ppiVar4 = (int**)sub_416d40();
+	auto data = (int**)sub_416d40();
 
 	auto sub_004015f0 = (int(__cdecl*)(int**))0x004015f0;
-	sub_004015f0(ppiVar4);
-	*(int*)(0x00567c8c + 0x28) = 3;
+	sub_004015f0(data);
+	*(int*)(0x00567c8c + 0x28) = 3; // Id of Main menu screen.
 
 	auto sub_402890 = (int(__cdecl*)())0x402890;
-	int iVar2 = sub_402890();
+	int menu_data = sub_402890();
 
-	auto MenuManager = (int(__cdecl*)(int, const char*, char, char, int))0x00418B00;
-	MenuManager(iVar2, "LOCAL:menusystem\\mainmenu.qsc", '\x1', '\x1', 1);
+	auto menuManager = (int(__cdecl*)(int, const char*, char, char, int))0x00418B00;
+	menuManager(menu_data, "LOCAL:menusystem\\mainmenu.qsc", '\x1', '\x1', 1);
 }
 
 void ThreadCallerDelay(int delay) {

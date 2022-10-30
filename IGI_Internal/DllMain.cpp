@@ -44,7 +44,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 					g_Console->Clear();
 					GT_InitTrainerWindowEx(PROJECT_NAME, 50, 50, 1200, 700, BG_GREEN, FG_CYAN);
 #endif 
-					auto GAME_font = LR"(
+					auto game_font = LR"(
 ╔═══╦═══╦═══╗ ╔╦═══╦═══╦════╗  ╔══╦═══╦══╗                 
 ║╔═╗║╔═╗║╔═╗║░║║╔══╣╔═╗║╔╗╔╗║░░╚╣╠╣╔═╗╠╣╠╝	▄▌			▄ 
 ║╚═╝║╚═╝║║░║║░║║╚══╣║░╚╩╝║║╚╝░░░║║║║░╚╝║║	▓▓▓▓▓▓▓▓▓▓▓▓▄
@@ -53,7 +53,7 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 ╚╝  ╚╝╚═╩═══╩══╩═══╩═══╝ ╚╝    ╚══╩═══╩══╝ 			   ▐▓▓▌
 )";
 
-					LOG_RAW(GAME_font);
+					LOG_RAW(game_font);
 					LOG_WARNING("Logger initialized.");
 
 					auto native_instance = std::make_unique<Natives>();
@@ -82,11 +82,15 @@ BOOL WINAPI  DllMain(HMODULE hmod, DWORD reason, PVOID)
 					//Invincible-Jones.
 #ifdef DBG_x86
 					//GT_WriteNOP(PLAYER_XPL_HIT_ADDR, 6);
-					//WEAPON::UNLIMITED_AMMO_SET(true);
-					MISC::STATUS_MESSAGE_SHOW((PROJECT_NAME + string(" v1.0 Attached")).c_str());
+					//WEAPON::UNLIMITED_AMMO_SET(true);20.5990
+					MISC::STATUS_MESSAGE_SHOW((PROJECT_NAME + string(" v1.1 Attached")).c_str());
 #else
-					MISC::STATUS_MESSAGE_SHOW((PROJECT_NAME + string(" v1.0 Attached")).c_str());
+					MISC::STATUS_MESSAGE_SHOW((PROJECT_NAME + string(" v1.1 Attached")).c_str());
 #endif
+					//Set Game handle for both Debug and Release builds.
+					HANDLE g_handle = GT_GetGameHandle4mHWND(GT_FindGameWindow(GAME_NAME));
+					LOG_INFO("Game handle 0x%p", g_handle);
+					g_Utility.SetHandle(g_handle);
 
 					//Main loop of DLL. 
 					while (!GT_IsKeyPressed(VK_END)) {

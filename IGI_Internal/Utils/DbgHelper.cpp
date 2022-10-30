@@ -1,7 +1,6 @@
 #include "DbgHelper.hpp"
 
 using namespace IGI;
-using namespace IGI;
 
 DbgHelper::DbgHelper() {
 	g_DbgHelper = this;
@@ -218,7 +217,7 @@ std::vector<DbgHelper::StackFrame> DbgHelper::StackTraceWalk(bool file_info, boo
 
 HANDLE DbgHelper::InitStackTrace() {
 	SymSetOptions(SYMOPT_LOAD_LINES | SYMOPT_DEFERRED_LOADS | SYMOPT_LOAD_ANYTHING || SYMOPT_UNDNAME);
-	m_Handle = GT_GetGameHandle4mHWND(GetForegroundWindow());
+	m_Handle = GT_GetGameHandle4mHWND(GT_FindGameWindow(GAME_NAME));
 	g_Utility.SetHandle(m_Handle);
 
 	if (!SymInitialize(m_Handle, NULL, TRUE))

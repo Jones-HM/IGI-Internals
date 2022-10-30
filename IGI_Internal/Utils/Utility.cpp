@@ -170,7 +170,7 @@ std::tuple<std::vector<uint8_t>, string, string> Utility::ReadFile(string file_n
 
 	catch (...) {
 		string ex_str = "Error: " + file_name + ": No such file or directory";
-		throw std::exception(ex_str.c_str());
+		throw std::runtime_error(ex_str.c_str());
 	}
 
 	auto tuple_data = make_tuple(vec_buf, str_buf, hex_buf);
@@ -208,7 +208,7 @@ bool Utility::WriteFile(string file_name, binary_t file_data, int file_type)
 		}
 		else {
 			string ex_str = "Error: couldn't open " + file_name + " for output";
-			throw std::exception(ex_str.c_str());
+			throw std::runtime_error(ex_str.c_str());
 		}
 	}
 	catch (const std::exception& ex) {
