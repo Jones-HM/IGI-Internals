@@ -49,14 +49,34 @@ So you have to follow the steps.
 ```
 3. Now go to _Features.cpp_ class and use it. 
 ```cpp
-  		// Native method.
-		else if (GT_HotKeysPressed(VK_CONTROL, VK_F1)) {
-			MY_FIRST_NATIVE_LOAD();
-		}
+  // Native method.
+  if (GT_HotKeysPressed(VK_CONTROL, VK_F1)) {
+	MY_FIRST_NATIVE_LOAD();
+  }
 ```
 
 # This section requires to be updated.
 ## IGI-Internals Docs
+
+## Game Section
+
+### Restarting Level.
+```cpp
+QTASK::UPDATE();
+g_AutoMsgBox->Show("", 70);
+LEVEL::LOAD();
+g_AutoMsgBox->Show("", 70);
+```
+
+### Starting new Level.
+```cpp
+LEVEL::SET(level);
+QTASK::HASH_INIT(1);
+QTASK::UPDATE();
+auto StartLevelCaller = (int(__cdecl*)(int))0x00416900;
+StartLevelCaller(*(PINT)0x00567C8C);
+QTASK::RESET();
+```
 
 ## Resource Section.
 
