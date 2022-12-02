@@ -1,4 +1,10 @@
-# IGI-Internals Docs
+# Project I.G.I Internal
+
+[Project I.G.I](https://en.wikipedia.org/wiki/Project_I.G.I.) Internal is Project to access internal methods of the game by using **DLL injection method** into the game and calling [IGI Natives methods](https://github.com/IGI-Research-Devs/IGI-Internals-Data/blob/main/IGI-Natives.json) to modify/alter the behaviour of the game.</br>
+This was originally intended for research project to understand the game mechanics and how developers worked hard to create them.</br>
+So don't use this project to misuse the game's identity and source of original game devs.</br>
+
+## IGI-Internals Docs
 
 ## Resource Section.
 
