@@ -13,11 +13,11 @@ So don't use this project to misuse the game's identity and source of original g
 - [Pattern Scanning](https://memoryhackers.org/konular/external-internal-pattern-scanning-guide.95460/) - This project use pattern memory scanning to check Game/Player is loaded properly.</br>
 - **Game specific section.**
 - [IGI Graphs Structure](https://github.com/IGI-Research-Devs/IGI-Research-Data/blob/main/Research/GRAPH/Graph-Structure.txt) - Project IGI 1 Graph structure data.
-- [IGI 3D Modes](https://github.com/IGI-Research-Devs/IGI-Research-Data/blob/main/Research/Natives/IGI-Models.txt) - Project IGI uses 3D models in 
+- [IGI 3D Models](https://github.com/IGI-Research-Devs/IGI-Research-Data/blob/main/Research/Natives/IGI-Models.txt) - Project IGI uses 3D models in 
 form of _MEF_ (**M**esh **E**xternal **F**ile).
-- [IGI Camera View](https://www.researchgate.net/figure/Definition-of-pitch-roll-and-yaw-angle-for-camera-state-estimation_fig15_273225757) - IGI use game Camera called [Viewport](https://en.wikipedia.org/wiki/Viewport) to display the game.
+- [IGI Camera View](https://www.researchgate.net/figure/Definition-of-pitch-roll-and-yaw-angle-for-camera-state-estimation_fig15_273225757) - IGI use game Camera called [Viewport](https://en.wikipedia.org/wiki/Viewport) to display the game updates.
 - **Native section.**
-- Natives Invoker - Native invoker is a technology to invoke native methods from Game using their **Hash** with its **Handler**. 
+- Native Invoker - Native invoker is a technology to invoke native methods from Game using their **Hash** with its **Handler**. 
 
 ## Building DLL project.
 Open this project in your favourite IDE _(Visual Studio)_ and build it and your output will be **Release/Debug** folder depends which configuration you choosed and you will find file _IGI-Internals-Release.dll_ so download your favourite DLL injector make sure its **x86(32-bit)** compatible otherwise injection wouldn't work or you can use recommended [IGI-Injector](https://github.com/IGI-Research-Devs/IGI-Injector) to inject DLL.
@@ -295,3 +295,5 @@ controls.AXIS_OFF(0.5f); //Offset value to move Camera from Axis.
 
 CAMERA::FREECAM(controls);
 ```
+
+Original Author : _HeavenHM@2022_.
