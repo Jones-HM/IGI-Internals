@@ -4,6 +4,58 @@
 This was originally intended for research project to understand the game mechanics and how developers worked hard to create them.</br>
 So don't use this project to misuse the game's identity and source of original game devs.</br>
 
+## Pre-Requisite
+- **General section.**
+- [DLL File](https://en.wikipedia.org/wiki/Dynamic-link_library) - This project is DLL file rather than standard application.</br>
+- [DLL Injection](https://en.wikipedia.org/wiki/DLL_injection) - This project needs DLL injection into _IGI_ game.</br>
+- [Hooking](https://en.wikipedia.org/wiki/Hooking) - This project uses [Minhook](https://github.com/TsudaKageyu/minhook) for API calls.</br>
+- [GTLibc](https://github.com/haseeb-heaven/GTLibc) -C/C++ library for interactig with Game.</br>
+- [Pattern Scanning](https://memoryhackers.org/konular/external-internal-pattern-scanning-guide.95460/) - This project use pattern memory scanning to check Game/Player is loaded properly.</br>
+- **Game specific section.**
+- [IGI Graphs Structure](https://github.com/IGI-Research-Devs/IGI-Research-Data/blob/main/Research/GRAPH/Graph-Structure.txt) - Project IGI 1 Graph structure data.
+- [IGI 3D Modes](https://github.com/IGI-Research-Devs/IGI-Research-Data/blob/main/Research/Natives/IGI-Models.txt) - Project IGI uses 3D models in 
+form of _MEF_ (**M**esh **E**xternal **F**ile).
+- [IGI Camera View](https://www.researchgate.net/figure/Definition-of-pitch-roll-and-yaw-angle-for-camera-state-estimation_fig15_273225757) - IGI use game Camera called [Viewport](https://en.wikipedia.org/wiki/Viewport) to display the game.
+- **Native section.**
+- Natives Invoker - Native invoker is a technology to invoke native methods from Game using their **Hash** with its **Handler**. 
+
+## Building DLL project.
+Open this project in your favourite IDE _(Visual Studio)_ and build it and your output will be **Release/Debug** folder depends which configuration you choosed and you will find file _IGI-Internals-Release.dll_ so download your favourite DLL injector make sure its **x86(32-bit)** compatible otherwise injection wouldn't work or you can use recommended [IGI-Injector](https://github.com/IGI-Research-Devs/IGI-Injector) to inject DLL.
+
+## Building project for IGI Editor.
+The project could be build for [IGI Editor](https://github.com/IGI-Research-Devs/IGI1Editor) the only thing we need to change is **Features.cpp** file we have to update with **Features file for Editor** which could be found here [Features_Editor.cpp](https://github.com/IGI-Research-Devs/IGI_Internal/blob/master/IGI_Internal/Features_Editor.cpp)
+
+
+## Modifying this project.
+You can modify the project the only file you need to focus on is **Features file** which could be found here [Features.cpp](https://github.com/IGI-Research-Devs/IGI_Internal/blob/master/IGI_Internal/Features.cpp) in _DllMainLoop()_ method go to _MENU_SCREEN_INGAME_ section add you logic for Adding/Removing Buildings/Weapons/A.I etc into the game.</br>
+
+There are shown 5 examples into _Features.cpp_ file.
+- Enable Debug mode.
+- Restart game.
+- Weapon pickup.
+- Frames setting
+- Humanplayer load.
+
+## Adding new hashes for Natives.
+Lets say you found new hash for Native now how to add them into project and use them.
+So you have to follow the steps.
+1. First Add your Hash to _Natives.hpp_ class like this 
+```cpp
+  MY_FIRST_NATIVE = 0x00402F90
+```
+2. Go to Natives folder and open _NativeHelper.hpp_ file and in any relevant section add its definition.
+```cpp
+  NATIVE_DECL void MY_FIRST_NATIVE_LOAD() { NATIVE_INVOKE<Void>((Void)HASH::MY_FIRST_NATIVE); }
+```
+3. Now go to _Features.cpp_ class and use it. 
+```cpp
+  		// Native method.
+		else if (GT_HotKeysPressed(VK_CONTROL, VK_F1)) {
+			MY_FIRST_NATIVE_LOAD();
+		}
+```
+
+# This section requires to be updated.
 ## IGI-Internals Docs
 
 ## Resource Section.
