@@ -16,7 +16,7 @@ Memory::Memory(bool scanOnInit) {
 
 	//Init Signature patterns. 
 	string sig_err_reason;
-	bool init_sigs = true;//g_Memory->SignatureScan(sig_err_reason);
+	bool init_sigs = g_Memory->SignatureScan(sig_err_reason);
 	if (init_sigs)
 		LOG_INFO("Signatures Scanning done.");
 	else {
