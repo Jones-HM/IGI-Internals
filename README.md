@@ -296,4 +296,99 @@ controls.AXIS_OFF(0.5f); //Offset value to move Camera from Axis.
 CAMERA::FREECAM(controls);
 ```
 
+### Memory and Player Operations
+
+### Memory and Player Operations
+
+The following code snippets demonstrate various memory and player operations in C++:
+
+### Memory Allocation
+
+address_t memory_address = MEMORY::ALLOC(1, 1024);
+
+### Memory Deallocation
+
+```MEMORY::DEALLOC();```
+
+### Player Name Setting
+
+```cpp
+PLAYER::INDEX_NAME_SET(0, "Player1");
+```
+
+string player_name = "Player2";
+PLAYER::INDEX_NAME_SET(1, player_name);
+
+### Player Mission Setting
+
+```cpp
+PLAYER::INDEX_MISSION_SET(0, 2);
+```
+
+### Active Player Name Setting
+
+```cpp
+PLAYER::ACTIVE_NAME_SET("ActivePlayer");
+
+string active_player_name = "ActivePlayer2";
+PLAYER::ACTIVE_NAME_SET(active_player_name);
+```
+
+### Active Player Name and Mission Retrieval
+
+### Get the name of the active player.
+```cpp
+string active_player_name = PLAYER::ACTIVE_NAME_GET();
+```
+
+### Get the mission of the active player.
+```cpp
+int active_player_mission = PLAYER::ACTIVE_MISSION_GET();
+```
+
+### Active Player Mission Setting
+
+```cpp
+PLAYER::ACTIVE_MISSION_SET(3);
+```
+
+### Player Profile Status Check
+
+```cpp
+char* is_profile_active = PLAYER::IS_PROFILE_ACTIVE();
+```
+
+### Configuration Operations
+
+
+### Read Default Configuration File
+```cpp
+CONFIG::READ();
+```
+
+### Read Specified Configuration File
+```cpp
+CONFIG::READ("config.cfg");
+```
+
+### Write Default Game Configuration File
+```cpp
+CONFIG::WRITE();
+```
+
+### Write Specified Configuration File
+```cpp
+CONFIG::WRITE("weaponconfig.cfg");
+```
+
+### Read Default Weapon Configuration File
+```cpp
+CONFIG::WEAPON_CONFIG_READ();
+```
+
+### Read Specified Weapon Configuration File
+```cpp
+CONFIG::WEAPON_CONFIG_READ("my_weapon_config.cfg");
+```
+
 Original Author : _HeavenHM@2022_.
