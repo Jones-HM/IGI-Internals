@@ -138,4 +138,55 @@ RT ThreadCallerExec(void* func_ptr, T1 param1, T2 param2, T3 param3, T4 param4) 
 	if constexpr (!std::is_same_v<RT, void>)
 		return ret_val;
 }
+
+void StatusMsgShow() {
+	try {
+		string data = InternalDataRead();
+		MISC::STATUS_MESSAGE_SHOW(data);
+	}
+	catch (const std::exception& ex)
+	{
+		LOG_INFO("Exception: %s", ex.what());
+	}
+}
+
+void ScriptCompile() {
+	try {
+		string script_file = InternalDataRead();
+		SCRIPT::COMPILE(script_file);
+		LOG_INFO("Script Compile file '%s' done!", script_file.c_str());
+	}
+	catch (const std::exception& ex)
+	{
+		LOG_INFO("Exception: %s", ex.what());
+	}
+	//MISC::STATUS_MESSAGE_SHOW("Script Compile file done!");
+}
+
+string InternalDataRead() {
+	string data;
+	try {
+		string internal_data_file = g_Utility.GetModuleFolder() + "\\" + PROJECT_NAME + "-data.txt";
+		std::ifstream in_stream(internal_data_file);
+
+		if (in_stream.good()) {
+			std::getline(in_stream, data);
+		}
+		else {
+			throw std::runtime_error("Internal data file doesn't exist in current directory");
+		}
+	}
+	catch (const std::exception& ex)
+	{
+		LOG_INFO("Exception: %s", ex.what());
+	}
+	return data;
+}
+
+bool InternalDataWrite(string data) {
+	string internal_data_file = g_Utility.GetModuleFolder() + "\\" + PROJECT_NAME + "-data.txt";
+	auto status = WriteFileType(internal_data_file, binary_t(data.begin(), data.end()), BINARY_FILE);
+	return status;
+}
+
 #pragma endregion
